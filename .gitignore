@@ -1,0 +1,58 @@
+# Dependências
+node_modules/
+.pnp/
+.pnp.js
+
+# Build e empacotamento
+dist/
+out/
+build/
+release/
+*.tsbuildinfo
+
+# Electron: bundle do main, empacotamento e cache de download do binário
+dist-electron/
+dist_electron/
+out-electron/
+release-builds/
+app.asar
+*.asar
+.electron/
+.electron-gyp/
+electron-builder.env
+
+# Ingestão: conteúdo bruto fica fora do versionamento (RF-119, D-015, D-042)
+/ingest/*
+!/ingest/.gitkeep
+
+# Banco local: o SQLite é estado de máquina, não fonte de verdade (D-001)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+/dados/
+
+# Ambiente e segredos
+.env
+.env.*
+!.env.example
+
+# Logs e cobertura
+*.log
+npm-debug.log*
+coverage/
+.nyc_output/
+
+# Editor e sistema operacional
+.DS_Store
+Thumbs.db
+# WSL: metadado de origem que o Windows cria em arquivo baixado
+*Zone.Identifier
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Configuração local de agente (a compartilhada é versionada)
+.claude/settings.local.json
