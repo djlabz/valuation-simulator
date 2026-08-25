@@ -220,6 +220,7 @@ a decisão está fixada aqui.
 | Agente propor modelo dentro da whitelist, com justificativa | Agente propor modelo fora da lista habilitada | RF-205, RF-206, D-022 |
 | Valor opcional vazio, com o efeito derivado da presença do valor | Flag booleana de premissa, inclusive com `default: false` | RF-421, D-040 |
 | Recomendação de metodologia, tipo "(maior precisão)" em modo de granularidade | Recomendação sobre ativo ou decisão de investimento | RF-105, RP-001 |
+| `number` para contagem sem unidade financeira: casas decimais na formatação, quantidade de períodos, código de modo de arredondamento | `number` para dinheiro, taxa, percentual, razão, fator e peso, inclusive em fixture e em teste | RNF-001, D-002, D-045 |
 | Nota de ativo restringindo a lista de modelos habilitados | Nota de ativo ampliando a lista, alterando regra dura ou múltiplo bloqueado | RF-109, D-020 |
 | Ausência deliberada de faixa em `preco_normalizado_lp` | Adicionar faixa "porque os outros campos têm" | D-014, R-201 |
 

@@ -54,5 +54,20 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Configuração local de agente (a compartilhada é versionada)
-.claude/settings.local.json
+# Resíduo de ferramenta local
+#
+# A pasta .claude fica fora inteira, e não só o settings.local.json, por causa de um
+# caso concreto do Passo 1: apareceu um worktree do git em .claude/worktrees/<nome>,
+# criado por ferramenta. Worktree é uma cópia do repositório dentro do repositório,
+# então com apenas o settings.local.json ignorado bastava um git add -A distraído para
+# engolir a árvore inteira duplicada.
+#
+# A exceção é .claude/skills, que não é resíduo: é artefato do projeto, versionado e
+# revisado por commit (RNF-011, D-038). O padrão exclui o conteúdo de .claude em vez da
+# pasta, porque o git não reinclui nada dentro de um diretório já excluído.
+/.claude/*
+!/.claude/skills/
+
+# Saída do Stryker, gerada a cada rodada de mutation testing (D-049)
+.stryker-tmp
+reports

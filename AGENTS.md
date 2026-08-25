@@ -11,8 +11,8 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 ## 1. Estado atual
 
 **Data:** 25/08/2026
-**Etapa concluída:** Passo 0, governança
-**Etapa seguinte:** Passo 1, esqueleto do monorepo e tipos de dinheiro, aguardando
+**Etapa concluída:** Passo 1, esqueleto do monorepo e tipos de dinheiro
+**Etapa seguinte:** Passo 2, schema Zod do conhecimento e CLI de validação, aguardando
 aprovação explícita
 
 **Existe:**
@@ -24,17 +24,27 @@ aprovação explícita
   não é fonte de verdade. As divergências contra a v2.2 estão no cabeçalho do arquivo
 - os quatro arquivos de governança
 - repositório git inicializado, `/ingest` fora do versionamento
+- monorepo Bun com um workspace, `packages/shared`, mais `package.json` da raiz,
+  `tsconfig.base.json`, `vitest.config.ts`, `stryker.config.json` e `.editorconfig`
+- `packages/shared`, o pacote `@valuation/shared`, com `decimal-config.ts` (construtor
+  clonado de D-046), `money.ts` (`Money<Moeda>`), `rate.ts` (`Rate` e as conversões de bps)
+  e `index.ts` como porta pública
+- suíte Vitest com 68 testes, e `tsc --noEmit` cobrindo os `@ts-expect-error`
+- mutation testing rodando por Stryker sobre `packages/shared`, score de 97,87% (D-049)
 
-**Não existe:** nenhuma linha de código de produto, nenhum `package.json`, nenhum pacote,
-nenhum playbook em arquivo YAML separado, nenhum schema, nenhuma skill local, nenhuma
-verificação automática.
+**Não existe:** nenhum outro pacote (`conhecimento`, `dominio`, `core` e `desktop` nascem
+quando tiverem conteúdo), nenhuma engine, nenhum schema Zod, nenhum playbook em arquivo
+YAML separado, nenhuma skill local, nenhum banco, nenhuma interface. A inspeção adversarial
+continua manual, a skill de RNF-011 nasce no Passo 2.
 
 ---
 
 ## 2. Mapa de pastas alvo
 
-Estrutura do Passo 1, ainda não criada. Está aqui para o agente saber onde cada coisa vai
-antes de criar.
+Estrutura alvo. `package.json`, `packages/shared` e os arquivos de configuração da raiz
+existem desde o Passo 1. O resto ainda não foi criado, e está aqui para o agente saber onde
+cada coisa vai antes de criar. Pacote nasce quando tem conteúdo, e o glob `packages/*` do
+workspace já aceita os que vierem.
 
 ```
 valuation-simulator/
@@ -51,7 +61,7 @@ valuation-simulator/
 │   └── eventos/
 ├── ingest/                      conteúdo bruto, fora do build e fora do git
 ├── packages/
-│   ├── shared/                  Money, Bps, Decimal, tipos base
+│   ├── shared/                  Money, Rate, construtor Decimal fixado (D-045 a D-047)
 │   ├── conhecimento/            schema Zod e loader
 │   ├── dominio/                 engines/ e validadores/, puro, sem I/O
 │   ├── core/                    Elysia, SQLite, MCP, providers, vigia
@@ -72,7 +82,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | Passo | Conteúdo | Estado |
 |---|---|---|
 | 0 | Governança, git, documento em `docs/` | Concluído |
-| 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Bps` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Pendente |
+| 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
 | 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Pendente |
 | 3 | Duas trilhas em paralelo, ver abaixo | Pendente |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |

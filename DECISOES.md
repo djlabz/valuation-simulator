@@ -126,3 +126,160 @@ não entra em documento como fato. Vale para prompt de tarefa também, não só 
 
 **Nota de numeração.** O ID é posterior a D-045 a D-047 porque aqueles foram reservados em
 conversa. `DECISOES.md` é append only por ordem de registro, não por ordem de execução.
+
+### D-045. Valor financeiro é `Decimal` com guardrails, string no armazenamento
+
+**Decisão.** Toda grandeza numérica do domínio é representada por uma instância de `Decimal`
+(`decimal.js`) em memória e por string decimal em texto plano no armazenamento e na
+serialização. `number` é proibido para dinheiro, taxa, percentual, razão, fator e peso,
+inclusive em fixture e em teste. Confirma e detalha RNF-001 e D-002, sem emendá-los.
+
+**Motivo.** O produto é uma calculadora com um banco anexo, não o contrário: dinheiro aqui é
+resultado de projeção descontada, não saldo transacional. Metade do domínio não é dinheiro
+(taxa de desconto, Rf, beta, ERP, g, ROE, Basileia, DY, peso de cenário), e boa parte dessas
+grandezas se multiplica com dinheiro ou entre si, o que uma representação inteira de dinheiro
+não cobre sem uma segunda e uma terceira representação e conversões entre elas. Na precisão,
+DCF é feito de divisão, e divisão é onde o inteiro obriga a arredondar: arredondar por período
+acumula erro ao longo de trinta períodos e esse erro entra no denominador pequeno de (Ke - g)
+no valor terminal.
+
+**Descartado, centavo inteiro em `number`.** Aceita qualquer operação sem reclamar. `valor * 1.1`
+compila e roda, somar centavo com real devolve resultado plausível. Erro de unidade difuso por
+todo lugar onde dinheiro é tocado.
+
+**Descartado, centavo inteiro em `bigint`.** Divisão de `bigint` trunca em vez de arredondar.
+Truncamento tem sinal, então o erro não se cancela ao longo de trinta períodos, acumula numa
+direção e depois entra no denominador pequeno do valor terminal. Este foi o argumento decisivo.
+
+**Descartado, ponto fixo artesanal em `bigint` com escala 1e-8.** Ganha nada sobre a opção
+adotada, custa uma biblioteca própria que ninguém mais saberá manter, e reintroduz o problema de
+arredondamento na divisão.
+
+**Custo aceito.** Coluna TEXT no SQLite, sem `SUM()` nem `ORDER BY` numérico de dinheiro no banco.
+Toda agregação e ordenação sobem para o core, que já é dono exclusivo do SQLite e opera sobre
+volume de watchlist. A perda é de conveniência de diagnóstico, não de arquitetura. Na migração
+para Postgres (RNF-002), a coluna permanece TEXT: trocar para NUMERIC criaria duas semânticas
+diferentes entre ambientes, com ordenação no core num lado e no SQL no outro, o que é pior que a
+limitação original.
+
+**Contrapartida reconhecida.** Esta opção também erra em silêncio, em três pontos:
+`new Decimal(0.1)` importa erro de float sem avisar, `d1 === d2` compila e é sempre falso entre
+instâncias distintas, e `toString()` de valor pequeno vira notação exponencial. A diferença é que
+são três pontos nomeáveis e fecháveis na construção, tratados em D-046 e D-047, e não um erro
+difuso de unidade.
+
+### D-046. Configuração do `decimal.js` fixada em construtor clonado
+
+**Decisão.** O projeto não importa `decimal.js` diretamente em nenhum lugar.
+`packages/shared` exporta um construtor clonado com `Decimal.clone()` e configuração fixa, e todo
+o resto do código usa apenas esse construtor. A configuração é: `precision` 34, `rounding`
+`ROUND_HALF_EVEN`, `toExpNeg` -9e15, `toExpPos` 9e15.
+
+**Motivo de cada valor.** `precision` 34 é o número de dígitos significativos do decimal128 do
+IEEE 754, valor de referência em vez de arbitrário, e dá folga de mais de vinte dígitos sobre os
+cerca de doze necessários para reais na casa dos bilhões, o que absorve a amplificação de erro do
+denominador pequeno em (Ke - g). `ROUND_HALF_EVEN` não tem viés sistemático, enquanto
+`ROUND_HALF_UP` empurra sempre para cima e num fluxo com centenas de arredondamentos o viés é
+direcional. `toExpNeg` e `toExpPos` nos extremos desligam a notação exponencial na serialização,
+fechando o buraco de 1e-9 chegar ao banco como "1e-9" e quebrar leitura e ordenação lexicográfica.
+
+**Motivo do clone em vez de `Decimal.set`.** `Decimal.set` altera o construtor global do módulo.
+Qualquer dependência transitiva que também use `decimal.js` e chame `set` sobrescreve a
+configuração do projeto em silêncio, e o efeito aparece como resultado numérico levemente
+diferente, sem erro. Com `clone`, a configuração pertence ao projeto e é imune.
+
+**Verificação.** Um teste afirma os quatro valores no construtor exportado, e outro prova o round
+trip de string em valor pequeno e grande sem notação exponencial. Configuração sem teste é
+configuração que alguém remove por engano.
+
+**Aberto e datado.** O valor 34 será reavaliado na Fase 8, comparando resultado das engines contra
+cálculo manual independente. Se a tolerância exigir mais, sobe com decisão nova.
+
+### D-047. `Money<Moeda>` e `Rate`, com Bps apenas como formato de borda
+
+**Decisão.** Dois tipos nominais sobre o construtor de D-046. `Money<C>`, com C sendo a moeda como
+parâmetro de tipo fantasma, sem custo em runtime, e a v1 usando `'BRL'` e `'USD'`. `Rate`, para
+toda grandeza adimensional: taxa, percentual, razão, fator de desconto, beta, multiplicador e peso
+de cenário. Bps não é tipo de armazenamento, é formato de entrada e de exibição, ou seja, funções
+de conversão de e para `Rate`.
+
+**Álgebra permitida, imposta pelo tipo.** `Money<C>` mais ou menos `Money<C>` devolve `Money<C>`,
+com mesma moeda obrigatória. `Money<C>` vezes `Rate` devolve `Money<C>`. `Money<C>` dividido por
+`Money<C>` devolve `Rate`. `Rate` com `Rate` em soma, subtração, multiplicação ou divisão devolve
+`Rate`. `Money<C>` vezes `Money<C>` é proibido no tipo, porque real vezes real não tem
+significado. `Money<'BRL'>` mais `Money<'USD'>` é proibido no tipo. Conversão de moeda é função
+dedicada que exige um `Rate` de câmbio informado, nunca implícita.
+
+**Motivo do Bps não ser tipo.** O handoff previa Bps como inteiro de basis points, carryover de
+outro projeto. Não serve aqui: beta 0,72 não é taxa e não tem representação em bps, e o fator de
+desconto 1/(1+r)^n é um número de muitas casas, não uma taxa. Manter Bps como tipo obrigaria
+conversão de escala e arredondamento intermediário dentro do CAPM, e arredondar o Ke antes de
+descontar trinta anos contamina o resultado inteiro.
+
+**Motivo da moeda no tipo.** A interface da v1 é BRL, mas o playbook de Commodities tem
+`preco_normalizado_lp` na moeda de referência da commodity, `cambio_normalizado_lp` como premissa
+obrigatória e R-202 exigindo câmbio de longo prazo. Existe um caminho real onde USD e BRL se
+encontram. Somar os dois compila e devolve número plausível, que é a categoria "cálculo errado com
+aparência de correto" da tabela de riscos. Custo agora é uma linha de tipo e um teste; custo
+depois é toda engine, toda fixture e o schema do snapshot.
+
+**Descartado, separar `Rate` de `Ratio`.** Distinguir taxa de razão adimensional pura foi
+considerado. Álgebra idêntica, ganho semântico pequeno, e a conversão constante entre os dois
+seria fricção sem proteção nova. Um tipo só, documentado como grandeza adimensional.
+
+**Descartado, `Money` sem moeda com verificação em runtime.** Erro que aparece em runtime só
+aparece se aquele caminho for executado, e o caminho de commodities só existe a partir da Fase 8.
+Verificação no tipo aparece na compilação.
+
+### D-049. Stryker com runner de Vitest, ligado desde o Passo 1
+
+**Decisão.** O mutation testing (RF-505) fica ligado desde já, com Stryker 10.0.0 e
+`@stryker-mutator/vitest-runner`, configurado em `stryker.config.json` na raiz e rodando
+sobre `packages/shared`. A configuração que funcionou:
+
+```json
+{
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "reporters": ["progress", "clear-text"],
+  "coverageAnalysis": "all",
+  "mutate": ["packages/shared/src/**/*.ts", "!packages/shared/src/**/*.test.ts"],
+  "vitest": { "configFile": "vitest.config.ts" }
+}
+```
+
+Fechou na primeira tentativa, dentro do timebox, sem workaround. `packageManager` fica em
+`npm` porque o Stryker roda em Node e usa esse campo só para instalar plugin quando falta,
+o que não acontece aqui: as dependências já vêm do `bun install`, e o Bun continua sendo o
+gerenciador do projeto (D-035).
+
+**Score.** Três rodadas na mesma sessão, com a suíte crescendo entre elas: 63,96% na
+primeira, 95,43% depois dos testes que os sobreviventes pediram, 97,87% na terceira, com
+`money.ts` em 100%. Sobraram quatro mutantes vivos, todos classificados abaixo.
+
+**O que os sobreviventes acharam, e que teste nenhum tinha achado.** Três coisas reais.
+Os predicados de sinal (`ehZero`, `ehPositivo`, `ehNegativo`) não tinham teste nenhum, e
+`return true` passava batido nos dois tipos. A guarda de overflow existia e nenhum teste
+chegava nela, então o rótulo da operação em `garantirFinito` podia sumir sem quebrar nada.
+E dois trechos eram código morto: o ramo `if (valor === undefined)` em `descrever` e em
+`nomeDoTipo`, redundante porque `typeof undefined` já devolve `'undefined'`, mais o
+`Money[INTERNO]()`, que não tinha um único chamador porque `Money.converter` lê o campo
+privado direto. Os dois foram removidos, não testados.
+
+**Os quatro sobreviventes restantes.** Três são rótulo de campo em caminho de erro
+inalcançável: em `rateDeBps` e `bpsDeRate` o operando é a constante `'10000'`, que nunca
+falha na leitura e nunca é zero na divisão, então a mensagem que nomeia o campo não tem
+como ser exercitada. São equivalentes, não lacuna. O quarto é falso positivo verificado na
+mão: trocar `toExpNeg: -9e15` por `+9e15` faz o `Decimal.clone` estourar na carga do
+módulo, os três arquivos de teste falham e a suíte sai com exit code 1, ou seja, o mutante
+morre. O Stryker não contabiliza isso porque a falha acontece no import e nenhum teste
+chega a rodar.
+
+**Mudança de `coverageAnalysis`.** Começou em `perTest` e passou para `all`. Com `perTest`,
+mutante em código de módulo, que roda uma vez na carga, aparece como sobrevivente sem ser.
+Com `all` a diferença foi de 95,43% para 97,87% sem uma linha de teste nova, o que mede o
+erro de medição, não o código. Custo de 12 segundos numa base deste tamanho, irrelevante.
+
+**Aberto e datado.** Não existe limiar de score configurado, de propósito: limiar antes de
+existir engine vira número escolhido no escuro. O limiar nasce no Passo 3, junto com a
+primeira engine, que é onde RF-505 realmente morde.
