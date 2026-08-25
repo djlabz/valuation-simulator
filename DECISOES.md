@@ -101,3 +101,28 @@ e não com underscore. Cópia byte a byte, sem edição de conteúdo.
 **Motivo.** As referências cruzadas do handoff e dos documentos de governança usam o ponto.
 Duas grafias circulando quebram toda referência futura, e a divergência não é detectável a
 olho em revisão de diff.
+
+### D-048. Handoff de planejamento no repositório como registro histórico, com ressalva
+
+**Decisão.** O handoff da sessão de planejamento entra em
+`docs/HANDOFF-planejamento-2026-08-24.md` como registro histórico, não como fonte de
+verdade. O arquivo recebe cabeçalho de ressalva no topo, com as divergências verificadas
+contra a v2.2, e o `AGENTS.md` registra a existência do arquivo na seção de estado.
+
+**Motivo.** O handoff foi escrito contra uma versão anterior do documento de requisitos e
+diverge da v2.2 em pontos verificados: declara a v2.1 como fonte de verdade, conta 111
+requisitos funcionais e 39 decisões onde a v2.2 tem 113 e 41, manda semear o `DECISOES.md`
+com 35 decisões, e descreve a exigência de RF-110 só com `validade_ate`, quando a v2.2
+exige `validade_ate` e `revisar_em`. Sem ressalva, um agente futuro encontra dois
+documentos com aparência equivalente de autoridade em `docs/` e reproduz o erro. O valor do
+arquivo é o porquê das decisões, que o documento de requisitos não conta, e isso justifica
+preservar em vez de descartar.
+
+**Nota de método.** A versão anterior desta tarefa ditava as divergências como fato, e duas
+delas não estavam no arquivo: tinham sido inferidas a partir da v2.2, não verificadas
+contra o handoff. A tarefa foi interrompida e reescrita para que o levantamento fosse feito
+sobre o arquivo, com evidência. Regra 5 da governança: explicação inferida sem verificação
+não entra em documento como fato. Vale para prompt de tarefa também, não só para relatório.
+
+**Nota de numeração.** O ID é posterior a D-045 a D-047 porque aqueles foram reservados em
+conversa. `DECISOES.md` é append only por ordem de registro, não por ordem de execução.

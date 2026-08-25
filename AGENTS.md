@@ -20,6 +20,8 @@ aprovação explícita
 - `docs/REQUISITOS-valuation-simulator-v2.2.md`, escopo fechado e aprovado, cópia byte a
   byte da versão aprovada. 113 requisitos funcionais, 12 não funcionais, 41 decisões, três
   playbooks setoriais em YAML integral
+- `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico da sessão de 24/08/2026,
+  não é fonte de verdade. As divergências contra a v2.2 estão no cabeçalho do arquivo
 - os quatro arquivos de governança
 - repositório git inicializado, `/ingest` fora do versionamento
 
