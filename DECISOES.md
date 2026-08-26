@@ -11,6 +11,11 @@ mesmo debate volta em três semanas.
 transcritas, não recriadas. A partir de D-042 as decisões nascem em sessão de trabalho e
 registram a sessão de origem.
 
+**Seções.** Cabeçalho de sessão é por data, aberto quando a data virar, nunca por passo.
+Passo rende decisão fora dele, o rótulo apodrece, e o passo já aparece no texto de cada
+decisão quando importa. Renomear rótulo de seção não fere o append only: nenhuma decisão é
+alterada nem removida.
+
 ---
 
 ## Transcritas do documento de requisitos v2.2.0
@@ -61,7 +66,7 @@ registram a sessão de origem.
 
 ---
 
-## Sessão de 25/08/2026, Passo 0
+## Sessão de 25/08/2026
 
 ### D-042. `/ingest` fora do versionamento, com `.gitkeep`
 
@@ -283,3 +288,182 @@ erro de medição, não o código. Custo de 12 segundos numa base deste tamanho,
 **Aberto e datado.** Não existe limiar de score configurado, de propósito: limiar antes de
 existir engine vira número escolhido no escuro. O limiar nasce no Passo 3, junto com a
 primeira engine, que é onde RF-505 realmente morde.
+
+### D-050. Resíduo de ferramenta fora do versionamento, com exceção para skills
+
+**Decisão.** O `.gitignore` exclui o conteúdo de `.claude` com o padrão `/.claude/*` e
+reinclui `.claude/skills` com `!/.claude/skills/`. Também exclui `.stryker-tmp` e `reports`.
+
+**Motivo.** No Passo 1 apareceu um worktree do git em `.claude/worktrees/<nome>`, criado por
+ferramenta. Worktree é uma cópia do repositório dentro do repositório, e com apenas o
+`settings.local.json` ignorado bastava um `git add -A` distraído para engolir a árvore
+inteira duplicada.
+
+**Por que o conteúdo e não a pasta.** Ignorar `.claude` inteira colide com a governança do
+próprio projeto: a skill de inspeção adversarial nasce em
+`.claude/skills/inspecao-conformidade/`, é exigida por RNF-011 e por D-038, e o
+`PROTOCOLO-ETAPA.md` manda a inspeção ser conduzida por ela. Se o padrão excluir o diretório,
+o git não desce nele e a negação `!/.claude/skills/` não tem efeito, então a skill seria
+commitada e simplesmente não apareceria no clone. Falha silenciosa: nada quebra, o arquivo só
+não existe. Excluir o conteúdo preserva a negação, e é a mesma técnica que `/ingest/*` mais
+`!/ingest/.gitkeep` já usa desde o Passo 0.
+
+**Consequência aceita.** `git check-ignore -v .claude` devolve exit 1, porque o diretório nu
+não casa com o padrão. Isso é esperado e não é falha: o git versiona arquivo, não diretório. A
+verificação correta é `git add -A --dry-run`, que simula o acidente e mostra o que de fato
+entraria.
+
+**Descartado.** `.claude/` inteira com `git add -f` manual para a skill. Proteção que depende
+de alguém lembrar de um `-f` no momento certo não é proteção.
+
+### D-051. Lockfile versionado
+
+**Decisão.** O `bun.lock` entra no repositório e é tratado como parte da fonte, não como
+artefato de build.
+
+**Motivo.** Reprodutibilidade é o eixo deste produto, e o RF-801 exige que os mesmos inputs e
+as mesmas versões produzam resultado idêntico. Sem lockfile, a faixa `"decimal.js": "^10.6.0"`
+deixa outra máquina resolver uma versão diferente, e o mesmo snapshot pode devolver outro
+número sem que nenhuma premissa tenha mudado. O lockfile é o que transforma "mesmas versões"
+de intenção em fato verificável: ele prende `decimal.js` em 10.6.0 com hash de integridade.
+
+**Alcance.** Vale para toda dependência que influencie cálculo ou verificação, o que neste
+projeto é praticamente todas: `decimal.js`, TypeScript, Vitest, Stryker, Prettier e o linter
+quando entrar. Vale também para ferramenta que altera arquivo versionado, mesmo quando ela não
+toca em cálculo nem em verificação pela letra. O caso é o formatador: versão diferente de
+Prettier reformata arquivo inteiro e transforma o diff da etapa seguinte em ruído. Num projeto
+onde conformidade é conferida lendo diff, formatador solto destrói a ferramenta de revisão.
+
+### D-052. Integridade da verificação: saída de sucesso precisa carregar prova de execução
+
+**Decisão.** Exit code zero, sozinho, não é prova de execução neste projeto. Toda saída
+reportada como sucesso precisa conter algo que não existiria se o comando não tivesse rodado
+de verdade: número de versão, hash, contagem, nome de arquivo, número de linha. Ferramenta que
+reporta resultado agregado, como score de mutação, não é oráculo, e resultado suspeito é
+verificado à mão.
+
+**Primeiro caso, wrapper fabricando sucesso.** O wrapper `rtk` devolve texto de sucesso para o
+binário `tsc`, que não existe no PATH desta máquina. Reproduzido nesta sessão, duas vezes
+seguidas, com saída literal:
+
+```
+$ command -v tsc
+$ echo $?
+1
+$ which -a tsc
+$ echo $?
+1
+$ rtk tsc --version
+TypeScript: No errors found
+[full output: ~/.local/share/rtk/tee/1787701364_tsc.log]
+$ echo $?
+1
+$ cat ~/.local/share/rtk/tee/1787701364_tsc.log
+                This is not the tsc command you are looking for
+
+To get access to the TypeScript compiler, tsc, from the command line either:
+
+- Use npm install typescript to first add TypeScript to your project before using npx
+- Use yarn to avoid accidentally running code from un-installed packages
+```
+
+O log do próprio wrapper mostra que o comando real falhou, e o que ele imprimiu na tela foi
+"No errors found". Duas ressalvas de honestidade: nesta reprodução o exit code veio 1, ou
+seja, o que foi fabricado foi o texto, não o código; e a saída literal do caso original,
+observado em outra sessão e relatado com exit 0, não foi reconstituída, porque aquele
+transcript não está disponível aqui. O que está gravado acima é o que foi executado nesta
+sessão.
+
+**Por que isso é grave.** Ataca a RNF-005 na raiz. A regra de exit code verbatim existe para
+eliminar a camada interpretativa entre o comando e o leitor, e um wrapper que sintetiza
+sucesso reintroduz essa camada, invisível e mais convincente que prosa. Uma afirmação em prosa
+desperta desconfiança. Um "No errors found" não.
+
+**Segundo caso, ferramenta reportando falso negativo.** No Passo 1, o Stryker classificou como
+sobrevivente um mutante em `toExpNeg` que a suíte de fato mata. A verificação à mão mostrou
+que o mutante quebra na carga do módulo, os três arquivos de teste falham e o exit é 1. O
+Stryker não contabiliza porque nenhum teste chega a rodar. O sobrevivente era falso, e só
+apareceu porque alguém desconfiou do resultado em vez de aceitar o score.
+
+**Consequência.** A regra vira gate no `PROTOCOLO-ETAPA.md`, seções 3 e 6.
+
+**Descartado.** Trocar de wrapper ou de runner. O problema não é de ferramenta específica, é
+de confiar em sinal agregado, e trocar a ferramenta só troca o formato da mentira.
+
+### D-053. Linter: oxlint com type-aware, Prettier, `tsc` separado
+
+**Decisão.** oxlint como linter, com type-aware habilitado a partir do Passo 2. Prettier como
+formatador. `tsc --noEmit` mantido como passo de verificação separado. A versão do oxlint e do
+oxlint-tsgolint fica travada no lockfile (D-051).
+
+**Por que oxlint, e o motivo mudou depois da verificação.** A razão inicial era custo em
+monorepo Bun, sem dependência de plugin do ecossistema ESLint que justificasse ESLint. A
+verificação achou uma razão mais forte: neste workspace, o pacote npm `typescript` é uma casca
+do typescript-go, e `require('typescript')` devolve apenas `version` e `versionMajorMinor`.
+`createProgram` não existe. Qualquer linter type-aware que precise da API JS do compilador não
+funciona aqui, o que exclui typescript-eslint com type-aware por impossibilidade técnica, não
+por preferência. O oxlint-tsgolint embute o próprio typescript-go e não depende dessa API.
+
+**Por que type-aware só no Passo 2.** As regras que importam neste projeto atacam dado externo
+entrando como `any` e exaustividade de discriminação, e nenhuma das duas tem onde morder em
+`packages/shared`, que não tem async, não tem `any` e não tem `switch`. O lugar onde elas valem
+é o loader de conhecimento do Passo 2, que lê YAML antes do Zod, e depois o core com providers
+e queries. As regras nomeadas como prioritárias: `no-unsafe-assignment` e `no-unsafe-argument`
+primeiro, porque o caminho de contaminação real é dado de provider e de documento extraído
+pelo agente; depois `switch-exhaustiveness-check`, porque a v1 tem três setores e o escopo
+declarado prevê seis, e setor novo sem branch precisa quebrar em CI e não em runtime; depois
+`no-floating-promises`, `no-misused-promises` e `await-thenable`, que só têm objeto quando o
+core existir.
+
+**Por que `tsc --noEmit` continua separado.** O oxlint aceita `--type-check` e compartilharia o
+programa, mas neste projeto o type-check é garantia estrutural, não conveniência de linter.
+Mantendo separado, o gate continua de pé se o linter quebrar ou for trocado. Consolidação só
+depois de ver as duas ferramentas concordando por algumas etapas, e com decisão nova.
+
+**Por que travar a versão.** O oxlint-tsgolint versiona junto com o TypeScript que embute, no
+formato `<versao-do-typescript>.<patch>`, então travar o pacote trava também a semântica de
+tipos aplicada pelo lint. Consequência: atualizar o oxlint passa a ser decisão consciente, com
+verificação de que a versão embutida continua batendo com a do compilador do projeto, e nunca
+efeito colateral de um update distraído.
+
+**Divergência de versão, risco residual.** Existem duas cópias do typescript-go no projeto, a
+do workspace travada pelo lockfile e a embutida no binário do linter. Não são semânticas
+diferentes, são a mesma implementação em versões que podem derivar. O risco é detectável
+comparando as duas versões, e a comparação entra como verificação quando o linter for
+configurado.
+
+**Relação com a aritmética de dinheiro, para ninguém assumir proteção que não existe.** Nenhuma
+regra do linter impede somar dois valores monetários. Isso não é problema aqui porque a D-045 e
+a D-047 fizeram `Money` ser wrapper de `Decimal` com tipo nominal, e o operador aritmético
+nativo entre dois `Money` já não compila: quem barra é o compilador, não o lint. O que o tipo
+não fecha é a fronteira de coerção, template string, `Number()`, `parseFloat` e `valueOf`. Se
+em algum momento uma regra custom for escrita, é para essas coerções. A regra
+`restrict-template-expressions` do type-aware cobre parte disso e é a mais relevante para o
+`Money`, mais que as nomeadas acima.
+
+### D-054. TypeScript 7 como versão do projeto, com compatibilidade a verificar
+
+**Decisão.** O projeto fica em TypeScript 7, faixa `^7.0.2`, travada pelo lockfile (D-051).
+
+**Como isso aconteceu.** Não foi escolha deliberada de migração. O Passo 1 declarou
+`typescript` sem fixar major, e 7.0.2 era o latest do registry no momento, então o workspace
+resolveu para lá e o `tsc --noEmit` do Passo 1 rodou nessa versão. A decisão aqui é manter, com
+verificação, e não adotar do zero.
+
+**Por que manter.** É a versão estável publicada, é a que o oxlint-tsgolint acompanha, e todo o
+`packages/shared` já compila nela com exit 0. Voltar para 5.x agora custaria reconferir os
+testes de tipo do Passo 1, que dependem de `@ts-expect-error` e de tipo nominal, sem ganho
+identificado.
+
+**O que ainda não foi verificado, e é a pendência real.** O TypeScript 7 é o port em Go, e o
+pacote npm virou casca: `require('typescript')` não entrega API de compilador. Três
+dependências centrais da stack ainda não foram testadas nessa versão e nenhuma delas está
+instalada hoje:
+
+- Drizzle, que gera tipos a partir de schema. Verificar no Passo 2, quando entrar
+- Elysia com Eden, que faz tipagem end to end entre backend e renderer. Verificar na Fase 2
+- Electron e o toolchain de build do renderer. Verificar na Fase 7
+
+Se alguma delas não funcionar em TS 7, a decisão volta à mesa e a alternativa é fixar 5.x, com
+o custo de perder o type-aware do oxlint pelo mesmo motivo técnico da D-053. Registrar isso
+agora existe para que a descoberta não chegue como surpresa no meio de uma fase.

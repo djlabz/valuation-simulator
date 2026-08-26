@@ -54,6 +54,12 @@ Regras:
 - suíte que não existe não pode ser citada como verde
 - verificação que não foi executada nesta sessão não vale como executada
 - explicação inferida sobre comportamento não verificado não entra em documento como fato
+- saída reportada como sucesso precisa carregar prova de execução: versão, hash, contagem,
+  nome de arquivo ou número de linha. Exit code zero sozinho não basta, porque o wrapper desta
+  máquina já devolveu texto de sucesso para binário que não existe (D-052). Afirmação em prosa
+  desperta desconfiança, exit 0 não
+- resultado agregado de ferramenta, tipo score de mutação, não é oráculo: havendo motivo para
+  desconfiar, verifique à mão antes de citar
 
 ---
 
@@ -123,3 +129,5 @@ Uma etapa não fecha se qualquer um destes for verdadeiro:
 - `AGENTS.md` descrevendo estado que não é o real
 - entrega de código sem justificativa (RNF-010)
 - arquivo criado que não estava no escopo aprovado
+- verificação reportada como sucesso sem prova de execução, ou resultado agregado de
+  ferramenta aceito sem verificação quando havia motivo para desconfiar dele (D-052)
