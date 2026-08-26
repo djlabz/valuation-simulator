@@ -1,0 +1,144 @@
+id: transmissao-energia-b3
+versao: 0.5.0
+mercado: B3
+nome_exibicao: "Transmissão de Energia Elétrica"
+
+deteccao:
+  sinais_fortes:
+    - receita_predominante: RAP
+    - regulador: ANEEL
+    - modalidade: contrato_de_concessao_transmissao
+  sinais_fracos: [CNAE 3512-3/00, "termo 'RAP' no release de resultados"]
+  exemplos: [TAEE11, TRPL4, ALUP11]
+  nao_confundir_com:
+    - id: geracao-energia-b3
+      criterio: "receita atrelada a PLD/GSF e volume gerado, não a disponibilidade"
+
+multiplos_bloqueados:
+  - metrica: "EV/EBITDA (contábil)"
+    severidade: bloqueio_total
+    motivo: "EBITDA IFRS inclui margem de construção sem contrapartida em caixa"
+  - metrica: "P/L"
+    severidade: bloqueio_total
+    motivo: "lucro contábil carrega atualização financeira do ativo de concessão"
+  - metrica: "P/VPA"
+    severidade: alerta
+    motivo: "PL não representa capacidade de geração de caixa em ativo concedido"
+
+modelos_habilitados: [fcff_por_concessao, ddm]
+
+horizonte_projecao:
+  tipo: derivado_de_fato
+  origem: "data_vencimento de cada concessão"
+  ajustavel_pelo_usuario: false
+
+regras_duras:
+  - id: R-001
+    validador: validarPerpetuidadeZero
+    mensagem: "Concessão tem vencimento definido: g na perpetuidade deve ser 0"
+  - id: R-002
+    validador: validarFimDeFluxoNaConcessao
+    mensagem: "O fluxo de cada concessão termina na sua data de vencimento"
+  - id: R-003
+    validador: validarValorResidual
+    mensagem: "Valor residual deve ser 0, salvo indenização de RAB não amortizada informada"
+
+modos:
+  - id: detalhado
+    label: "Por concessão (maior precisão)"
+    precisao: alta
+    inputs: [concessoes]
+  - id: consolidado
+    label: "RAP consolidada e prazo médio"
+    precisao: reduzida
+    aviso_obrigatorio: >
+      Prazo médio ponderado mascara concessões vencendo antes; o resultado
+      tende a superestimar o fluxo final.
+    inputs: [rap_total, prazo_medio_ponderado, indice_predominante]
+
+inputs_obrigatorios:
+  - campo: concessoes
+    tipo: lista
+    subcampos:
+      - nome
+      - rap_bruta_ciclo_atual
+      - indice_reajuste          # IPCA | IGPM
+      - data_vencimento
+      - percentual_participacao
+      - reducao_contratual       # ex: -50% após 15o ano
+    onde_encontrar: |
+      1. Resolução Homologatória anual da ANEEL (ciclo RAP)
+      2. Formulário de Referência, seção de contratos relevantes
+      3. Release de resultados, anexo de portfólio de concessões
+    fallback_manual: true
+  - campo: deducoes_sobre_rap
+    descricao: "PIS/COFINS, P&D, TFSEE e encargos que separam RAP bruta de líquida"
+    onde_encontrar: "Release de resultados, conciliação de receita regulatória"
+
+premissas_do_usuario:
+  - campo: taxa_desconto
+    obrigatorio: true
+    default: null
+    composicao_disponivel: capm
+    faixa_referencia:
+      minimo: "0.09"
+      maximo: "0.14"
+      n_observacoes: 7
+      base: "premissas declaradas publicamente por analistas, setor transmissão"
+      confianca: media
+      atualizado_em: 2026-08
+      aviso: "Faixa observada, não recomendação. Sua escolha define o resultado."
+  - campo: inflacao_projetada_longo_prazo
+    obrigatorio: true
+    default: null
+  # Não existem flags booleanas de premissa. A inclusão de indenização ou de
+  # renovação é derivada da presença dos valores abaixo (RF-421, D-040).
+  - campo: indenizacao_rab_estimada
+    obrigatorio: false
+    default: null
+    ajuda: >
+      Valor estimado de indenização de RAB não amortizada. Deixar vazio mantém
+      o valor residual em zero, conforme a regra dura R-003.
+  - campo: termos_de_renovacao
+    obrigatorio: false
+    default: null
+    subcampos: [nova_data_vencimento, nova_rap, investimento_exigido]
+    ajuda: >
+      Preencher apenas se você projeta renovação. Sem termos informados, o fluxo
+      encerra no vencimento contratual, que é fato do contrato.
+
+heuristicas_de_leitura:
+  - id: H-001
+    aplica_em: [release_resultados]
+    onde_olhar: "Conciliação entre RAP bruta e receita regulatória líquida"
+    o_que_verificar: "Deduções de PIS/COFINS, P&D e TFSEE não abatidas"
+    por_que_importa: "Projetar RAP bruta superestima o fluxo em cerca de 10%"
+    acao_do_agente: sinalizar_ao_usuario
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 2.2"
+  - id: H-002
+    aplica_em: [release_resultados, formulario_referencia]
+    onde_olhar: "Quadro de concessões e respectivos prazos"
+    o_que_verificar: "Concessões sujeitas a redução contratual de RAP após o 15o ano"
+    por_que_importa: "Ignorar a redução superestima o fluxo da segunda metade do contrato"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: concessoes
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 2.5"
+  - id: H-003
+    aplica_em: [dre]
+    onde_olhar: "Receita de construção segregada da receita de operação"
+    o_que_verificar: "Margem de construção IFRS inflando o resultado do período"
+    por_que_importa: "Receita de construção não corresponde a caixa disponível"
+    acao_do_agente: sinalizar_ao_usuario
+    severidade: informativo
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 2.3"
+
+alertas:
+  - "Concessões próximas do vencimento aparentam subavaliação em múltiplos tradicionais"
+  - "Ciclo RAP vigora de julho a junho; RAP do ciclo anterior subestima receita"
+
+fonte: "Guia de Valuation Setorial, seção 2"

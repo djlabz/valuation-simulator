@@ -1,0 +1,50 @@
+id: fixture-setor
+versao: 0.1.0
+mercado: B3
+nome_exibicao: "Setor de fixture"
+deteccao:
+  sinais_fortes:
+    - regulador: FIXTURE
+multiplos_bloqueados:
+  - metrica: "P/L"
+    severidade: alerta
+    motivo: "motivo exibivel qualquer"
+modelos_habilitados: [ddm]
+horizonte_projecao:
+  tipo: convencao_setorial
+  anos: 10
+  ajustavel_pelo_usuario: true
+regras_duras:
+  - id: R-900
+    validador: validarQualquerCoisa
+    mensagem: "mensagem da regra dura"
+modos:
+  - id: unico
+    label: "Modo unico"
+    precisao: alta
+    inputs: [entrada]
+inputs_obrigatorios:
+  - campo: entrada
+    onde_encontrar: "Release de resultados, secao qualquer"
+premissas_do_usuario:
+  - campo: taxa_desconto
+    obrigatorio: true
+    default: null
+    faixa_referencia:
+      ativo: TAEE11
+      minimo: "0.09"
+      maximo: "0.14"
+      n_observacoes: 7
+      base: "premissas declaradas publicamente por analistas"
+      confianca: media
+      atualizado_em: 2026-08
+heuristicas_de_leitura:
+  - id: H-900
+    aplica_em: [release_resultados]
+    onde_olhar: "Secao qualquer do release"
+    o_que_verificar: "Item qualquer"
+    por_que_importa: "Altera o fluxo projetado"
+    severidade: informativo
+    confianca: alta
+    fonte: "Fixture de teste"
+fonte: "Fixture de teste"

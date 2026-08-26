@@ -1,0 +1,8 @@
+id: EV-901
+ativo: EGIE3
+tipo: passivo_contingente
+descricao: "Provisao registrada referente a processo em discussao administrativa"
+acao: sinalizar_ao_usuario
+revisar_em: 2026-12-31
+confianca: media
+fonte: "Notas Explicativas 3T26, item 24"

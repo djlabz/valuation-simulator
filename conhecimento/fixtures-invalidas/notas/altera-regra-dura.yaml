@@ -1,0 +1,10 @@
+id: NA-902
+ativo: VALE3
+tipo: caracteristica_estrutural
+playbook: commodities-b3
+sobreescreve:
+  regras_duras: [R-201]
+justificativa: >
+  Fixture: a nota tenta desligar uma regra dura do playbook.
+confianca: alta
+fonte: "Fixture de teste"

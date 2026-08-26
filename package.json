@@ -8,11 +8,13 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json"
+    "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/conhecimento/tsconfig.json && tsc --noEmit -p tools/tsconfig.json",
+    "validar-conhecimento": "bun tools/validar-conhecimento.ts"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
+    "@types/node": "^26.3.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   }

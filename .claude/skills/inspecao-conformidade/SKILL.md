@@ -21,6 +21,15 @@ código, não vai elogiar, não vai explicar por que está tudo bem.
 Se você achar que uma brecha exige exceção a caso de fronteira já decidido, o problema é
 da regra, não do caso: reporte, não decida.
 
+## Quando rodar
+
+O fechamento de etapa é o momento **obrigatório**, não o único. Rode também durante a
+etapa, sempre que um teste falhar de um jeito estranho ou uma proteção parecer boa demais.
+Na primeira rodada real desta skill, duas brechas médias apareceram enquanto a suíte ainda
+estava sendo escrita, e uma delas era falso verde: rodar só no fim teria deixado ela viver
+mais tempo. Achado durante a etapa é corrigido dentro da etapa e entra no relatório como
+corrigido, o que é melhor que achado no fechamento.
+
 ## Postura
 
 Você é o leitor hostil. Não o revisor cuidadoso, não quem implementou.
@@ -50,6 +59,26 @@ Toda afirmação do relatório vem de comando executado nesta inspeção.
 Número de linha envelhece rápido. Ancore também pelo símbolo, tipo `money.ts:82,
 chamada de exigirRate`, para a referência sobreviver ao próximo refactor.
 
+## Achado que a etapa não pode corrigir
+
+Vai acontecer: a brecha está no documento de requisitos, num playbook aprovado, numa
+decisão já registrada, ou em pacote que a etapa não abriu. Não improvise, o procedimento é
+fixo, senão a etapa seguinte improvisa diferente e os relatórios deixam de ser comparáveis.
+
+1. Descreva o achado no relatório, com a leitura hostil e o requisito, como qualquer outro
+2. **Não corrija a fonte** e **não afrouxe o código para caber nela**. As duas coisas
+   parecem resolver e escondem o problema
+3. Escreva a **proposta de texto de decisão numerada**, com decisão, motivo e a alternativa
+   descartada quando houver. Sem ID: quem aprova escolhe o número
+4. Se houver mais de um achado assim, liste todos antes de parar, para a decisão ser tomada
+   de uma vez em vez de em série
+
+Severidade decide o que acontece depois:
+
+- **alta:** trava a etapa até a decisão ser tomada. O PROTOCOLO já reprova o fechamento com
+  brecha alta em aberto, e achado que você não pode corrigir não é exceção
+- **média ou baixa:** entra no relatório com a proposta e a etapa segue
+
 ## Onde olhar, por tipo de etapa
 
 Ponto de partida, não limite. **Procure o que não está nesta lista.** Se você só achou
@@ -66,12 +95,36 @@ esta etapa introduziu que nenhuma linha abaixo previu?
 - superfície pública maior do que a pretendida, incluindo import relativo profundo que o
   `exports` map do `package.json` não alcança
 
-**Conhecimento e schema**
+**Conhecimento e schema, estrutura**
 
 - valor de premissa escapando para dentro de item de conhecimento
 - evento sem prazo passando pela validação
 - faixa por ativo em vez de setorial
 - nota alterando regra dura ou ampliando lista de modelos
+
+**Conhecimento e schema, o texto dentro do arquivo**
+
+Estrutura é metade. A outra metade é o texto, e é por ela que RP-004 vaza, porque texto de
+playbook é texto de interface com um passo de atraso: hoje é string em YAML, na Fase 7 é
+tela. **Em etapa que produza conteúdo a ser exibido, leia também o grupo "interface e
+texto" abaixo, mesmo que a etapa não tenha uma linha de interface.**
+
+- adjetivo valorativo em campo que vira alerta, aviso, motivo, rótulo ou ajuda
+- qualificação de probabilidade de desfecho na voz do sistema
+- campo que vira tela sem estar declarado como texto de interface, portanto fora de
+  qualquer filtro, e em silêncio
+- vocabulário legítimo de metodologia recusado por engano, que faz alguém desligar o filtro
+
+**Fronteira entre arquivo de dados e código**
+
+O dado é um vetor por conta própria, sem ninguém escrever uma linha de código. Vale para
+YAML, JSON, CSV, migration, fixture e resposta de provider.
+
+- tipo que o parser inventa: `0.09` sem aspas em YAML vira float, e float em taxa é o que a
+  D-045 fecha. Ninguém digitou `number` em lugar nenhum
+- data, booleano e null que o parser converte ou engole
+- valor que passa por schema porque o schema descreve a forma e não a unidade
+- arquivo de dados que carrega texto exibido, ou seja, é dado e é interface ao mesmo tempo
 
 **Engine e validador**
 
@@ -111,7 +164,7 @@ Estas são o modo de falha real, mais provável que deixar passar uma linha de c
 - **Inspecionar só o que a etapa mudou.** A brecha costuma estar na interação entre o
   novo e o que já existia, e essa interação não aparece no diff
 
-## Exemplo trabalhado, inspeção do Passo 1
+## Primeiro exemplo trabalhado, aritmética, inspeção do Passo 1
 
 Três brechas reais e uma afirmação de ausência. Repare no que separa baixa de média.
 
@@ -175,13 +228,60 @@ money.ts:122:    return this.#valor.toFixed(exigirCasasDecimais(casas, 'casas'),
 Duas chamadas de arredondamento no pacote inteiro, as duas exigindo casas e modo do
 chamador. A ausência agora é verificável por quem lê o relatório, que é o ponto.
 
+## Segundo exemplo trabalhado, dado, inspeção do Passo 2
+
+O primeiro exemplo é todo de aritmética. Este é de dado, e é o mais instrutivo dos dois,
+porque a brecha era invisível para todas as proteções que existiam.
+
+```
+[ALTA] conhecimento/playbooks/commodities-b3.yaml:20, 99 e 116
+Brecha: "o app me diz onde está a margem de segurança real e que P/L baixo é armadilha,
+isso é conselho de investimento com cara de metodologia, e veio versionado no repositório"
+Invariante ou requisito: RP-004, RF-117, RF-104
+Correção: fora do escopo da etapa, virou proposta de decisão e travou o fechamento até a
+decisão sair. Aprovada como D-061, com filtro de RP-004 nos campos de interface e as três
+strings reescritas
+```
+
+Três coisas para levar deste caso.
+
+**Por que nenhuma proteção pegou.** As oito invariantes, os validadores executáveis, o campo
+vazio e o snapshot protegem o **caminho do cálculo**. Texto valorativo não é número, não
+passa por engine, não entra em premissa. Ele entrou por um caminho que nenhuma proteção
+inspecionava, e por isso a inspeção precisa procurar onde não há proteção, não só verificar
+onde há.
+
+**Por que a origem importa.** As três strings foram escritas pelo autor do projeto, dentro
+do documento que define RP-004. Isso encerra a discussão sobre a proteção ser paranoia
+jurídica: ela vaza em quem desenhou a proteção. Quando você achar que uma brecha é
+improvável porque "ninguém escreveria isso", lembre que alguém escreveu, e era quem mais
+sabia da regra.
+
+**Por que alta e por que travou.** RP-004 é invariante, e o critério do PROTOCOLO manda alta
+em violação de invariante, com a etapa não fechando. A correção estava fora do escopo, então
+o procedimento foi o da seção "achado que a etapa não pode corrigir": proposta de decisão e
+etapa travada. Rebaixar para média, com a desculpa de que o texto veio da fonte aprovada,
+teria destravado o fechamento e deixado a string na tela.
+
+**Uma armadilha nova, dita pelo próprio caso.** O filtro de RP-004 que nasceu da D-061 é
+lista de gatilhos, e lista de gatilhos é rede, não prova. Não escreva no relatório que
+RP-004 está coberta no conteúdo. Paráfrase passa limpo: "o desenlace positivo para o emissor
+é o cenário natural" não tem uma única palavra da lista.
+
 ## O que esta skill ainda não sabe fazer
 
 Declare este limite no relatório enquanto ele valer.
 
-Nenhuma inspeção deste projeto examinou interface até hoje. As etapas fechadas foram
-governança e aritmética. O mapa de interface acima foi derivado dos requisitos e das
-invariantes, não de prática: ninguém ainda tentou furar uma tela deste produto.
+Nenhuma inspeção deste projeto examinou interface de verdade até hoje. As etapas fechadas
+foram governança, aritmética e schema de conhecimento. O mapa de interface abaixo continua
+derivado dos requisitos e das invariantes, não de prática: ninguém ainda tentou furar uma
+tela deste produto.
+
+O que mudou no Passo 2: a inspeção examinou **conteúdo que vira interface**, que é string em
+arquivo de dados hoje e tela na Fase 7. Isso exercitou a parte de vocabulário do grupo de
+interface e texto, e nada da parte de comportamento: estado no primeiro render, ordenação
+padrão, agrupamento que vira ranking e hierarquia visual continuam sem uma única inspeção
+real. São justamente RP-002 e a metade de RP-001 que não é texto.
 
 Isso importa porque as brechas mais graves do projeto são de interface. RP-001, RP-002,
 RP-004 e RP-007 se materializam em string, em ordenação e em destaque visual, não em

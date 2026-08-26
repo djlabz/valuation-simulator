@@ -1,0 +1,125 @@
+id: commodities-b3
+versao: 0.4.0
+mercado: B3
+nome_exibicao: "Produtoras de Commodities (price takers)"
+
+deteccao:
+  sinais_fortes:
+    - receita_atrelada_a: cotacao_internacional
+    - poder_de_precificacao: nenhum
+  sinais_fracos: ["menção a Brent/Platts/curva de referência no release"]
+  exemplos: [PETR4, VALE3, CSNA3, SUZB3]
+  subtipos:
+    - petroleo_e_gas: {referencia: Brent, custo_chave: custo_extracao_boe}
+    - minerio_de_ferro: {referencia: "índice 62% Fe", custo_chave: custo_caixa_c1}
+    - celulose: {referencia: BHKP, custo_chave: custo_caixa_tonelada}
+
+multiplos_bloqueados:
+  - metrica: "P/L (spot)"
+    severidade: bloqueio_total
+    motivo: "P/L calculado sobre lucro de topo de ciclo não representa capacidade recorrente de geração de caixa"
+  - metrica: "DY (trailing)"
+    severidade: bloqueio_total
+    motivo: "DY elevado em topo de ciclo não é recorrente"
+  - metrica: "EV/EBITDA (spot)"
+    severidade: alerta
+    motivo: "só admissível sobre EBITDA normalizado"
+
+modelos_habilitados: [fcff_normalizado, sotp]
+
+horizonte_projecao:
+  tipo: derivado_de_fato
+  origem: "vida_util_reserva declarada pela companhia"
+  ajustavel_pelo_usuario: false
+
+regras_duras:
+  - id: R-201
+    validador: validarPrecoNormalizadoInformado
+    mensagem: >
+      Preço spot não pode ser projetado para a perpetuidade.
+      Informe um preço normalizado de longo prazo.
+  - id: R-202
+    validador: validarCambioNormalizado
+    mensagem: "Receita em USD exige premissa de câmbio de longo prazo, não a PTAX do dia"
+  - id: R-203
+    validador: validarBreakeven
+    mensagem: "Preço normalizado abaixo do custo caixa da companhia invalida a projeção"
+  - id: R-204
+    validador: validarHorizonteVsReserva
+    mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva"
+
+modos:
+  - id: consolidado
+    label: "Consolidado"
+    precisao: alta
+    inputs: [volume_producao_anual, custo_caixa_unitario, capex_manutencao, divida_liquida, vida_util_reserva]
+
+inputs_obrigatorios:
+  - campo: volume_producao_anual
+    onde_encontrar: "Relatório de produção e vendas (trimestral)"
+  - campo: custo_caixa_unitario
+    onde_encontrar: "Release, seção de custos (C1 na Vale, lifting cost na Petrobras)"
+  - campo: capex_manutencao
+    onde_encontrar: "DFC, investimentos; segregar manutenção de expansão"
+  - campo: divida_liquida
+    onde_encontrar: "Balanço e notas de endividamento"
+  - campo: vida_util_reserva
+    onde_encontrar: "Formulário de Referência, reservas provadas e vida útil estimada"
+
+premissas_do_usuario:
+  - campo: preco_normalizado_lp
+    obrigatorio: true
+    default: null
+    faixa_referencia: null   # deliberadamente ausente, ver justificativa
+    ajuda: |
+      Preço médio de longo prazo da commodity, na moeda de referência.
+      O app exibe a série histórica de 10 anos para contexto, mas
+      a escolha do patamar é inteiramente sua.
+  - campo: cambio_normalizado_lp
+    obrigatorio: true
+    default: null
+  - campo: taxa_desconto
+    obrigatorio: true
+    default: null
+    composicao_disponivel: capm
+  - campo: crescimento_perpetuidade
+    obrigatorio: true
+    default: null
+    ajuda: "Reserva finita pode justificar g igual ou abaixo de zero"
+
+heuristicas_de_leitura:
+  - id: H-041
+    aplica_em: [release_resultados, dfc]
+    onde_olhar: "Segregação entre capex de manutenção e de expansão"
+    o_que_verificar: "Capex total sendo tratado como manutenção"
+    por_que_importa: "Superestima a necessidade de reinvestimento e deprime o fluxo livre"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: capex_manutencao
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Elaboração própria"
+  - id: H-042
+    aplica_em: [release_resultados]
+    onde_olhar: "Custo caixa unitário nos últimos quatro trimestres"
+    o_que_verificar: "Trajetória de alta sustentada no custo de extração"
+    por_que_importa: "Custo de extração em alta reduz a distância entre preço e custo caixa no fundo do ciclo"
+    acao_do_agente: sinalizar_ao_usuario
+    severidade: informativo
+    confianca: alta
+    fonte: "Elaboração própria"
+  - id: H-043
+    aplica_em: [formulario_referencia]
+    onde_olhar: "Reservas provadas e vida útil estimada da mina ou campo"
+    o_que_verificar: "Vida útil inferior ao horizonte de perpetuidade projetado"
+    por_que_importa: "Reserva finita contradiz crescimento perpétuo positivo"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: crescimento_perpetuidade
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Elaboração própria"
+
+alertas:
+  - "A posição do custo de extração da companhia na curva global de custos determina o resultado no fundo do ciclo, e o P/L não informa isso"
+  - "Reservas provadas finitas contradizem perpetuidade com crescimento positivo"
+
+fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"

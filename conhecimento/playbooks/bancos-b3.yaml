@@ -1,0 +1,121 @@
+id: bancos-b3
+versao: 0.4.0
+mercado: B3
+nome_exibicao: "Bancos e Serviços Financeiros"
+
+deteccao:
+  sinais_fortes:
+    - regulador: BACEN
+    - demonstracao: "balanço em formato COSIF / IFRS bancário"
+    - possui_indice_basileia: true
+  sinais_fracos: [CNAE 6422, "termos 'PDD', 'NIM', 'carteira de crédito'"]
+  exemplos: [ITUB4, BBAS3, BBDC4, SANB11]
+  nao_confundir_com:
+    - id: seguradoras-b3
+      criterio: "receita de prêmios/corretagem, não de intermediação de crédito"
+
+multiplos_bloqueados:
+  - metrica: "EV/EBITDA"
+    severidade: bloqueio_total
+    motivo: "impossível segregar dívida líquida da matéria-prima operacional"
+  - metrica: "EV/qualquer"
+    severidade: bloqueio_total
+    motivo: "conceito de Enterprise Value não se aplica a instituições financeiras"
+  - metrica: "P/L"
+    severidade: alerta
+    motivo: "lucro distorcido por discricionariedade em PDD e marcação a mercado"
+
+modelos_habilitados: [excess_return, ddm]
+
+horizonte_projecao:
+  tipo: convencao_setorial
+  anos: 10
+  ajustavel_pelo_usuario: true
+  justificativa: >
+    Período típico de convergência do ROE ao custo de capital próprio.
+    Ajuste exige justificativa registrada no snapshot.
+
+regras_duras:
+  - id: R-101
+    validador: validarSemEnterpriseValue
+    mensagem: "EV não é aplicável a instituições financeiras"
+  - id: R-102
+    validador: validarRetencaoRegulatoria
+    mensagem: >
+      Dividendo projetado não pode exceder o lucro menos a retenção exigida
+      para sustentar o crescimento dos RWA
+  - id: R-103
+    validador: validarSpreadROEKe
+    mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
+
+modos:
+  - id: consolidado
+    label: "Consolidado"
+    precisao: alta
+    inputs: [patrimonio_liquido_inicial, roe_historico_3a, indice_basileia_atual, rwa_atual]
+
+inputs_obrigatorios:
+  - campo: patrimonio_liquido_inicial
+    onde_encontrar: "Balanço Patrimonial, patrimônio líquido consolidado"
+  - campo: roe_historico_3a
+    onde_encontrar: "Release de resultados, série histórica de rentabilidade"
+  - campo: indice_basileia_atual
+    onde_encontrar: "Release de resultados, seção de capital regulatório"
+  - campo: rwa_atual
+    onde_encontrar: "Notas explicativas, gestão de capital"
+  - campo: npl_90_e_cobertura
+    onde_encontrar: "Release, qualidade da carteira de crédito"
+    uso: "diagnóstico e alerta, não entra no cálculo"
+
+premissas_do_usuario:
+  - campo: roe_sustentavel_projetado
+    obrigatorio: true
+    default: null
+  - campo: custo_capital_proprio_ke
+    obrigatorio: true
+    default: null
+    composicao_disponivel: capm
+  - campo: crescimento_rwa
+    obrigatorio: true
+    default: null
+    ajuda: "Define quanto lucro fica retido para capital regulatório"
+  - campo: basileia_alvo
+    obrigatorio: true
+    default: null
+
+heuristicas_de_leitura:
+  - id: H-022
+    aplica_em: [release_resultados]
+    onde_olhar: "Composição do resultado de PDD"
+    o_que_verificar: "Reversão de provisão elevando o lucro do trimestre"
+    por_que_importa: "ROE recente deixa de representar ROE sustentável"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: roe_sustentavel_projetado
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 1.3"
+  - id: H-023
+    aplica_em: [dre, notas_explicativas]
+    onde_olhar: "Resultado com marcação a mercado da carteira de títulos"
+    o_que_verificar: "Ganho não recorrente de tesouraria dentro do lucro líquido"
+    por_que_importa: "Distorce tanto o P/L quanto o ROE do período"
+    acao_do_agente: sinalizar_ao_usuario
+    severidade: informativo
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 1.3"
+  - id: H-024
+    aplica_em: [release_resultados]
+    onde_olhar: "Índice de Basileia frente ao mínimo regulatório"
+    o_que_verificar: "Folga de capital reduzida limitando distribuição de dividendos"
+    por_que_importa: "Payout projetado acima da capacidade real infla o DDM"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: basileia_alvo
+    severidade: bloqueia_ate_ciente
+    confianca: alta
+    fonte: "Guia de Valuation Setorial, seção 1.4"
+
+alertas:
+  - "ROE recente inflado por reversão de PDD não é ROE sustentável"
+  - "P/VPA só faz sentido lido junto com o spread ROE menos Ke"
+
+fonte: "Guia de Valuation Setorial, seção 1"

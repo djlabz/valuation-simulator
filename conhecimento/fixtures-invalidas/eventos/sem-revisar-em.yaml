@@ -1,0 +1,8 @@
+id: EV-902
+ativo: EGIE3
+tipo: passivo_contingente
+descricao: "Provisao registrada referente a processo em discussao administrativa"
+acao: sinalizar_ao_usuario
+validade_ate: 2027-06-30
+confianca: media
+fonte: "Notas Explicativas 3T26, item 24"

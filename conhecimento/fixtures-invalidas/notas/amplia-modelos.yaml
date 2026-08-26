@@ -1,0 +1,10 @@
+id: NA-901
+ativo: KLBN11
+tipo: caracteristica_estrutural
+playbook: commodities-b3
+sobreescreve:
+  modelos_habilitados: [sotp, ddm]
+justificativa: >
+  Fixture: a nota tenta habilitar ddm, que o playbook de commodities nao habilita.
+confianca: alta
+fonte: "Fixture de teste"

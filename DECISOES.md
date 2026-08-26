@@ -467,3 +467,216 @@ instalada hoje:
 Se alguma delas não funcionar em TS 7, a decisão volta à mesa e a alternativa é fixar 5.x, com
 o custo de perder o type-aware do oxlint pelo mesmo motivo técnico da D-053. Registrar isso
 agora existe para que a descoberta não chegue como surpresa no meio de uma fase.
+
+---
+
+## Sessão de 26/08/2026
+
+### D-055. Governança fica acoplada ao Claude Code na v1
+
+**Decisão.** Nenhum adaptador de instrução para outro agente. `CLAUDE.md`, `AGENTS.md`,
+`DECISOES.md` e `PROTOCOLO-ETAPA.md` permanecem como estão, e a skill de inspeção continua em
+`.claude/skills/`, em formato do Claude Code.
+
+**Motivo.** A separação em arquivo canônico mais adaptadores curtos por ferramenta foi
+desenhada e aprovada, e recusada antes de executar. Adaptador sem consumidor envelhece errado,
+como o handoff de planejamento envelheceu, e renomear `AGENTS.md` para `ESTADO.md` mexeria em
+referência em cinco ou seis arquivos, inclusive na skill recém criada, sem entregar nada a
+ninguém.
+
+**O que dispara a reconsideração.** A entrada de um segundo agente de fato. O desenho aprovado
+fica registrado aqui para o debate não recomeçar do zero: `CLAUDE.md` permanece canônico,
+porque carrega automaticamente em toda sessão e as oito invariantes não podem depender de
+alguém abrir outro arquivo; adaptadores curtos apontam para ele sem copiar conteúdo normativo;
+`AGENTS.md` cede o nome ao padrão emergente e o estado migra para `ESTADO.md`.
+
+**Pendência independente desta decisão.** O método de inspeção adversarial vive só na skill,
+invisível para outro agente. A extração para arquivo neutro acontece depois que ela rodar pelo
+menos uma vez, ou seja, a partir do fechamento deste Passo 2.
+
+### D-056. Linter entra junto com o loader, não neste passo
+
+**Decisão.** Nenhum linter é instalado ou configurado no Passo 2. A D-053 fica de pé, e a
+entrada do oxlint com type-aware passa para o passo em que o loader de conhecimento existir.
+
+**Motivo.** Os gatilhos que a seção 2 do `CLAUDE.md` manda procurar (`defaultValue`,
+`placeholder` com número, `sortBy`, `ORDER BY` por métrica) vivem em código de interface, que só
+existe na Fase 7. Rodar o linter agora devolve zero ocorrências e passa verde, o que é pior que
+não ter linter, porque cria confiança falsa numa proteção que não teve como atuar. Mesma família
+do wrapper que devolve texto de sucesso para binário ausente (D-052): o problema não é o
+resultado errado, é o sinal verde sem substrato.
+
+Os padrões de dinheiro que já se aplicam hoje estão cobertos pelos testes de `packages/shared`,
+que é onde pertencem: o operador aritmético entre dois `Money` já não compila por causa do tipo
+nominal (D-045, D-047), e a fronteira de coerção tem teste próprio. Não há lacuna que o linter
+fecharia agora.
+
+### D-057. Drizzle funciona sob TypeScript 7, e a pendência do Drizzle sai da D-054
+
+**Decisão.** O Drizzle fica na stack. A pendência de compatibilidade do Drizzle registrada na
+D-054 está resolvida e sai da lista. As de Elysia com Eden e de Electron permanecem abertas,
+com os prazos que a D-054 já fixou.
+
+**O que foi testado.** Projeto mínimo e descartável fora do repositório, com Bun 1.2.13,
+`typescript@7.0.2` (a mesma versão que o `bun.lock` do projeto trava, conferida no lockfile),
+`drizzle-orm@0.45.2`, `drizzle-kit@0.31.10` e `bun:sqlite`. Uma tabela com três colunas,
+`integer` de chave, `text` de ticker e `text` de valor, que é o tipo que a D-045 fixa para
+valor financeiro.
+
+**Prova 1, compila limpo.**
+
+```
+$ npx tsc --version
+Version 7.0.2
+$ npx tsc --noEmit
+$ echo $?
+0
+```
+
+**Prova 2, o tipo inferido é o tipo certo e não `any`.** Esta era a prova que importava, porque
+o risco real não é o Drizzle falhar alto, é a inferência degradar em silêncio. Um
+`@ts-expect-error` sobre atribuição errada não basta sozinho, porque diretiva que passa não
+distingue tipo correto de tipo ausente. Com a diretiva removida, o compilador diz qual é o tipo:
+
+```
+$ npx tsc --noEmit
+src/tipos.ts(6,64): error TS2322: Type 'number' is not assignable to type 'string'.
+$ echo $?
+1
+```
+
+Coluna `text` inferida como `string`, com o `number` recusado na compilação. Se tivesse
+degradado para `any`, a atribuição passaria e a diretiva restaurada reprovaria por TS2578. Com
+a diretiva de volta, o exit volta a ser 0.
+
+**Prova 3, a query roda e devolve o dado.**
+
+```
+$ bun run src/consulta.ts
+linhas devolvidas: 1
+ticker: TAEE11
+valor lido do banco: 35.4200000001 | typeof: string
+round trip preservou o texto? true
+$ echo $?
+0
+```
+
+O valor com doze dígitos significativos volta do SQLite idêntico e como `string`, que é o
+comportamento de que a D-045 depende: dinheiro em coluna TEXT, sem passar por `number` no
+caminho.
+
+**O que isso significa para a D-054.** A alternativa cara não precisa ser avaliada. Voltar para
+TypeScript 5.x derrubaria a D-053, porque o type-aware do oxlint depende do TS 7, e trocar de
+ORM reabriria o RNF-002. Nenhum dos dois está na mesa por causa do Drizzle.
+
+**Limite do que foi provado.** Uma tabela, três colunas, um insert e um select com `where`. Não
+foram exercitados relação entre tabelas, migration gerada pelo `drizzle-kit`, tipo customizado
+nem query builder complexo, que é onde a inferência do Drizzle costuma ser mais pesada. O spike
+responde "a stack não está quebrada", não "tudo do Drizzle funciona". O spike foi apagado ao
+fim, como combinado, e nada dele entrou no repositório.
+
+### D-058. Taxa em arquivo de conhecimento é texto entre aspas
+
+**Decisão.** Todo campo de grandeza financeira ou taxa em arquivo YAML de conhecimento se
+escreve entre aspas, `minimo: "0.09"`. O schema recusa o valor sem aspas.
+
+**Motivo.** YAML sem aspas entrega `0.09` como número de ponto flutuante, e float em taxa é
+exatamente o que a D-045 fecha. Aceitar sem aspas e converter no schema esconderia o float que
+já passou pelo parser, ou seja, a conversão daria a impressão de proteção depois de o dano já
+ter acontecido. A D-045 diz "inclusive em fixture e em teste" e não abre exceção para arquivo
+de dados.
+
+**Achado que originou.** `transmissao-energia-b3` trazia `minimo: 0.09` e `maximo: 0.14` sem
+aspas, transcritos fielmente da seção 9 do documento de requisitos. O CLI reprovou na primeira
+execução contra o conhecimento real.
+
+**Divergência com a fonte de verdade.** A seção 9 do
+`docs/REQUISITOS-valuation-simulator-v2.2.md` ainda não reflete esta decisão: lá os valores
+continuam sem aspas. A correção da fonte é tarefa própria, com incremento para 2.3.0 e diff
+revisado.
+
+### D-059. Ausência deliberada se escreve com `null` explícito
+
+**Decisão.** Campo opcional cuja ausência é decisão registrada se escreve com `null` explícito,
+e o schema aceita `null` como declaração de ausência, distinta de omissão.
+
+**Motivo.** Omitir a chave é indistinguível de esquecer a chave. `null` com comentário ao lado
+documenta a decisão dentro do próprio dado, que é o caso de `faixa_referencia` em
+`preco_normalizado_lp`, ausente de propósito por D-014. É a mesma lógica da D-021: ausência
+silenciosa apodrece, e quem chega depois não tem como saber se faltou ou se foi escolhido.
+
+**Alcance.** Vale onde a ausência é decisão, não em todo campo opcional. Campo simplesmente não
+aplicável continua sendo omitido.
+
+### D-060. `modos` é obrigatório, e setor de modo único declara um modo
+
+**Decisão.** `modos` passa a campo obrigatório do playbook. Setor que só tem um jeito de
+calcular declara um modo, com `precisao: alta`.
+
+**Motivo.** Com `modos` opcional, RF-105 não tem onde exigir o aviso de precisão reduzida, e um
+playbook futuro pode introduzir modo reduzido sem aviso sem que nada reprove. RF-102 lista modos
+de granularidade entre o que um playbook define, e requisito que virou sugestão é o começo do
+fim das proteções.
+
+**Descartado.** Tornar `modos` opcional para caber nos playbooks existentes, que é afrouxar o
+schema para acomodar defeito da fonte.
+
+**Achado que originou.** `bancos-b3` e `commodities-b3` não declaravam `modos`.
+
+**Divergência com a fonte de verdade.** A seção 9 do documento de requisitos ainda não reflete
+esta decisão: os dois playbooks continuam sem `modos` lá. Correção da fonte é tarefa própria,
+com incremento para 2.3.0.
+
+### D-061. Conteúdo de conhecimento exibido ao usuário passa por filtro de RP-004
+
+**Decisão.** Todo campo de conhecimento cujo conteúdo é exibido ao usuário é declarado como
+texto de interface no schema, e passa por filtro de vocabulário valorativo com gatilhos
+derivados da seção 2 do `CLAUDE.md`. As três ocorrências de `commodities-b3` são corrigidas na
+fonte.
+
+**Motivo.** Metade das proteções do produto existe para o software informar sem recomendar, e
+todas elas olham o caminho do cálculo. Texto valorativo não é número e não passa por engine,
+então entrou por um caminho que nenhuma proteção inspecionava. A origem é a prova de que a
+proteção é necessária: as três ocorrências foram escritas pelo autor do projeto, dentro do
+documento que define RP-004.
+
+**O filtro é rede, não prova.** Lista de gatilhos pega o vocabulário conhecido e não pega
+paráfrase: "o desenlace favorável ao emissor é o cenário natural" passa limpo em qualquer lista.
+A prova continua sendo a revisão do curador (RF-121), e o filtro existe para reduzir o que chega
+até ela, não para substituí-la. Nenhuma proteção de RP-004 no conteúdo deve ser assumida como
+completa.
+
+**O que o filtro exige para funcionar.** A declaração de quais campos são texto de interface,
+que hoje está implícita nos requisitos de exibição e precisa ficar explícita no schema. Campo
+que vira tela sem essa marcação fica fora do filtro em silêncio.
+
+**Campos marcados, com o requisito que sustenta cada um.** `motivo` de múltiplo bloqueado
+(RF-104); `label` e `aviso_obrigatorio` de modo (RF-105); `mensagem` de regra dura (RF-507);
+`onde_olhar`, `o_que_verificar`, `por_que_importa` e `fonte` de heurística (RF-116);
+`visoes.fonte` e `visoes.posicao` (RF-108); `justificativa` e `fonte` de nota (preâmbulo de
+RF-116); `descricao`, `mecanismo` e `fonte` de evento (RF-116); `aviso` de faixa (RF-116, bloco
+de contexto de escala); `justificativa` de horizonte (RF-419, que diz "exibida"); `descricao` e
+`onde_encontrar` de input obrigatório (RF-302, o texto acompanha a pendência exibida); `ajuda`
+de premissa, que não tem requisito de exibição próprio e entrou porque RF-112 já a trata como
+texto que chega ao usuário.
+
+**O campo que ficou de fora, e por quê.** `alertas` do playbook não entrou. Nenhum requisito
+define esse campo nem manda exibi-lo, e RF-102 não o lista entre o que um playbook declara. Ele
+carrega hoje a frase que a D-061 mandou corrigir, e a correção vale só porque foi feita à mão:
+nada impede a próxima. Decidir o que ele é, texto de interface, nota interna do curador ou
+campo a remover, é questão aberta registrada no `AGENTS.md`.
+
+**O modo de falha desta decisão apareceu na própria etapa.** A primeira marcação esqueceu três
+campos exibidos, `visoes`, `justificativa` de horizonte e `onde_encontrar`, e a segunda rodada
+da inspeção adversarial os achou. Marcação manual erra, inclusive de quem escreveu a decisão no
+mesmo dia.
+
+**Exceções que o filtro precisa carregar.** Dois gatilhos da seção 2 têm uso metodológico
+legítimo e não podem ser recusados sozinhos: `descontado`, que aparece em fluxo de caixa
+descontado, e `oportunidade`, que aparece em custo de oportunidade do capital. O filtro recusa
+os dois, menos nessas colocações. Sem a exceção, a proteção seria removida na primeira vez que
+alguém escrevesse metodologia correta e o CLI reprovasse.
+
+**Divergência com a fonte de verdade.** A seção 9 do documento de requisitos ainda não reflete
+esta decisão: as três strings valorativas continuam lá. Correção da fonte é tarefa própria, com
+incremento para 2.3.0.

@@ -10,10 +10,16 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 25/08/2026
-**Etapa concluída:** Passo 1, esqueleto do monorepo e tipos de dinheiro
-**Etapa seguinte:** Passo 2, schema Zod do conhecimento e CLI de validação, aguardando
-aprovação explícita
+**Data:** 26/08/2026
+**Etapa concluída:** Passo 2, schema Zod do conhecimento e CLI de validação
+**Etapa seguinte:** Passo 3, engines contra fixtures e as duas trilhas em paralelo,
+aguardando aprovação explícita
+
+**Atenção, dois lugares com playbook.** A partir do Passo 2 existem duas versões dos três
+playbooks: a da seção 9 do `docs/REQUISITOS-valuation-simulator-v2.2.md` e a de
+`conhecimento/playbooks/`. **A de `conhecimento/` é a que roda e a que o CLI valida.** A do
+documento ficou para trás em três pontos, por D-058, D-060 e D-061, e a correção da fonte é
+tarefa própria com incremento para 2.3.0. Ver a primeira linha da seção 5.
 
 **Existe:**
 
@@ -29,13 +35,23 @@ aprovação explícita
 - `packages/shared`, o pacote `@valuation/shared`, com `decimal-config.ts` (construtor
   clonado de D-046), `money.ts` (`Money<Moeda>`), `rate.ts` (`Rate` e as conversões de bps)
   e `index.ts` como porta pública
-- suíte Vitest com 68 testes, e `tsc --noEmit` cobrindo os `@ts-expect-error`
-- mutation testing rodando por Stryker sobre `packages/shared`, score de 97,87% (D-049)
+- `packages/conhecimento`, o pacote `@valuation/conhecimento`, com o schema Zod dos quatro
+  tipos de item, `comum.ts`, `playbook.ts`, `heuristica.ts`, `nota.ts`, `evento.ts`, mais
+  `validar.ts`, que inclui a checagem cruzada de RF-109 entre nota e playbook
+- `tools/validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista
+  branca de pastas
+- `conhecimento/playbooks/` com os três playbooks da seção 9 transcritos byte a byte, e
+  `conhecimento/fixtures-invalidas/` com nove fixtures, cada uma quebrando uma regra
+- suíte Vitest com 84 testes, e `tsc --noEmit` sobre `packages/shared`,
+  `packages/conhecimento` e `tools`
+- mutation testing rodando por Stryker sobre `packages/shared`, score de 97,87% (D-049).
+  O alvo do `stryker.config.json` ainda não inclui `packages/conhecimento`
+- `.claude/skills/inspecao-conformidade/`, usada pela primeira vez no fechamento do Passo 2
 
-**Não existe:** nenhum outro pacote (`conhecimento`, `dominio`, `core` e `desktop` nascem
-quando tiverem conteúdo), nenhuma engine, nenhum schema Zod, nenhum playbook em arquivo
-YAML separado, nenhuma skill local, nenhum banco, nenhuma interface. A inspeção adversarial
-continua manual, a skill de RNF-011 nasce no Passo 2.
+**Não existe:** os pacotes `dominio`, `core` e `desktop`, nenhuma engine, nenhum validador
+de regra dura executável, nenhum loader lendo `conhecimento/` em runtime (é do Passo 4),
+nenhuma nota nem evento real em `conhecimento/`, nenhum banco, nenhuma interface, nenhum
+linter (D-056).
 
 ---
 
@@ -83,7 +99,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 |---|---|---|
 | 0 | Governança, git, documento em `docs/` | Concluído |
 | 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
-| 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Pendente |
+| 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Concluído |
 | 3 | Duas trilhas em paralelo, ver abaixo | Pendente |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
@@ -128,10 +144,13 @@ schema, o formato de alerta em quatro blocos (RF-116) e a proibição de sugerir
 
 ## 5. Questões abertas
 
-Nada aqui bloqueia os passos 0 a 2.
+Nada aqui bloqueia o Passo 3.
 
 | Questão | Quando resolve |
 |---|---|
+| **Fonte de verdade divergente do YAML que roda.** A seção 9 do documento de requisitos não reflete três decisões do Passo 2: taxa de faixa sem aspas (D-058), `bancos-b3` e `commodities-b3` sem `modos` (D-060), e as três strings valorativas de `commodities-b3` (D-061). Corrigir o documento é tarefa própria, com incremento para 2.3.0 e diff revisado | Tarefa própria, antes de o documento ser citado como fonte de playbook outra vez |
+| Campo `alertas` do playbook não tem requisito que defina nem exiba ele. Não entrou no filtro de RP-004 por isso, e a decisão é se ele é texto de interface, nota interna do curador, ou campo a remover | Antes da Fase 7, que é quando alerta vira tela |
+| Os `modos` de `bancos-b3` e `commodities-b3` foram criados com um modo único e mínimo, por D-060. A taxonomia real de granularidade dos dois setores é questão de conhecimento, não de schema | Passo 3, trilha B, com o curador |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
