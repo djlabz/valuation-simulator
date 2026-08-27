@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Confianca, textoDeInterface, textoNaoVazio } from './comum'
+import { Confianca, texto } from './comum'
 
 /** Severidade de heurística (RF-106). Não confundir com a de múltiplo bloqueado. */
 export const SeveridadeHeuristica = z.enum(['informativo', 'bloqueia_ate_ciente'], {
@@ -14,28 +14,28 @@ export const SeveridadeHeuristica = z.enum(['informativo', 'bloqueia_ate_ciente'
  */
 export const Heuristica = z
   .strictObject({
-    id: textoNaoVazio('id', 'RF-106'),
+    id: texto('id', 'RF-106'),
     aplica_em: z
-      .array(textoNaoVazio('aplica_em', 'RF-106'), {
+      .array(texto('aplica_em', 'RF-106'), {
         error: 'RF-106: aplica_em é lista de documentos onde a heurística vale',
       })
       .min(1, { error: 'RF-106: aplica_em precisa de pelo menos um documento' }),
-    onde_olhar: textoDeInterface('onde_olhar', 'RF-116'),
-    o_que_verificar: textoDeInterface('o_que_verificar', 'RF-116'),
-    por_que_importa: textoDeInterface('por_que_importa', 'RF-116'),
-    acao_do_agente: textoNaoVazio('acao_do_agente', 'RF-106').optional(),
+    onde_olhar: texto('onde_olhar', 'RF-116'),
+    o_que_verificar: texto('o_que_verificar', 'RF-116'),
+    por_que_importa: texto('por_que_importa', 'RF-116'),
+    acao_do_agente: texto('acao_do_agente', 'RF-106').optional(),
     severidade: SeveridadeHeuristica,
     confianca: Confianca,
-    fonte: textoDeInterface('fonte', 'RF-116'),
+    fonte: texto('fonte', 'RF-116'),
     // RF-107: vincula a heurística a uma premissa, e o alerta aparece junto ao campo
-    campo_relacionado: textoNaoVazio('campo_relacionado', 'RF-107').optional(),
+    campo_relacionado: texto('campo_relacionado', 'RF-107').optional(),
     // RF-108: divergência exige as visões conflitantes lado a lado
     divergencia: z.boolean().optional(),
     visoes: z
       .array(
         z.strictObject({
-          fonte: textoDeInterface('visoes.fonte', 'RF-108'),
-          posicao: textoDeInterface('visoes.posicao', 'RF-108'),
+          fonte: texto('visoes.fonte', 'RF-108'),
+          posicao: texto('visoes.posicao', 'RF-108'),
         }),
       )
       .optional(),

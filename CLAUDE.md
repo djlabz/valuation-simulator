@@ -3,7 +3,7 @@
 Constituição deste repositório. Vale para todo agente que escrever código, texto de
 interface, comentário, commit, documento ou conteúdo de conhecimento aqui.
 
-**Fonte de verdade:** `docs/REQUISITOS-valuation-simulator-v2.2.md`. Em qualquer conflito
+**Fonte de verdade:** `docs/REQUISITOS-valuation-simulator-v2.3.md`. Em qualquer conflito
 entre este arquivo e o documento de requisitos, o documento vence e este arquivo é
 corrigido. Este arquivo não cria regra nova, ele torna a regra existente decidível na
 hora de escrever a linha.

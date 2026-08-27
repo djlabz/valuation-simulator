@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Confianca, textoDeInterface, textoNaoVazio } from './comum'
+import { Confianca, texto } from './comum'
 import { Heuristica } from './heuristica'
 
 /**
@@ -15,15 +15,15 @@ import { Heuristica } from './heuristica'
  * parte é validação cruzada do CLI, ver validar.ts.
  */
 export const Nota = z.strictObject({
-  id: textoNaoVazio('id', 'RF-109'),
-  ativo: textoNaoVazio('ativo', 'RF-109'),
-  tipo: textoNaoVazio('tipo', 'RF-109'),
-  playbook: textoNaoVazio('playbook', 'RF-109').optional(),
+  id: texto('id', 'RF-109'),
+  ativo: texto('ativo', 'RF-109'),
+  tipo: texto('tipo', 'RF-109'),
+  playbook: texto('playbook', 'RF-109').optional(),
   sobreescreve: z
     .strictObject(
       {
         modelos_habilitados: z
-          .array(textoNaoVazio('modelos_habilitados', 'RF-109'))
+          .array(texto('modelos_habilitados', 'RF-109'))
           .min(1, { error: 'RF-109: lista de modelos restringida não pode ser vazia' })
           .optional(),
       },
@@ -35,11 +35,11 @@ export const Nota = z.strictObject({
       },
     )
     .optional(),
-  heuristicas_extras: z.array(textoNaoVazio('heuristicas_extras', 'RF-109')).optional(),
+  heuristicas_extras: z.array(texto('heuristicas_extras', 'RF-109')).optional(),
   heuristicas: z.array(Heuristica).optional(),
-  justificativa: textoDeInterface('justificativa', 'RF-116'),
+  justificativa: texto('justificativa', 'RF-116'),
   confianca: Confianca,
-  fonte: textoDeInterface('fonte', 'RF-116'),
+  fonte: texto('fonte', 'RF-116'),
 })
 
 export type Nota = z.infer<typeof Nota>

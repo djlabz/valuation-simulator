@@ -680,3 +680,101 @@ alguém escrevesse metodologia correta e o CLI reprovasse.
 **Divergência com a fonte de verdade.** A seção 9 do documento de requisitos ainda não reflete
 esta decisão: as três strings valorativas continuam lá. Correção da fonte é tarefa própria, com
 incremento para 2.3.0.
+
+### D-062. O filtro de RP-004 inverte: filtrado por padrão, exceção declarada
+
+**Decisão.** A lista de campos do filtro de RP-004 inverte de significado. Hoje ela declara
+quais campos são filtrados; passa a declarar quais campos de texto livre são internos e ficam
+FORA do filtro. Todo campo de texto livre não listado é filtrado por padrão.
+
+**Motivo.** O modo de falha da decisão anterior era esquecer de marcar, e ele aconteceu em três
+campos horas depois de a decisão ser escrita: `visoes`, `justificativa` de horizonte e
+`onde_encontrar` de input. Lista de inclusão falha por omissão silenciosa, que não deixa rastro.
+Lista de exclusão falha por comissão visível, que aparece no diff, e o diff é onde a
+conformidade deste projeto é conferida. Um erro é invisível para a revisão, o outro passa por
+ela. Quando o desenho pede o erro, muda o desenho.
+
+**Custo aceito.** O filtro pode reprovar texto interno legítimo, e aí o campo precisa ser
+listado como exceção, com justificativa. Exceção marcada aparece no diff; esquecimento não.
+
+**Ampliação dos gatilhos.** Entram `subavaliação`, `sobreavaliação` e as variantes de mesma
+família, `subavaliado`, `sobreavaliado`, `subprecificado`, `sobreprecificado`, `subvalorizado` e
+`sobrevalorizado`. Ampliar a lista caso a caso é o modo de operação normal do filtro, não
+conserto de defeito: a D-061 já declara que ele é rede e não prova, e rede se remenda quando um
+peixe passa. O que seria defeito é assumir a lista como completa.
+
+### D-063. O campo `alertas` sai do playbook, com o conteúdo redistribuído
+
+**Decisão.** O campo `alertas` sai do schema de playbook e sai dos três arquivos YAML. O
+conteúdo é redistribuído em três destinos, conforme o que cada item é de fato.
+
+**Motivo.** O campo não é definido por nenhum requisito e RF-102 não o lista entre o que um
+playbook declara. Ele é anterior ao bloco `heuristicas_de_leitura` e ficou pendurado desde a
+v1.0. Sem requisito que o defina, ele não tem como ser exibido de forma conforme, não tem
+estrutura obrigatória, e ficou fora do filtro de RP-004 justamente por não ter requisito de
+exibição. Eliminar resolve os três de uma vez.
+
+**Por que redistribuir em três destinos e não migrar tudo para heurística.** Dos seis itens,
+dois são heurística de leitura de fato, dois são duplicata de heurística já existente, e dois
+são regra de interpretação de múltiplo, que não tem `onde_olhar` em documento e pertence a
+`multiplos_bloqueados`. Migrar duplicata ativaria um risco declarado na seção 11 do documento de
+requisitos: acúmulo de heurística de baixa qualidade produz ruído de alerta e o usuário passa a
+ignorar tudo.
+
+**Os seis itens, conferidos um a um contra o conteúdo real das heurísticas.**
+
+| Item | Destino | Conferência |
+|---|---|---|
+| Transmissão, ciclo RAP de julho a junho | heurística nova, H-004, informativo | H-001 trata de deduções de RAP bruta para líquida, assunto diferente |
+| Commodities, posição na curva global de custos | heurística nova, H-044, informativo | H-042 trata de trajetória do custo em quatro trimestres, leitura diferente |
+| Bancos, ROE inflado por reversão de PDD | deletado | H-022 já diz exatamente isso, com `por_que_importa` "ROE recente deixa de representar ROE sustentável" |
+| Commodities, reservas finitas contra perpetuidade | deletado | H-043 já diz exatamente isso, com `por_que_importa` "Reserva finita contradiz crescimento perpétuo positivo" |
+| Bancos, P/VPA junto com o spread ROE menos Ke | `multiplos_bloqueados`, alerta | P/VPA não estava na lista de bancos, é item novo |
+| Transmissão, concessões próximas do vencimento | `multiplos_bloqueados`, alerta, reescrito | continha juízo de preço, ver abaixo |
+
+**Achado adicional, a quarta ocorrência valorativa.** O alerta de Transmissão dizia que
+concessões próximas do vencimento "aparentam subavaliação em múltiplos tradicionais". Isso é
+juízo sobre preço e é a quarta ocorrência de RP-004 nos playbooks, não a terceira. E
+`subavaliação` não estava nos gatilhos da seção 2 do `CLAUDE.md`, então passaria limpa mesmo com
+o filtro invertido, o que é evidência empírica da linha "o filtro é rede, não prova" da D-061,
+encontrada no mesmo dia em que a linha foi escrita. O gatilho entra pela D-062 e o texto é
+reescrito pelo mecanismo: múltiplo tradicional não carrega a data de vencimento da concessão,
+então não informa nada sobre o ativo.
+
+**As duas heurísticas novas são proposta, não conhecimento autorado.** Elas exigem `aplica_em`,
+`confianca` e `fonte`, campos que o alerta não tinha. A `fonte` registra a origem real, que é o
+campo `alertas` da v1.0, e a `confianca` fica em `media`, porque o conteúdo é afirmação factual
+específica sem referência bibliográfica. O curador revisa e sobe para `alta` se confirmar contra
+a fonte primária, do mesmo jeito que os modos mínimos criados no Passo 2 esperam revisão.
+
+### D-064. Documento de requisitos em 2.3.0, e a divergência com `conhecimento/` está encerrada
+
+**Decisão.** O documento de requisitos vai para 2.3.0 e passa a viver em
+`docs/REQUISITOS-valuation-simulator-v2.3.md`. A seção 9 passa a ser byte a byte igual aos
+arquivos de `conhecimento/playbooks/`, e a equivalência é verificada por comparação
+programática, não por leitura.
+
+**O que isso encerra.** As linhas de divergência de D-058, D-060 e D-061, que diziam "a fonte
+de verdade ainda não reflete esta decisão", estão vencidas. Elas continuam no arquivo porque o
+`DECISOES.md` é append only, e é esta decisão que as supera. Mesma coisa para a menção a
+`v2.2.md` na D-044, cujo assunto era o ponto na versão do nome do arquivo, e isso não mudou.
+
+**O que mudou no documento.** Cabeçalho com versão, data e bloco de alterações desde 2.2.0
+citando D-058 a D-063. Seção 9 substituída pelo conteúdo real dos três arquivos. Seção 10 com
+nota dizendo que ela é registro de origem, D-001 a D-041, e que o `DECISOES.md` é canônico a
+partir de D-042, sem replicar decisão nova ali, pelo mesmo motivo que mantém as invariantes só
+no `CLAUDE.md`. Seção 11 com o risco de valor sugerido na ingestão ganhando a proteção de
+schema, e uma linha nova para linguagem valorativa dentro do conteúdo, que é risco
+materializado quatro vezes e não estava na tabela.
+
+**RF-102 não mudou.** A remoção do campo `alertas` não exigiu ajuste, porque RF-102 nunca o
+listou entre o que um playbook declara. Foi essa ausência que sustentou a D-063.
+
+**Como a equivalência é conferida.** Extraindo os três blocos ```yaml da seção 9 e comparando
+com os arquivos, e depois rodando o CLI sobre os blocos extraídos do próprio documento. Os dois
+resultados estão no relatório da etapa. Quem duvidar refaz em dois comandos, que é o ponto de
+usar comparação e não leitura.
+
+**Aberto.** Nada impede a seção 9 e `conhecimento/` divergirem de novo amanhã. Um teste que
+falhe quando divergirem é candidato natural, e não entrou nesta tarefa porque exige decidir se
+o documento passa a ser lido por código, o que é decisão de arquitetura e não de conveniência.

@@ -2,9 +2,8 @@ import { z } from 'zod'
 import {
   Confianca,
   FaixaReferencia,
-  textoDeInterface,
-  textoDeInterfaceSemValor,
-  textoNaoVazio,
+  texto,
+  textoSemValorDePremissa,
 } from './comum'
 import { Heuristica } from './heuristica'
 
@@ -15,22 +14,22 @@ export const SeveridadeMultiplo = z.enum(['bloqueio_total', 'alerta'], {
 
 /** RF-104: múltiplo bloqueado declara severidade e motivo exibível. */
 export const MultiploBloqueado = z.strictObject({
-  metrica: textoNaoVazio('metrica', 'RF-104'),
+  metrica: texto('metrica', 'RF-104'),
   severidade: SeveridadeMultiplo,
   // RF-104: o motivo aparece na tela no lugar do múltiplo bloqueado
-  motivo: textoDeInterface('motivo', 'RF-104'),
+  motivo: texto('motivo', 'RF-104'),
 })
 
 /** RF-103: todo input obrigatório declara onde_encontrar. */
 export const InputObrigatorio = z.strictObject({
-  campo: textoNaoVazio('campo', 'RF-103'),
-  tipo: textoNaoVazio('tipo', 'RF-103').optional(),
-  descricao: textoDeInterface('descricao', 'RF-103').optional(),
-  subcampos: z.array(textoNaoVazio('subcampos', 'RF-103')).optional(),
+  campo: texto('campo', 'RF-103'),
+  tipo: texto('tipo', 'RF-103').optional(),
+  descricao: texto('descricao', 'RF-103').optional(),
+  subcampos: z.array(texto('subcampos', 'RF-103')).optional(),
   // RF-302: o texto acompanha a pendência exibida quando o dado não é localizado
-  onde_encontrar: textoDeInterface('onde_encontrar', 'RF-302'),
+  onde_encontrar: texto('onde_encontrar', 'RF-302'),
   fallback_manual: z.boolean().optional(),
-  uso: textoNaoVazio('uso', 'RF-103').optional(),
+  uso: texto('uso', 'RF-103').optional(),
 })
 
 /**
@@ -51,7 +50,7 @@ export const InputObrigatorio = z.strictObject({
  */
 export const PremissaDoUsuario = z.strictObject(
   {
-    campo: textoNaoVazio('campo', 'RF-112'),
+    campo: texto('campo', 'RF-112'),
     obrigatorio: z.boolean({ error: 'RF-112: obrigatorio é true ou false' }),
     default: z
       .null({
@@ -73,8 +72,8 @@ export const PremissaDoUsuario = z.strictObject(
     }).optional(),
     // D-059: null explícito declara ausência deliberada, distinta de omissão
     faixa_referencia: FaixaReferencia.nullish(),
-    subcampos: z.array(textoNaoVazio('subcampos', 'RF-112')).optional(),
-    ajuda: textoDeInterfaceSemValor('ajuda', 'RF-112').optional(),
+    subcampos: z.array(texto('subcampos', 'RF-112')).optional(),
+    ajuda: textoSemValorDePremissa('ajuda', 'RF-112').optional(),
   },
   {
     error:
@@ -87,13 +86,13 @@ export const PremissaDoUsuario = z.strictObject(
 /** RF-105: modo de granularidade reduzida exige aviso obrigatório. */
 export const ModoGranularidade = z
   .strictObject({
-    id: textoNaoVazio('id', 'RF-105'),
-    label: textoDeInterface('label', 'RF-105'),
+    id: texto('id', 'RF-105'),
+    label: texto('label', 'RF-105'),
     precisao: z.enum(['alta', 'reduzida'], {
       error: 'RF-105: precisao é alta ou reduzida',
     }),
-    aviso_obrigatorio: textoDeInterface('aviso_obrigatorio', 'RF-105').optional(),
-    inputs: z.array(textoNaoVazio('inputs', 'RF-105')).optional(),
+    aviso_obrigatorio: texto('aviso_obrigatorio', 'RF-105').optional(),
+    inputs: z.array(texto('inputs', 'RF-105')).optional(),
   })
   .superRefine((modo, ctx) => {
     if (modo.precisao === 'reduzida' && modo.aviso_obrigatorio === undefined) {
@@ -107,37 +106,57 @@ export const ModoGranularidade = z
   })
 
 export const RegraDura = z.strictObject({
-  id: textoNaoVazio('id', 'RF-102'),
-  validador: textoNaoVazio('validador', 'RF-102'),
+  id: texto('id', 'RF-102'),
+  validador: texto('validador', 'RF-102'),
   // RF-507: a mensagem da regra dura vai no erro estruturado que aborta o cálculo
-  mensagem: textoDeInterface('mensagem', 'RF-507'),
+  mensagem: texto('mensagem', 'RF-507'),
 })
 
 export const HorizonteProjecao = z.strictObject({
   tipo: z.enum(['derivado_de_fato', 'convencao_setorial'], {
     error: 'RF-102: horizonte é derivado_de_fato ou convencao_setorial',
   }),
-  origem: textoNaoVazio('origem', 'RF-102').optional(),
+  origem: texto('origem', 'RF-102').optional(),
   anos: z.number().int().positive().optional(),
   ajustavel_pelo_usuario: z.boolean({
     error: 'RF-102: horizonte declara se é ajustável pelo usuário',
   }),
   // RF-419: a justificativa do horizonte é exibida quando o usuário ajusta
-  justificativa: textoDeInterface('justificativa', 'RF-419').optional(),
+  justificativa: texto('justificativa', 'RF-419').optional(),
 })
 
+/**
+ * Valor de sinal de detecção, em qualquer profundidade.
+ *
+ * O bloco de detecção tem forma livre por natureza: chave e valor variam por
+ * setor, e há um nível de aninhamento em subtipos. Antes ele era `z.unknown()`,
+ * ou seja, texto que ninguém olhava. Pela D-062 isso não se sustenta: o sinal
+ * alimenta a classificação, e a proposta de modelo é confirmada em tela
+ * (RF-902), então o texto pode chegar ao usuário. Recursivo para nenhuma string
+ * escapar por estar fundo demais.
+ */
+const ValorDeSinal: z.ZodType = z.lazy(() =>
+  z.union([
+    texto('deteccao', 'RF-102'),
+    z.boolean(),
+    z.number(),
+    z.array(ValorDeSinal),
+    z.record(z.string(), ValorDeSinal),
+  ]),
+)
+
 export const Deteccao = z.strictObject({
-  sinais_fortes: z.array(z.unknown()).min(1, {
+  sinais_fortes: z.array(ValorDeSinal).min(1, {
     error: 'RF-102: detecção precisa de pelo menos um sinal forte',
   }),
-  sinais_fracos: z.array(z.unknown()).optional(),
-  exemplos: z.array(textoNaoVazio('exemplos', 'RF-102')).optional(),
-  subtipos: z.array(z.unknown()).optional(),
+  sinais_fracos: z.array(ValorDeSinal).optional(),
+  exemplos: z.array(texto('exemplos', 'RF-102')).optional(),
+  subtipos: z.array(ValorDeSinal).optional(),
   nao_confundir_com: z
     .array(
       z.strictObject({
-        id: textoNaoVazio('nao_confundir_com.id', 'RF-102'),
-        criterio: textoNaoVazio('nao_confundir_com.criterio', 'RF-102'),
+        id: texto('nao_confundir_com.id', 'RF-102'),
+        criterio: texto('nao_confundir_com.criterio', 'RF-102'),
       }),
     )
     .optional(),
@@ -145,15 +164,15 @@ export const Deteccao = z.strictObject({
 
 /** RF-102: os campos que um playbook setorial precisa declarar. */
 export const Playbook = z.strictObject({
-  id: textoNaoVazio('id', 'RF-102'),
-  versao: textoNaoVazio('versao', 'RF-102'),
-  mercado: textoNaoVazio('mercado', 'RF-102'),
-  nome_exibicao: textoNaoVazio('nome_exibicao', 'RF-102'),
+  id: texto('id', 'RF-102'),
+  versao: texto('versao', 'RF-102'),
+  mercado: texto('mercado', 'RF-102'),
+  nome_exibicao: texto('nome_exibicao', 'RF-102'),
   deteccao: Deteccao,
   multiplos_bloqueados: z.array(MultiploBloqueado).min(1, {
     error: 'RF-102, RF-104: playbook declara os múltiplos bloqueados do setor',
   }),
-  modelos_habilitados: z.array(textoNaoVazio('modelos_habilitados', 'RF-102')).min(1, {
+  modelos_habilitados: z.array(texto('modelos_habilitados', 'RF-102')).min(1, {
     error: 'RF-102: playbook declara pelo menos um modelo habilitado',
   }),
   horizonte_projecao: HorizonteProjecao,
@@ -180,8 +199,7 @@ export const Playbook = z.strictObject({
       error: 'RF-102, RF-106: playbook declara as heurísticas de leitura do setor',
     })
     .min(1, { error: 'RF-102: a lista de heurísticas não pode ser vazia' }),
-  alertas: z.array(textoNaoVazio('alertas', 'RF-102')).optional(),
-  fonte: textoNaoVazio('fonte', 'RF-102'),
+  fonte: texto('fonte', 'RF-102'),
   confianca: Confianca.optional(),
 })
 

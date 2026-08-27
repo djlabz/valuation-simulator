@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { describe, expect, it } from 'vitest'
-import { PremissaDoUsuario } from './playbook'
-import { textoDeInterface } from './comum'
+import { Playbook, PremissaDoUsuario } from './playbook'
+import { texto, textoInterno } from './comum'
 import {
   PASTAS_VALIDAS,
   tipoPeloCaminho,
@@ -158,19 +158,96 @@ describe('D-061, texto exibido ao usuário passa por filtro de RP-004', () => {
       'O fluxo de caixa descontado usa a taxa que você informou',
       'O custo de oportunidade do capital vem da composição por CAPM',
     ]
-    for (const texto of legitimos) {
-      expect(textoDeInterface('motivo', 'RF-104').safeParse(texto).success).toBe(true)
+    for (const frase of legitimos) {
+      expect(texto('motivo', 'RF-104').safeParse(frase).success).toBe(true)
     }
   })
 
   it('pega o valorativo quando a palavra não vem na colocação metodológica', () => {
-    const r = textoDeInterface('motivo', 'RF-104').safeParse('Ativo descontado frente aos pares')
+    const r = texto('motivo', 'RF-104').safeParse('Ativo descontado frente aos pares')
     expect(r.success).toBe(false)
   })
 
   it('o filtro não substitui revisão: paráfrase passa limpo, e isso é declarado na D-061', () => {
     const parafrase = 'o desenlace positivo para o emissor é o cenário natural'
-    expect(textoDeInterface('motivo', 'RF-104').safeParse(parafrase).success).toBe(true)
+    expect(texto('motivo', 'RF-104').safeParse(parafrase).success).toBe(true)
+  })
+})
+
+describe('D-062, o filtro é o padrão e não a exceção', () => {
+  // valores de enum: mutar estes reprova por enum inválido, não por RP-004, então
+  // ficam de fora para o teste medir o que promete medir
+  const CAMINHOS_DE_ENUM = [
+    'multiplos_bloqueados.0.severidade',
+    'horizonte_projecao.tipo',
+    'modos.0.precisao',
+    'premissas_do_usuario.0.composicao_disponivel',
+    'heuristicas_de_leitura.0.severidade',
+    'heuristicas_de_leitura.0.confianca',
+  ]
+
+  function folhasDeTexto(no: unknown, prefixo = ''): string[] {
+    if (typeof no === 'string') return [prefixo]
+    if (Array.isArray(no)) {
+      return no.flatMap((item, i) => folhasDeTexto(item, `${prefixo}${prefixo ? '.' : ''}${i}`))
+    }
+    if (typeof no === 'object' && no !== null) {
+      return Object.entries(no).flatMap(([chave, valor]) =>
+        folhasDeTexto(valor, `${prefixo}${prefixo ? '.' : ''}${chave}`),
+      )
+    }
+    return []
+  }
+
+  function comValorativo(base: unknown, caminho: string): unknown {
+    const copia = structuredClone(base) as Record<string, unknown>
+    const partes = caminho.split('.')
+    let no: Record<string, unknown> = copia
+    for (const parte of partes.slice(0, -1)) {
+      no = no[parte] as Record<string, unknown>
+    }
+    const ultima = partes[partes.length - 1]
+    if (ultima !== undefined) no[ultima] = 'papel barato frente aos pares'
+    return copia
+  }
+
+  it('todo campo de texto livre do playbook recusa vocabulário valorativo', () => {
+    const base = carregar(join(FIXTURES, 'playbooks', 'premissa-com-valor.yaml')) as Record<
+      string,
+      unknown
+    >
+    base['premissas_do_usuario'] = [{ campo: 'taxa_desconto', obrigatorio: true, default: null }]
+    expect(Playbook.safeParse(base).success).toBe(true)
+
+    const caminhos = folhasDeTexto(base).filter((c) => !CAMINHOS_DE_ENUM.includes(c))
+    expect(caminhos.length).toBeGreaterThan(15)
+
+    const passaram: string[] = []
+    for (const caminho of caminhos) {
+      const resultado = Playbook.safeParse(comValorativo(base, caminho))
+      const pegouRp004 =
+        !resultado.success &&
+        resultado.error.issues.some((i) => i.message.includes('RP-004'))
+      if (!pegouRp004) passaram.push(caminho)
+    }
+    // lista de exceções internas declaradas hoje: vazia
+    expect(passaram).toEqual([])
+  })
+
+  it('textoInterno é a porta de saída declarada, e não filtra', () => {
+    const interno = textoInterno('validador', 'RF-102', 'nome de função, nunca vira tela')
+    expect(interno.safeParse('papel barato frente aos pares').success).toBe(true)
+  })
+
+  it('os gatilhos novos da D-062 pegam subavaliação e a família', () => {
+    for (const frase of [
+      'Concessões próximas do vencimento aparentam subavaliação',
+      'ativo sobreavaliado frente aos pares',
+      'papel subprecificado no setor',
+      'ação sobrevalorizada',
+    ]) {
+      expect(texto('motivo', 'RF-104').safeParse(frase).success).toBe(false)
+    }
   })
 })
 

@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.2.0
-**Data:** 25 de agosto de 2026
+**Versão:** 2.3.0
+**Data:** 26 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.2.0:** taxa em arquivo de conhecimento passa a texto entre aspas, porque YAML sem aspas entrega float (D-058); ausência deliberada de campo opcional se escreve com `null` explícito (D-059); `modos` passa a obrigatório no playbook, com setor de modo único declarando um modo, e `bancos-b3` e `commodities-b3` ganham o seu (D-060); conteúdo de conhecimento exibido ao usuário passa por filtro de RP-004, com quatro ocorrências valorativas corrigidas nos playbooks (D-061, D-062); campo `alertas` removido do playbook e conteúdo redistribuído entre heurística e múltiplo bloqueado (D-063). A seção 10 deixa de ser o log corrente, ver a nota no início dela.
 
 **Alterações desde 2.1.0:** eliminação de flags booleanas de premissa, substituídas por derivação a partir da presença do valor (RF-421, D-040); coloração por sinal aritmético permitida, hierarquia visual por atratividade proibida (RF-911, D-041); ajuste de label em `modos` do playbook de Transmissão.
 
@@ -528,6 +530,9 @@ multiplos_bloqueados:
   - metrica: "P/VPA"
     severidade: alerta
     motivo: "PL não representa capacidade de geração de caixa em ativo concedido"
+  - metrica: "Comparação de múltiplos entre pares do setor"
+    severidade: alerta
+    motivo: "Múltiplo tradicional não carrega a data de vencimento da concessão, então comparar companhias com prazos contratuais diferentes não informa nada sobre o ativo"
 
 modelos_habilitados: [fcff_por_concessao, ddm]
 
@@ -585,8 +590,8 @@ premissas_do_usuario:
     default: null
     composicao_disponivel: capm
     faixa_referencia:
-      minimo: 0.09
-      maximo: 0.14
+      minimo: "0.09"
+      maximo: "0.14"
       n_observacoes: 7
       base: "premissas declaradas publicamente por analistas, setor transmissão"
       confianca: media
@@ -640,10 +645,16 @@ heuristicas_de_leitura:
     severidade: informativo
     confianca: alta
     fonte: "Guia de Valuation Setorial, seção 2.3"
-
-alertas:
-  - "Concessões próximas do vencimento aparentam subavaliação em múltiplos tradicionais"
-  - "Ciclo RAP vigora de julho a junho; RAP do ciclo anterior subestima receita"
+  - id: H-004
+    aplica_em: [release_resultados]
+    onde_olhar: "Ciclo RAP a que a receita informada se refere"
+    o_que_verificar: "RAP do ciclo anterior sendo usada como receita do ciclo vigente"
+    por_que_importa: "O ciclo RAP vigora de julho a junho, então a RAP do ciclo anterior fica abaixo da receita do ciclo em curso"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: concessoes
+    severidade: informativo
+    confianca: media
+    fonte: "Campo alertas do playbook transmissao-energia-b3 v1.0, proposta de migração para revisão do curador (D-063)"
 
 fonte: "Guia de Valuation Setorial, seção 2"
 ```
@@ -677,6 +688,9 @@ multiplos_bloqueados:
   - metrica: "P/L"
     severidade: alerta
     motivo: "lucro distorcido por discricionariedade em PDD e marcação a mercado"
+  - metrica: "P/VPA"
+    severidade: alerta
+    motivo: "P/VPA isolado não informa: o que ele diz depende do spread entre ROE e Ke, que precisa ser lido junto"
 
 modelos_habilitados: [excess_return, ddm]
 
@@ -700,6 +714,12 @@ regras_duras:
   - id: R-103
     validador: validarSpreadROEKe
     mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
+
+modos:
+  - id: consolidado
+    label: "Consolidado"
+    precisao: alta
+    inputs: [patrimonio_liquido_inicial, roe_historico_3a, indice_basileia_atual, rwa_atual]
 
 inputs_obrigatorios:
   - campo: patrimonio_liquido_inicial
@@ -761,10 +781,6 @@ heuristicas_de_leitura:
     confianca: alta
     fonte: "Guia de Valuation Setorial, seção 1.4"
 
-alertas:
-  - "ROE recente inflado por reversão de PDD não é ROE sustentável"
-  - "P/VPA só faz sentido lido junto com o spread ROE menos Ke"
-
 fonte: "Guia de Valuation Setorial, seção 1"
 ```
 
@@ -790,7 +806,7 @@ deteccao:
 multiplos_bloqueados:
   - metrica: "P/L (spot)"
     severidade: bloqueio_total
-    motivo: "no topo de ciclo, P/L baixo é armadilha de valor, não desconto"
+    motivo: "P/L calculado sobre lucro de topo de ciclo não representa capacidade recorrente de geração de caixa"
   - metrica: "DY (trailing)"
     severidade: bloqueio_total
     motivo: "DY elevado em topo de ciclo não é recorrente"
@@ -820,6 +836,12 @@ regras_duras:
   - id: R-204
     validador: validarHorizonteVsReserva
     mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva"
+
+modos:
+  - id: consolidado
+    label: "Consolidado"
+    precisao: alta
+    inputs: [volume_producao_anual, custo_caixa_unitario, capex_manutencao, divida_liquida, vida_util_reserva]
 
 inputs_obrigatorios:
   - campo: volume_producao_anual
@@ -869,7 +891,7 @@ heuristicas_de_leitura:
     aplica_em: [release_resultados]
     onde_olhar: "Custo caixa unitário nos últimos quatro trimestres"
     o_que_verificar: "Trajetória de alta sustentada no custo de extração"
-    por_que_importa: "Reduz a margem de segurança no fundo do ciclo da commodity"
+    por_que_importa: "Custo de extração em alta reduz a distância entre preço e custo caixa no fundo do ciclo"
     acao_do_agente: sinalizar_ao_usuario
     severidade: informativo
     confianca: alta
@@ -884,10 +906,16 @@ heuristicas_de_leitura:
     severidade: bloqueia_ate_ciente
     confianca: alta
     fonte: "Elaboração própria"
-
-alertas:
-  - "Margem de segurança real vem do custo de extração frente à curva global, não do P/L"
-  - "Reservas provadas finitas contradizem perpetuidade com crescimento positivo"
+  - id: H-044
+    aplica_em: [release_resultados]
+    onde_olhar: "Custo caixa unitário da companhia frente à curva global de custos do setor"
+    o_que_verificar: "Posição da companhia na curva global de custos"
+    por_que_importa: "A posição na curva de custos determina o resultado da companhia no fundo do ciclo, e o P/L não informa isso"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: custo_caixa_unitario
+    severidade: informativo
+    confianca: media
+    fonte: "Campo alertas do playbook commodities-b3 v1.0, proposta de migração para revisão do curador (D-063)"
 
 fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"
 ```
@@ -930,6 +958,10 @@ fonte: "Notas Explicativas 3T26, item 24"
 ---
 
 ## 10. Log de Decisões
+
+> **Este log é registro de origem, não o log corrente.** D-001 a D-041 nasceram aqui e ficam
+> aqui como histórico. A partir de D-042, o `DECISOES.md` do repositório é canônico, e as
+> decisões novas não são replicadas nesta seção: duas cópias divergem e ninguém sabe qual vale.
 
 | ID | Decisão | Motivo |
 |---|---|---|
@@ -991,7 +1023,8 @@ fonte: "Notas Explicativas 3T26, item 24"
 | Convergência de analistas por eco | Faixa reforça erro coletivo | Confiança explícita, ausência de faixa em commodity |
 | Nota ou evento desatualizado orientando decisão | Alerta ativamente enganoso | Prazo obrigatório, ocultação automática, verificação de obsolescência |
 | Manutenção de notas cresce com a carteira | Conhecimento desatualizado por falta de tempo | Cobertura limitada aos ativos monitorados, `revisar_em` como fila |
-| Valor sugerido escapando na ingestão | Violação de RP-006 | Validação automática da proposta (RF-122) e revisão do curador |
+| Valor sugerido escapando na ingestão | Violação de RP-006 | Schema recusa premissa com valor e chave nova em premissa (RF-112), validação automática da proposta (RF-122) e revisão do curador |
+| Linguagem valorativa dentro do conteúdo de conhecimento | Violação de RP-004 por um caminho que nenhuma proteção de cálculo inspeciona | Todo campo de texto livre filtrado por padrão, com exceção declarada (D-061, D-062); o filtro é rede e não prova, a revisão do curador continua sendo a prova |
 | Cenários proliferando sem critério | Tela ilegível, análise diluída | Limite de cinco, nomeação obrigatória |
 | Escopo expandindo antes da v1 fechar | Projeto não entrega | Restrição explícita na seção 2.2 |
 

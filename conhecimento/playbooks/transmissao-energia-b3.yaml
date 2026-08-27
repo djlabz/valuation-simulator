@@ -24,6 +24,9 @@ multiplos_bloqueados:
   - metrica: "P/VPA"
     severidade: alerta
     motivo: "PL não representa capacidade de geração de caixa em ativo concedido"
+  - metrica: "Comparação de múltiplos entre pares do setor"
+    severidade: alerta
+    motivo: "Múltiplo tradicional não carrega a data de vencimento da concessão, então comparar companhias com prazos contratuais diferentes não informa nada sobre o ativo"
 
 modelos_habilitados: [fcff_por_concessao, ddm]
 
@@ -136,9 +139,15 @@ heuristicas_de_leitura:
     severidade: informativo
     confianca: alta
     fonte: "Guia de Valuation Setorial, seção 2.3"
-
-alertas:
-  - "Concessões próximas do vencimento aparentam subavaliação em múltiplos tradicionais"
-  - "Ciclo RAP vigora de julho a junho; RAP do ciclo anterior subestima receita"
+  - id: H-004
+    aplica_em: [release_resultados]
+    onde_olhar: "Ciclo RAP a que a receita informada se refere"
+    o_que_verificar: "RAP do ciclo anterior sendo usada como receita do ciclo vigente"
+    por_que_importa: "O ciclo RAP vigora de julho a junho, então a RAP do ciclo anterior fica abaixo da receita do ciclo em curso"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: concessoes
+    severidade: informativo
+    confianca: media
+    fonte: "Campo alertas do playbook transmissao-energia-b3 v1.0, proposta de migração para revisão do curador (D-063)"
 
 fonte: "Guia de Valuation Setorial, seção 2"

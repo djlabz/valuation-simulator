@@ -12,7 +12,7 @@ export const Confianca = z.enum(['alta', 'media', 'baixa'], {
   error: 'RF-106: confianca precisa ser alta, media ou baixa',
 })
 
-export const textoNaoVazio = (campo: string, requisito: string) =>
+const textoBase = (campo: string, requisito: string) =>
   z
     .string({ error: `${requisito}: ${campo} precisa ser texto` })
     .trim()
@@ -167,6 +167,8 @@ const GATILHOS_VALORATIVOS: GatilhoValorativo[] = [
   { padrao: /\brisco elevado\b/i },
   { padrao: /\bmargem de seguran[çc]a\b/i },
   { padrao: /\barmadilhas?\b/i },
+  { padrao: /\bsub(?:avalia|precifica|valoriza)(?:d[oa]s?|ção|cao|ções|coes)\b/i },
+  { padrao: /\bsobre(?:avalia|precifica|valoriza)(?:d[oa]s?|ção|cao|ções|coes)\b/i },
   {
     padrao: /\bdescontad[oa]s?\b/i,
     antecedentesPermitidos: ['fluxo', 'caixa', 'valor', 'dividendo', 'proventos'],
@@ -208,33 +210,41 @@ function checarValorativo(
   }
 }
 
-/** Texto que não carrega valor de premissa, sem ser exibido ao usuário. */
-export const textoSemValorDePremissa = (campo: string, requisito: string) =>
-  textoNaoVazio(campo, requisito).superRefine((valor, ctx) =>
-    checarValorDePremissa(valor, ctx, campo, requisito),
-  )
-
 /**
- * Texto de interface: campo cujo conteúdo é exibido ao usuário (D-061).
+ * Texto de conhecimento, o helper padrão (D-062).
  *
- * A marcação é explícita de propósito. Campo que vira tela sem passar por aqui
- * fica fora do filtro em silêncio, que é o modo de falha que a D-061 nomeia.
+ * Filtra vocabulário valorativo. É o padrão de propósito: a marcação anterior
+ * listava quem era filtrado, e o modo de falha era esquecer de marcar, que é erro
+ * invisível para a revisão. Agora o esquecimento cai do lado seguro, e quem quer
+ * ficar de fora precisa dizer isso no diff, com `textoInterno`.
  */
-export const textoDeInterface = (campo: string, requisito: string) =>
-  textoNaoVazio(campo, requisito).superRefine((valor, ctx) =>
+export const texto = (campo: string, requisito: string) =>
+  textoBase(campo, requisito).superRefine((valor, ctx) =>
     checarValorativo(valor, ctx, campo, requisito),
   )
 
-/** Texto de interface que também não pode carregar valor de premissa. */
-export const textoDeInterfaceSemValor = (campo: string, requisito: string) =>
-  textoNaoVazio(campo, requisito).superRefine((valor, ctx) => {
+/**
+ * Exceção declarada: campo que não vira tela em nenhum caminho previsto pelos
+ * requisitos, e por isso fica fora do filtro (D-062).
+ *
+ * O parâmetro `motivo` não é usado em runtime e existe para forçar quem escreve a
+ * escrever a justificativa ali, onde o revisor do diff vai ler.
+ */
+export const textoInterno = (campo: string, requisito: string, motivo: string) => {
+  void motivo
+  return textoBase(campo, requisito)
+}
+
+/** Texto que também não pode carregar valor de premissa (RF-112). */
+export const textoSemValorDePremissa = (campo: string, requisito: string) =>
+  textoBase(campo, requisito).superRefine((valor, ctx) => {
     checarValorativo(valor, ctx, campo, requisito)
     checarValorDePremissa(valor, ctx, campo, requisito)
   })
 
-/** Texto de interface que também não pode qualificar probabilidade. */
-export const textoDeInterfaceSemProbabilidade = (campo: string, requisito: string) =>
-  textoNaoVazio(campo, requisito).superRefine((valor, ctx) => {
+/** Texto que também não pode qualificar probabilidade de desfecho (RF-111). */
+export const textoSemProbabilidade = (campo: string, requisito: string) =>
+  textoBase(campo, requisito).superRefine((valor, ctx) => {
     checarValorativo(valor, ctx, campo, requisito)
     checarProbabilidade(valor, ctx, campo, requisito)
   })
@@ -255,11 +265,11 @@ export const FaixaReferencia = z.strictObject(
       .number({ error: 'RF-113: n_observacoes é contagem de observações' })
       .int({ error: 'RF-113: n_observacoes precisa ser inteiro' })
       .positive({ error: 'RF-113: n_observacoes precisa ser maior que zero' }),
-    base: textoNaoVazio('faixa_referencia.base', 'RF-113'),
+    base: texto('faixa_referencia.base', 'RF-113'),
     confianca: Confianca,
     atualizado_em: anoMes('faixa_referencia.atualizado_em', 'RF-113'),
     // exibido como contexto de escala, bloco 3 de RF-116
-    aviso: textoDeInterface('faixa_referencia.aviso', 'RF-116').optional(),
+    aviso: texto('faixa_referencia.aviso', 'RF-116').optional(),
   },
   {
     error:

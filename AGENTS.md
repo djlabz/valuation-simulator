@@ -3,7 +3,7 @@
 Continuidade entre sessões e entre agentes. Contém o que muda: estado, ordem de trabalho,
 questões abertas. Regra permanente está em `CLAUDE.md` e não se repete aqui.
 
-**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.2.md`,
+**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.3.md`,
 depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ---
@@ -15,17 +15,11 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 **Etapa seguinte:** Passo 3, engines contra fixtures e as duas trilhas em paralelo,
 aguardando aprovação explícita
 
-**Atenção, dois lugares com playbook.** A partir do Passo 2 existem duas versões dos três
-playbooks: a da seção 9 do `docs/REQUISITOS-valuation-simulator-v2.2.md` e a de
-`conhecimento/playbooks/`. **A de `conhecimento/` é a que roda e a que o CLI valida.** A do
-documento ficou para trás em três pontos, por D-058, D-060 e D-061, e a correção da fonte é
-tarefa própria com incremento para 2.3.0. Ver a primeira linha da seção 5.
-
 **Existe:**
 
-- `docs/REQUISITOS-valuation-simulator-v2.2.md`, escopo fechado e aprovado, cópia byte a
-  byte da versão aprovada. 113 requisitos funcionais, 12 não funcionais, 41 decisões, três
-  playbooks setoriais em YAML integral
+- `docs/REQUISITOS-valuation-simulator-v2.3.md`, escopo fechado e aprovado. 113 requisitos
+  funcionais, 12 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
+  `conhecimento/playbooks/`, o que é verificado por comparação programática (D-064)
 - `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico da sessão de 24/08/2026,
   não é fonte de verdade. As divergências contra a v2.2 estão no cabeçalho do arquivo
 - os quatro arquivos de governança
@@ -148,8 +142,7 @@ Nada aqui bloqueia o Passo 3.
 
 | Questão | Quando resolve |
 |---|---|
-| **Fonte de verdade divergente do YAML que roda.** A seção 9 do documento de requisitos não reflete três decisões do Passo 2: taxa de faixa sem aspas (D-058), `bancos-b3` e `commodities-b3` sem `modos` (D-060), e as três strings valorativas de `commodities-b3` (D-061). Corrigir o documento é tarefa própria, com incremento para 2.3.0 e diff revisado | Tarefa própria, antes de o documento ser citado como fonte de playbook outra vez |
-| Campo `alertas` do playbook não tem requisito que defina nem exiba ele. Não entrou no filtro de RP-004 por isso, e a decisão é se ele é texto de interface, nota interna do curador, ou campo a remover | Antes da Fase 7, que é quando alerta vira tela |
+| As duas heurísticas migradas do campo `alertas`, H-004 em Transmissão e H-044 em Commodities, são proposta e não conhecimento autorado. Elas têm `confianca: media` e `fonte` apontando o campo de origem, e esperam revisão do curador contra a fonte primária | Passo 3, trilha B, junto com os modos mínimos |
 | Os `modos` de `bancos-b3` e `commodities-b3` foram criados com um modo único e mínimo, por D-060. A taxonomia real de granularidade dos dois setores é questão de conhecimento, não de schema | Passo 3, trilha B, com o curador |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |

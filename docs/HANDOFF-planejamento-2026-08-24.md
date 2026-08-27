@@ -1,8 +1,9 @@
 > **Ressalva de leitura, inserida em 25/08/2026.**
 >
 > Este arquivo é registro histórico da sessão de planejamento de 24/08/2026. Ele não é
-> fonte de verdade. A fonte de verdade é `docs/REQUISITOS-valuation-simulator-v2.2.md`, que
-> vence este arquivo em qualquer conflito.
+> fonte de verdade. A fonte de verdade é `docs/REQUISITOS-valuation-simulator-v2.3.md`, que
+> vence este arquivo em qualquer conflito. A tabela abaixo foi verificada contra a v2.2,
+> que era a corrente na época; a v2.3 mudou a seção 9 e não mexeu em nada que a tabela cita.
 >
 > O handoff foi escrito contra uma versão anterior do documento de requisitos. As
 > divergências abaixo foram verificadas contra os dois arquivos, uma a uma:

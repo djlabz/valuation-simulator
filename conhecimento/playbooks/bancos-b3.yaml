@@ -24,6 +24,9 @@ multiplos_bloqueados:
   - metrica: "P/L"
     severidade: alerta
     motivo: "lucro distorcido por discricionariedade em PDD e marcação a mercado"
+  - metrica: "P/VPA"
+    severidade: alerta
+    motivo: "P/VPA isolado não informa: o que ele diz depende do spread entre ROE e Ke, que precisa ser lido junto"
 
 modelos_habilitados: [excess_return, ddm]
 
@@ -113,9 +116,5 @@ heuristicas_de_leitura:
     severidade: bloqueia_ate_ciente
     confianca: alta
     fonte: "Guia de Valuation Setorial, seção 1.4"
-
-alertas:
-  - "ROE recente inflado por reversão de PDD não é ROE sustentável"
-  - "P/VPA só faz sentido lido junto com o spread ROE menos Ke"
 
 fonte: "Guia de Valuation Setorial, seção 1"

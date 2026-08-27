@@ -117,9 +117,15 @@ heuristicas_de_leitura:
     severidade: bloqueia_ate_ciente
     confianca: alta
     fonte: "Elaboração própria"
-
-alertas:
-  - "A posição do custo de extração da companhia na curva global de custos determina o resultado no fundo do ciclo, e o P/L não informa isso"
-  - "Reservas provadas finitas contradizem perpetuidade com crescimento positivo"
+  - id: H-044
+    aplica_em: [release_resultados]
+    onde_olhar: "Custo caixa unitário da companhia frente à curva global de custos do setor"
+    o_que_verificar: "Posição da companhia na curva global de custos"
+    por_que_importa: "A posição na curva de custos determina o resultado da companhia no fundo do ciclo, e o P/L não informa isso"
+    acao_do_agente: sinalizar_ao_usuario
+    campo_relacionado: custo_caixa_unitario
+    severidade: informativo
+    confianca: media
+    fonte: "Campo alertas do playbook commodities-b3 v1.0, proposta de migração para revisão do curador (D-063)"
 
 fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"
