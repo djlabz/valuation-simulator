@@ -137,7 +137,12 @@ aritmética sobre esses dois.
 
 **Gatilhos no código:** qualquer cálculo dentro de componente React; média, mediana ou
 ponto médio derivado de faixa de referência; `toFixed` sobre valor que não veio do
-snapshot; agregado de conveniência criado na camada de apresentação.
+snapshot; agregado de conveniência criado na camada de apresentação; e escape de schema,
+que é `z.unknown()`, `z.any()`, `z.custom()` sem validador, `z.looseObject` e `.passthrough()`,
+e `.catch()` com valor de reserva. Escape de schema é o `any` do dado: onde o schema diz que
+não sabe o que é, ninguém consegue responder o teste abaixo, e nenhum filtro de conteúdo
+roda. Apareceu de verdade em `Deteccao.sinais_fortes`, que era `z.unknown()` e deixava passar
+qualquer texto sem olhar, contornando o filtro padrão de D-062.
 
 **Teste de decisão:** este número está no snapshot como fato, como premissa do usuário, ou
 como resultado desagregado de engine? Se não é nenhum dos três, ele não pode aparecer.

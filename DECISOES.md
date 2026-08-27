@@ -778,3 +778,61 @@ usar comparação e não leitura.
 **Aberto.** Nada impede a seção 9 e `conhecimento/` divergirem de novo amanhã. Um teste que
 falhe quando divergirem é candidato natural, e não entrou nesta tarefa porque exige decidir se
 o documento passa a ser lido por código, o que é decisão de arquitetura e não de conveniência.
+
+### D-065. A equivalência entre o documento e `conhecimento/` vira teste da suíte
+
+**Decisão.** O documento de requisitos passa a ser lido por código. Um teste da suíte compara
+a seção 9 de `docs/REQUISITOS-valuation-simulator-v2.3.md` com os arquivos de
+`conhecimento/playbooks/` e falha quando divergirem.
+
+**Motivo.** A D-064 provou os dois lados iguais num dia e declarou que nada os mantinha iguais
+no dia seguinte. A divergência anterior nasceu exatamente assim e levou dois passos para
+alguém notar, o que é longo demais para um arquivo que serve de fonte de metodologia.
+
+**Como o teste acha os blocos, que é a parte que importa.** Por conteúdo, não por posição nem
+por título. Cada bloco de cerca ```yaml do documento é parseado, e vale como playbook o que
+tiver `id` e `modelos_habilitados` no topo. O casamento com o arquivo é pelo `id`, e a
+comparação é byte a byte.
+
+**Descartado, extração por posição de linha ou por título de seção.** Quebraria quando alguém
+inserisse seção antes da 9 ou renomeasse o título, e quebraria pelo motivo errado, que é pior
+que não ter teste, porque ensina a ignorar o vermelho.
+
+**Descartado, acrescentar marcador ao documento.** Chegou a ser considerado e não foi preciso:
+o `id` dentro do próprio bloco já é marcador estável, e ele não pode mudar sem que isso seja
+uma divergência de verdade. O documento não foi editado por causa deste teste, então não houve
+incremento de versão.
+
+**O que ele sobrevive, medido.** Inserir seção antes da 9, renumerar o título da seção,
+renomear o título da subseção e acrescentar outros blocos YAML, como os exemplos de nota e de
+evento da 9.4. Os três primeiros foram exercitados na mão e o teste seguiu verde.
+
+**O que ele não sobrevive, de propósito.** Trocar a cerca ```yaml por outra coisa, tirar o
+bloco do documento, e mudar o `id` dentro do bloco. Os três são divergência real.
+
+**Custo aceito, e é comportamento pretendido.** Mexer na estrutura da seção 9 passa a quebrar
+o teste. Quem editar o documento vai ter que editar `conhecimento/` junto, ou vice versa, e é
+exatamente isso que se quer: os dois andam juntos ou o CI reclama.
+
+**Detalhe de resistência.** O caminho do documento é achado por glob de
+`REQUISITOS-valuation-simulator-v*.md`, com exigência de haver exatamente um. Assim o próximo
+incremento de versão não quebra o teste por causa do nome do arquivo, que seria outra quebra
+pelo motivo errado.
+
+### D-066. A chave do `z.record` em `ValorDeSinal` fica fora do filtro, com medição
+
+**Decisão.** A chave dos registros de sinal de detecção não passa pelo filtro de RP-004. Não é
+pendência, é decisão de não fazer.
+
+**Motivo, medido e não estimado.** Filtrar a chave funciona tecnicamente, o Zod aceita schema
+de chave em `z.record`. Só que a chave é `snake_case` por convenção do formato, e os gatilhos
+do filtro exigem fronteira de palavra, então `parece_barato` não casa de jeito nenhum, porque
+`_` é caractere de palavra e não abre fronteira. O que casaria é chave com espaço, tipo
+`papel barato`, e nesse caso a mensagem que o Zod devolve é "Invalid key in record", sem o
+requisito citado. Cobertura real ganha zero, diagnóstico piora.
+
+**Por que registrar em vez de deixar na lista de brechas abertas.** Brecha aberta é convite
+para alguém refazer a mesma medição daqui a três meses e chegar na mesma conclusão. Decisão
+com a medição dentro fecha o assunto e deixa o caminho de volta aberto: se um dia a mensagem
+de chave do Zod passar a ser customizável, ou se a convenção de chave deixar de ser
+`snake_case`, a medição muda e a decisão se revisita.
