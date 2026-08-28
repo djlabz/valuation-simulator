@@ -1049,3 +1049,65 @@ etapa que mexer no schema.
 **Detalhe de mensagem que a varredura expôs.** O `onde_encontrar` do input obrigatório é exigido
 por RF-103 e a mensagem cita RF-302, que é onde o texto aparece na tela. Mesmo caso das quatro de
 RF-106, e não corrigido aqui pelo mesmo motivo de escopo.
+
+---
+
+## Sessão de 28/08/2026
+
+### D-074. A varredura vira procedimento, e a categoria de proteção sem exercício fecha
+
+**Decisão.** A varredura de proteção sem exercício passa a ser passo obrigatório da inspeção
+em toda etapa que mexer em validação, registrada na skill `.claude/skills/inspecao-conformidade/`
+com os comandos, e citada na seção 3 do `PROTOCOLO-ETAPA.md` junto da prova de execução.
+
+**O que ela faz.** Compara o conjunto de requisitos citados no schema com o conjunto afirmado
+em teste. A diferença é a lista de proteções que existem no código e nunca reprovaram nada.
+Dois comandos.
+
+**Por que virou procedimento.** Até esta rodada a D-038, proteção que ninguém tenta furar não
+foi testada, dependia de alguém lembrar dela durante a inspeção: era princípio, não
+procedimento. A varredura achou quatro lacunas numa rodada e mais duas na seguinte, o que
+nenhuma leitura atenta tinha achado em duas etapas.
+
+**Ressalva que precisa sobreviver a qualquer refatoração do texto: não é gate automático.** A
+saída exige triagem manual, uma linha por vez, com a pergunta "este ID é regra de verdade ou
+rótulo de âncora num campo de texto?", respondida em runtime. Na rodada em que ela nasceu, oito
+IDs apareceram e **seis eram rótulo de âncora**. Automatizar como gate faria a etapa reprovar
+por rótulo, a varredura viraria ruído e seria desligada, que é como proteção morre.
+
+**A varredura pegou o próprio autor nesta rodada.** Criei as fixtures de RF-103 e RF-507, rodei
+as duas provas em cada uma, e esqueci de escrever os testes. A suíte ficou verde e a varredura
+final continuou listando os dois IDs. Sem ela, a etapa fecharia com duas fixtures que nada
+afirma.
+
+**Padrão de citação de requisito em mensagem de erro.** Campo exigido por um requisito e exibido
+por outro cita os dois. A tentação é citar só o de exibição, porque o filtro de texto é o que
+está na frente na hora de escrever, e num projeto onde o teste afirma o requisito isso quebra o
+teste antes de ele existir. Os dois casos reais foram RF-106 citando só RF-116 e RF-103 citando
+só RF-302, os dois corrigidos. A varredura das 57 âncoras não achou um terceiro. Virou caso de
+fronteira na seção 3 do `CLAUDE.md`.
+
+**Checagem cruzada de RF-107, e o que ela passou a validar.** `campo_relacionado` deixou de ser
+checado só por tipo e não vazio. Agora se verifica que ele aponta para uma premissa que existe,
+porque o requisito diz que o alerta aparece junto ao campo, e vínculo com campo inexistente não
+tem onde aparecer. Vale para heurística e para evento: só RF-107 declara a semântica e ele fala
+de heurística, mas o campo existe nos dois e o modo de falha é idêntico. Heurística embutida em
+playbook é conferida contra as premissas daquele playbook; item em arquivo próprio não declara a
+que playbook pertence, então sobra a checagem fraca contra a união das premissas de todos, que é
+a mesma gradação da checagem de RF-109. Valor vazio é ignorado pela checagem cruzada de
+propósito, porque o schema já o recusa e reportar duas vezes faria a fixture deixar de apontar
+uma regra só.
+
+**O teste de limite não falhou, e isso é informação.** O teste que afirmava "apontar para
+premissa inexistente passa" continuou verde depois da checagem entrar, porque ele afirma o
+**schema**, e a checagem cruzada é outra camada. Foi reescrito para afirmar as duas coisas:
+que o schema sozinho deixa passar, e que a checagem recusa. Teste de limite precisa dizer em
+qual camada o limite está, senão ele não cai quando o limite cai.
+
+**O que a varredura final mostra, e é a evidência de fechamento.** Sobram cinco IDs citados no
+schema e não afirmados em teste, todos triados: RF-117, RF-416 e RF-902 aparecem só em
+comentário; RF-419 é âncora de um campo opcional, cuja única regra é não ser vazio se presente;
+RF-116 é âncora de dois campos, e um deles, `fonte` de evento, é obrigatório. **Este último é
+lacuna pequena e real**, do mesmo formato da fixture de RF-106, e fica registrado em vez de
+corrigido, porque o escopo desta tarefa eram três e emendar escopo no meio foi como as quatro
+anteriores viraram lacuna. Fora ele, a categoria está fechada.

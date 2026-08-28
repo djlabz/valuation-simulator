@@ -27,7 +27,7 @@ export const InputObrigatorio = z.strictObject({
   descricao: texto('descricao', 'RF-103').optional(),
   subcampos: z.array(texto('subcampos', 'RF-103')).optional(),
   // RF-302: o texto acompanha a pendência exibida quando o dado não é localizado
-  onde_encontrar: texto('onde_encontrar', 'RF-302'),
+  onde_encontrar: texto('onde_encontrar', 'RF-103, RF-302'),
   fallback_manual: z.boolean().optional(),
   uso: texto('uso', 'RF-103').optional(),
 })

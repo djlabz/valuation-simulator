@@ -17,6 +17,25 @@ const IdentidadeDePlaybook = z.object({
   modelos_habilitados: z.array(z.string()),
 })
 
+/**
+ * Leitura mínima dos campos de premissa de um playbook, mais as heurísticas que
+ * ele embute, para a checagem de RF-107. Mesma disciplina da de RF-109: não exige
+ * o playbook inteiro válido, senão a proteção se cala justamente no arquivo que
+ * tem outro defeito.
+ */
+const IdentidadeDePremissas = z.object({
+  id: z.string(),
+  premissas_do_usuario: z.array(z.object({ campo: z.string() })),
+  heuristicas_de_leitura: z
+    .array(z.object({ id: z.string().optional(), campo_relacionado: z.string().optional() }))
+    .nullish(),
+})
+
+const IdentidadeDeVinculo = z.object({
+  id: z.string().optional(),
+  campo_relacionado: z.string().optional(),
+})
+
 const IdentidadeDeNota = z.object({
   playbook: z.string().optional(),
   sobreescreve: z.object({ modelos_habilitados: z.array(z.string()).optional() }).optional(),
@@ -187,6 +206,78 @@ export function validarNotasContraPlaybooks(
   return problemas
 }
 
+/**
+ * RF-107, a metade que o schema não faz sozinho.
+ *
+ * `campo_relacionado` vincula o alerta a uma premissa, e o alerta aparece junto
+ * ao campo no momento do preenchimento. Vínculo com campo que não existe não tem
+ * onde aparecer, e o schema sozinho só checa tipo e não vazio.
+ *
+ * Vale para heurística e para evento. Só RF-107 declara a semântica, e ele fala de
+ * heurística, mas o campo existe nos dois e o modo de falha é idêntico: alerta
+ * apontando para campo inexistente não é exibível em nenhum dos dois casos.
+ *
+ * Heurística embutida em playbook é conferida contra as premissas daquele
+ * playbook. Item em arquivo próprio não declara a que playbook pertence, então
+ * sobra a checagem fraca contra a união das premissas de todos os playbooks:
+ * campo que não existe em playbook nenhum é necessariamente vínculo quebrado. É a
+ * mesma gradação da checagem de RF-109.
+ */
+export function validarCamposRelacionados(
+  itens: { caminho: string; documento: unknown }[],
+  playbooks: { caminho: string; documento: unknown }[],
+): Problema[] {
+  const problemas: Problema[] = []
+  const todasAsPremissas = new Set<string>()
+
+  for (const { caminho, documento } of playbooks) {
+    const identidade = IdentidadeDePremissas.safeParse(documento)
+    if (!identidade.success) {
+      problemas.push({
+        arquivo: caminho,
+        campo: 'premissas_do_usuario',
+        mensagem:
+          'RF-107: playbook sem id ou sem premissas_do_usuario legíveis. ' +
+          'Sem essa lista não há como verificar se algum campo_relacionado aponta para ' +
+          'premissa que existe',
+      })
+      continue
+    }
+    const doPlaybook = identidade.data.premissas_do_usuario.map((p) => p.campo)
+    for (const campo of doPlaybook) todasAsPremissas.add(campo)
+
+    for (const heuristica of identidade.data.heuristicas_de_leitura ?? []) {
+      const alvo = heuristica.campo_relacionado
+      if (alvo === undefined || alvo.trim() === '' || doPlaybook.includes(alvo)) continue
+      problemas.push({
+        arquivo: caminho,
+        campo: `heuristicas_de_leitura.${heuristica.id ?? '?'}.campo_relacionado`,
+        mensagem:
+          `RF-107: campo_relacionado aponta para ${alvo}, que não é premissa do playbook ` +
+          `${identidade.data.id}. O alerta aparece junto ao campo, e esse campo não existe`,
+      })
+    }
+  }
+
+  for (const { caminho, documento } of itens) {
+    const analisado = IdentidadeDeVinculo.safeParse(documento)
+    if (!analisado.success) continue
+    const alvo = analisado.data.campo_relacionado
+    // vazio já é recusado pelo schema com RF-107, e reportar aqui de novo contaria
+    // o mesmo defeito duas vezes, que é o que faz fixture deixar de apontar uma regra
+    if (alvo === undefined || alvo.trim() === '' || todasAsPremissas.has(alvo)) continue
+    problemas.push({
+      arquivo: caminho,
+      campo: 'campo_relacionado',
+      mensagem:
+        `RF-107: campo_relacionado aponta para ${alvo}, que não é premissa de nenhum ` +
+        'playbook do repositório. O alerta aparece junto ao campo, e esse campo não existe',
+    })
+  }
+
+  return problemas
+}
+
 /** Valida a pasta inteira, só as pastas da lista branca. */
 export function validarPasta(raiz: string): Resultado {
   const arquivosLidos: string[] = []
@@ -227,8 +318,13 @@ export function validarPasta(raiz: string): Resultado {
     porTipo.set(entrada, doTipo)
   }
 
+  const playbooks = porTipo.get('playbooks') ?? []
+  problemas.push(...validarNotasContraPlaybooks(porTipo.get('notas') ?? [], playbooks))
   problemas.push(
-    ...validarNotasContraPlaybooks(porTipo.get('notas') ?? [], porTipo.get('playbooks') ?? []),
+    ...validarCamposRelacionados(
+      [...(porTipo.get('heuristicas') ?? []), ...(porTipo.get('eventos') ?? [])],
+      playbooks,
+    ),
   )
 
   return { arquivosLidos, problemas }

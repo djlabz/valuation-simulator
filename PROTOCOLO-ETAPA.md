@@ -60,6 +60,12 @@ Regras:
   desperta desconfiança, exit 0 não
 - resultado agregado de ferramenta, tipo score de mutação, não é oráculo: havendo motivo para
   desconfiar, verifique à mão antes de citar
+- etapa que mexer em validação roda a varredura de proteção sem exercício, comparando
+  requisito citado no schema com requisito afirmado em teste. A diferença é a lista de
+  proteções que nunca reprovaram nada. **Não é gate automático:** a saída exige triagem
+  manual, porque rótulo de âncora em campo de texto aparece nela e não é lacuna. Na rodada em
+  que ela nasceu, seis dos oito IDs eram rótulo e dois eram lacuna real. O procedimento e os
+  comandos estão na skill de inspeção
 
 ---
 

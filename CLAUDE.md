@@ -225,6 +225,8 @@ a decisão está fixada aqui.
 | Agente propor modelo dentro da whitelist, com justificativa | Agente propor modelo fora da lista habilitada | RF-205, RF-206, D-022 |
 | Valor opcional vazio, com o efeito derivado da presença do valor | Flag booleana de premissa, inclusive com `default: false` | RF-421, D-040 |
 | Recomendação de metodologia, tipo "(maior precisão)" em modo de granularidade | Recomendação sobre ativo ou decisão de investimento | RF-105, RP-001 |
+| Mensagem de regra dura, que é redação de validador executável com teste de aprovação e de rejeição, e muda junto com a regra | Afirmação metodológica independente escrita por agente, sem validador que a sustente | RF-506, RF-507, RNF-013, D-069 |
+| Mensagem de erro citando o requisito que exige o campo e o que o exibe, os dois | Citar só o requisito de exibição, que é o que está na frente porque o filtro de texto vem primeiro na hora de escrever | RF-103, RF-106, D-074 |
 | `number` para contagem sem unidade financeira: casas decimais na formatação, quantidade de períodos, código de modo de arredondamento | `number` para dinheiro, taxa, percentual, razão, fator e peso, inclusive em fixture e em teste | RNF-001, D-002, D-045 |
 | Nota de ativo restringindo a lista de modelos habilitados | Nota de ativo ampliando a lista, alterando regra dura ou múltiplo bloqueado | RF-109, D-020 |
 | Ausência deliberada de faixa em `preco_normalizado_lp` | Adicionar faixa "porque os outros campos têm" | D-014, R-201 |

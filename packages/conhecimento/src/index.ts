@@ -23,6 +23,7 @@ export {
   PASTAS_VALIDAS,
   tipoPeloCaminho,
   validarArquivo,
+  validarCamposRelacionados,
   validarNotasContraPlaybooks,
   validarPasta,
 } from './validar'

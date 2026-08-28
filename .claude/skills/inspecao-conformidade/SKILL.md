@@ -148,6 +148,38 @@ YAML, JSON, CSV, migration, fixture e resposta de provider.
 - o que acontece quando o provider cai
 - o que acontece quando o evento vence no meio da sessão
 
+## Varredura de proteção sem exercício
+
+**Obrigatória em toda etapa que mexer em validação.** Até esta rodada, a D-038, proteção que
+ninguém tenta furar não foi testada, dependia de alguém lembrar dela durante a inspeção: era
+princípio, não procedimento. Isto é o procedimento.
+
+A varredura compara o conjunto de requisitos citados no schema com o conjunto afirmado em
+teste. A diferença é a lista de proteções que existem e nunca reprovaram nada.
+
+```bash
+grep -rhoE '\bRF-[0-9]{3,4}\b' packages/conhecimento/src/*.ts \
+  --exclude='*.test.ts' | sort -u > /tmp/no-schema.txt
+grep -rhoE '\bRF-[0-9]{3,4}\b' packages/conhecimento/src/*.test.ts \
+  | sort -u > /tmp/em-teste.txt
+comm -23 /tmp/no-schema.txt /tmp/em-teste.txt
+```
+
+O que a saída significa: cada ID listado aparece no schema e não é afirmado por teste nenhum.
+Isso é candidato a lacuna, não lacuna confirmada.
+
+**Ressalva, e ela precisa sobreviver a qualquer refatoração deste texto: a varredura NÃO é
+gate automático.** A saída exige triagem manual, uma linha por vez, e a pergunta da triagem é:
+este ID é regra de verdade ou é só rótulo de âncora num campo de texto? Prove em runtime,
+montando o objeto mínimo que deveria ser reprovado e passando pelo schema.
+
+Exemplo real, a rodada em que a varredura nasceu: oito IDs apareceram só no schema. **Seis eram
+rótulo de âncora**, ou seja, o requisito aparecia como etiqueta na mensagem de um campo de texto
+e não como regra separada. **Dois eram regra de verdade sem exercício**, RF-103 e RF-507, e
+viraram fixture. Se alguém tivesse automatizado a varredura como gate, a etapa teria reprovado
+por seis rótulos de âncora, a varredura viraria ruído e seria desligada, que é como proteção
+morre.
+
 ## Armadilhas da própria inspeção
 
 Estas são o modo de falha real, mais provável que deixar passar uma linha de código.

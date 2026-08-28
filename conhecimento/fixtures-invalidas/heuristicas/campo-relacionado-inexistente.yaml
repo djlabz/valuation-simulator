@@ -1,0 +1,12 @@
+# Quebra RF-107: campo_relacionado aponta para premissa que nao existe em playbook
+# nenhum. Valida em todo o resto.
+id: H-904
+aplica_em: [release_resultados]
+onde_olhar: "Secao qualquer do release"
+o_que_verificar: "Item qualquer"
+por_que_importa: "Altera o fluxo projetado"
+acao_do_agente: sinalizar_ao_usuario
+campo_relacionado: premissa_que_nao_existe
+severidade: informativo
+confianca: alta
+fonte: "Fixture de teste"

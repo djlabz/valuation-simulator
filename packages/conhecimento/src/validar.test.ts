@@ -10,6 +10,7 @@ import {
   PASTAS_VALIDAS,
   tipoPeloCaminho,
   validarArquivo,
+  validarCamposRelacionados,
   validarNotasContraPlaybooks,
   validarPasta,
 } from './validar'
@@ -60,6 +61,30 @@ describe('RF-110, evento exige os dois prazos', () => {
   })
 })
 
+describe('RF-103, input obrigatório declara onde_encontrar', () => {
+  it('recusa input sem onde_encontrar, citando o requisito que exige e o que exibe', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'playbooks', 'input-sem-onde-encontrar.yaml'),
+      'playbooks',
+    )
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-103')
+    expect(erros[0]).toContain('RF-302')
+  })
+})
+
+describe('RF-507, regra dura declara mensagem', () => {
+  it('recusa regra dura sem mensagem, citando RF-507', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'playbooks', 'regra-dura-sem-mensagem.yaml'),
+      'playbooks',
+    )
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-507')
+    expect(erros[0]).toContain('mensagem')
+  })
+})
+
 describe('RF-106, heurística declara os campos que o requisito exige', () => {
   it('recusa heurística sem fonte, citando RF-106', () => {
     const erros = mensagens(join(FIXTURES, 'heuristicas', 'sem-fonte.yaml'), 'heuristicas')
@@ -79,9 +104,39 @@ describe('RF-107, campo_relacionado vincula heurística a premissa', () => {
     expect(erros[0]).toContain('RF-107')
   })
 
-  it('limite conhecido: apontar para premissa inexistente passa (D-073)', () => {
-    // não é o comportamento desejado, é o comportamento atual, e está registrado
-    // como achado. O teste existe para a lacuna não sumir de vista
+  it('a checagem cruzada recusa campo_relacionado que não é premissa de playbook nenhum', () => {
+    const alvo = join(FIXTURES, 'heuristicas', 'campo-relacionado-inexistente.yaml')
+    const playbooks = ['transmissao-energia-b3', 'bancos-b3', 'commodities-b3'].map((n) => ({
+      caminho: n,
+      documento: carregar(join(CONHECIMENTO, 'playbooks', `${n}.yaml`)),
+    }))
+    const problemas = validarCamposRelacionados(
+      [{ caminho: alvo, documento: carregar(alvo) }],
+      playbooks,
+    )
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.mensagem).toContain('RF-107')
+    expect(problemas[0]?.mensagem).toContain('premissa_que_nao_existe')
+  })
+
+  it('deixa passar campo_relacionado que é premissa de algum playbook', () => {
+    const heuristica = {
+      id: 'H-905',
+      campo_relacionado: 'taxa_desconto',
+    }
+    const playbooks = ['transmissao-energia-b3'].map((n) => ({
+      caminho: n,
+      documento: carregar(join(CONHECIMENTO, 'playbooks', `${n}.yaml`)),
+    }))
+    expect(
+      validarCamposRelacionados([{ caminho: 'memoria', documento: heuristica }], playbooks),
+    ).toEqual([])
+  })
+
+  it('o schema sozinho continua deixando passar, e a proteção vive na checagem cruzada', () => {
+    // registro deliberado de onde a proteção mora. O teste de limite anterior
+    // afirmava o schema e por isso NÃO ficou vermelho quando a checagem entrou:
+    // schema e checagem cruzada são camadas diferentes
     const heuristica = {
       id: 'H-902',
       aplica_em: ['release_resultados'],
@@ -94,6 +149,26 @@ describe('RF-107, campo_relacionado vincula heurística a premissa', () => {
       fonte: 'Fixture de teste',
     }
     expect(Heuristica.safeParse(heuristica).success).toBe(true)
+  })
+
+  it('heurística embutida em playbook é conferida contra as premissas daquele playbook', () => {
+    const playbook = carregar(
+      join(CONHECIMENTO, 'playbooks', 'transmissao-energia-b3.yaml'),
+    ) as Record<string, unknown>
+    playbook['heuristicas_de_leitura'] = [
+      { id: 'H-906', campo_relacionado: 'basileia_alvo' },
+    ]
+    const problemas = validarCamposRelacionados([], [{ caminho: 'memoria', documento: playbook }])
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.mensagem).toContain('RF-107')
+    expect(problemas[0]?.mensagem).toContain('basileia_alvo')
+  })
+
+  it('relata explicitamente quando as premissas do playbook não são legíveis', () => {
+    const problemas = validarCamposRelacionados([], [{ caminho: 'quebrado', documento: { id: 'x' } }])
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.mensagem).toContain('RF-107')
+    expect(problemas[0]?.mensagem).toContain('premissas_do_usuario')
   })
 })
 

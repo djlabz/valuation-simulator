@@ -15,6 +15,7 @@ import {
   type Problema,
   tipoPeloCaminho,
   validarArquivo,
+  validarCamposRelacionados,
   validarNotasContraPlaybooks,
   validarPasta,
 } from '@valuation/conhecimento'
@@ -71,14 +72,15 @@ function main(argumentos: string[]): number {
         continue
       }
       problemas.push(...validarArquivo(caminho, tipo))
-      if (tipo === 'notas') {
+      if (tipo === 'notas' || tipo === 'heuristicas' || tipo === 'eventos') {
         try {
-          problemas.push(
-            ...validarNotasContraPlaybooks(
-              [{ caminho, documento: parseYaml(readFileSync(caminho, 'utf8')) }],
-              carregarPlaybooks(),
-            ),
-          )
+          const item = [{ caminho, documento: parseYaml(readFileSync(caminho, 'utf8')) }]
+          const playbooks = carregarPlaybooks()
+          if (tipo === 'notas') {
+            problemas.push(...validarNotasContraPlaybooks(item, playbooks))
+          } else {
+            problemas.push(...validarCamposRelacionados(item, playbooks))
+          }
         } catch {
           // leitura ou parse já reportados por validarArquivo
         }
