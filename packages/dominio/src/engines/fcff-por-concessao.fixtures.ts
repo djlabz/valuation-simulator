@@ -52,7 +52,10 @@ export const CARTEIRA_ESCALONADA: EntradaFcffPorConcessao = {
       indice_reajuste: 'IPCA',
       data_vencimento: '2030-01-01',
       percentual_participacao: '1',
-      reducao_contratual: { fator: '0.5', a_partir_de: '2029-01-01' },
+      // 0.3 e não 0.5 de propósito: 0.5 é o próprio complemento, então uma
+      // fixture com 0.5 fica verde nas duas convenções e não exercita a
+      // direção que o nome do campo acabou de fixar (D-078)
+      reducao_contratual: { percentual_reducao: '0.3', a_partir_de: '2029-01-01' },
     },
     {
       nome: 'CONCESSAO-EM-CONSORCIO',

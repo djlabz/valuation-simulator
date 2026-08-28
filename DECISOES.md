@@ -1182,3 +1182,62 @@ no Passo 1.
 duas das seis eram erro de comportamento que nenhum teste pegaria, o período da indenização
 usando a última concessão em vez da mais longa, e a redução contratual quebrando quando o campo
 é omitido em vez de nulo.
+
+### D-078. `reducao_contratual.fator` vira `percentual_reducao`, e o erro que sobra é o detectável
+
+**Decisão.** O subcampo `fator` de `reducao_contratual`, na engine `fcff_por_concessao` e no
+playbook `transmissao-energia-b3`, passa a se chamar `percentual_reducao`, e carrega o que se
+CORTA. A engine multiplica a RAP por `1 - percentual_reducao`, e recusa valor fora da faixa de
+0 a 1. O campo correspondente da saída passa a `fator_remanescente_aplicado`.
+
+**Motivo, e é escolha entre dois erros e não entre dois nomes.** `fator: "0.5"` não dizia se
+0,5 era o que sobra ou o que se corta, e o comentário do playbook dizia `-50%`, com sinal
+negativo, sugerindo o contrário do que o código fazia. Os dois nomes candidatos matam a
+ambiguidade de direção. O que os separa é o erro que sobra depois:
+
+| Nome | Erro residual | Detectável |
+|---|---|---|
+| `fator_remanescente` | escrever o corte onde se pede o remanescente | não. `0.5` é válido nas duas leituras |
+| `percentual_reducao` | escrever `50` em vez de `0.5` | sim, faixa de 0 a 1 no código, com mensagem |
+
+É a D-062 aplicada de novo: entre um erro invisível e um erro visível, o desenho escolhe o
+visível. A faixa não é conveniência, é o que sustenta a escolha do nome, e por isso entrou
+junto e não depois.
+
+**Motivo secundário, transcrição sem inversão.** O contrato diz "redução de 50%". Com
+`percentual_reducao` o valor do campo é o valor do documento. Com `fator_remanescente` alguém
+calcula `1 - 0.5` entre a fonte e o dado, e essa conta não aparece em lugar nenhum. Num projeto
+onde RF-304 exige `trecho_original`, campo cujo valor não bate com o próprio trecho é
+procedência que não confere. Soma-se a isso `percentual_participacao`, que já é fração no mesmo
+bloco `concessoes`: duas convenções de escala lado a lado seria pior que uma.
+
+**Por que a saída tem nome diferente da entrada.** A entrada fala a língua do contrato, que é
+percentual cortado. A saída fala a língua da aritmética, e o número que importa lá é o que
+multiplica a linha, para `rap_apos_reducao = rap_liquida_reajustada × fator_remanescente_aplicado`
+ser conferível com uma calculadora por quem lê o snapshot anos depois, sem o código na frente
+(D-075). Manter `fator_reducao_contratual` na saída deixaria na tela do auditor exatamente a
+ambiguidade que se removeu do campo do curador.
+
+**Descartado, gravar os dois números na saída.** Redundância que diverge na primeira vez que
+alguém mexer num dos dois.
+
+**Achado no caminho, e é o mais importante desta decisão.** A fixture usava `0.5`, que é o
+próprio complemento: `1 - 0.5 = 0.5`. Ou seja, o teste da redução contratual ficava verde nas
+duas convenções e nunca exercitou a direção. A fixture passou a `0.3`, com remanescente `0.7`,
+e agora inverter a convenção quebra o teste. É a categoria da D-073 outra vez, proteção que
+ninguém tentou furar, achada dentro do próprio commit que arruma o nome.
+
+**O que esta decisão NÃO resolve, e precisa continuar visível.** A B8 segue em aberto. O nome
+fecha a direção do número; continua sem resposta se a redução incide sobre a RAP original ou
+sobre a já reajustada, que hoje é a reajustada, e se existe mais de um degrau, que hoje a
+estrutura não comporta. As duas perguntas estão no arquivo de premissas e esperam o contrato.
+
+**Versões.** `VERSAO_ENGINE` de `fcff_por_concessao` vai a 0.2.0, porque o contrato de entrada
+e o de saída mudaram (RF-505). O playbook `transmissao-energia-b3` vai a 0.6.0. O documento de
+requisitos vai a 2.4.1, com o nome do arquivo mantido em `v2.4`, porque o nome acompanha a
+linha minor e esta é correção de campo dentro da seção 9, não alteração de escopo. Tudo no
+mesmo commit por causa do teste de equivalência da D-065.
+
+**Registrado e não feito.** `percentual_participacao` e `deducoes_sobre_rap` também são frações
+sem checagem de faixa, e o mesmo erro de escala cabe nos dois. Fica fora daqui de propósito:
+emendar escopo no meio foi como as quatro lacunas da D-073 nasceram.

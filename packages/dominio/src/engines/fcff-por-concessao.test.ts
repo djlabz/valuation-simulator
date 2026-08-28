@@ -19,6 +19,19 @@ function porNome(resultado: ReturnType<typeof calcularFcffPorConcessao>, nome: s
   return achada
 }
 
+/** CONCESSAO_UNICA com redução valendo dos três períodos em diante. */
+function comReducaoDe(percentual_reducao: string) {
+  return {
+    ...CONCESSAO_UNICA,
+    concessoes: [
+      {
+        ...CONCESSAO_UNICA.concessoes[0]!,
+        reducao_contratual: { percentual_reducao, a_partir_de: '2027-01-01' },
+      },
+    ],
+  }
+}
+
 describe('RF-504, o resultado vem desagregado por etapa e cada etapa confere', () => {
   it('concessão única: RAP líquida, fluxo, fator de desconto e descontado, período a período', () => {
     const r = calcularFcffPorConcessao(CONCESSAO_UNICA)
@@ -41,7 +54,7 @@ describe('RF-504, o resultado vem desagregado por etapa e cada etapa confere', (
       expect(p, `período ${alvo.periodo}`).toBeDefined()
       expect(p?.data_fim).toBe(alvo.data_fim)
       expect(p?.rap_liquida_reajustada).toBe('900')
-      expect(p?.fator_reducao_contratual).toBe('1')
+      expect(p?.fator_remanescente_aplicado).toBe('1')
       expect(p?.rap_apos_reducao).toBe('900')
       expect(p?.fluxo_atribuivel).toBe(alvo.fluxo)
       expect(p?.fluxo_descontado).toBe(alvo.descontado)
@@ -86,21 +99,76 @@ describe('RF-417, o horizonte de cada concessão é o vencimento dela', () => {
 })
 
 describe('redução contratual entra no período certo e não antes', () => {
-  it('fator 1 até o período anterior, fator da redução do período em diante', () => {
+  it('remanescente 1 até o período anterior, 1 menos o percentual do período em diante', () => {
     const r = calcularFcffPorConcessao(CARTEIRA_ESCALONADA)
     const c = porNome(r, 'CONCESSAO-COM-REDUCAO')
-    // RAP bruta 2000, deduções 0.2, líquida 1600. Redução de metade a partir de 2029-01-01
-    const fatores = c.periodos.map((p) => ({ periodo: p.periodo, fator: p.fator_reducao_contratual }))
+    // RAP bruta 2000, deduções 0.2, líquida 1600. Corte de 30% a partir de 2029-01-01
+    const fatores = c.periodos.map((p) => ({
+      periodo: p.periodo,
+      fator: p.fator_remanescente_aplicado,
+    }))
     expect(fatores).toEqual([
       { periodo: 1, fator: '1' },
       { periodo: 2, fator: '1' },
-      { periodo: 3, fator: '0.5' },
-      { periodo: 4, fator: '0.5' },
+      { periodo: 3, fator: '0.7' },
+      { periodo: 4, fator: '0.7' },
     ])
     const p3 = c.periodos.find((p) => p.periodo === 3)
     expect(p3?.rap_liquida_reajustada).toBe('1600')
-    expect(p3?.rap_apos_reducao).toBe('800')
-    expect(p3?.fluxo_atribuivel).toBe('800')
+    expect(p3?.rap_apos_reducao).toBe('1120')
+    expect(p3?.fluxo_atribuivel).toBe('1120')
+  })
+})
+
+describe('D-078, percentual_reducao é o que se corta, e a direção é exercitada', () => {
+  it('o percentual informado é cortado, e o que multiplica a RAP é 1 menos ele', () => {
+    // 900 de RAP líquida. Corte de 30% deixa 630, e não 270, que é o que a
+    // convenção invertida produziria. O valor é assimétrico de propósito
+    const c = porNome(calcularFcffPorConcessao(comReducaoDe('0.3')), 'CONCESSAO-A')
+    const p1 = c.periodos.find((p) => p.periodo === 1)
+    expect(p1?.fator_remanescente_aplicado).toBe('0.7')
+    expect(p1?.rap_apos_reducao).toBe('630')
+  })
+
+  it('corte de 0 mantém a RAP inteira e corte de 1 zera', () => {
+    const semCorte = porNome(calcularFcffPorConcessao(comReducaoDe('0')), 'CONCESSAO-A')
+    expect(semCorte.periodos[0]?.fator_remanescente_aplicado).toBe('1')
+    expect(semCorte.periodos[0]?.rap_apos_reducao).toBe('900')
+
+    const corteTotal = porNome(calcularFcffPorConcessao(comReducaoDe('1')), 'CONCESSAO-A')
+    expect(corteTotal.periodos[0]?.fator_remanescente_aplicado).toBe('0')
+    expect(corteTotal.periodos[0]?.rap_apos_reducao).toBe('0')
+    expect(corteTotal.valor_presente_da_concessao).toBe('0')
+  })
+
+  it('percentual em escala de cem é recusado, que é o erro que o nome deixa em aberto', () => {
+    // "50" querendo dizer 50% é o único erro que sobra da escolha do nome, e a
+    // faixa existe para ele não ser silencioso
+    expect(() => calcularFcffPorConcessao(comReducaoDe('50'))).toThrow(RangeError)
+    try {
+      calcularFcffPorConcessao(comReducaoDe('50'))
+    } catch (erro) {
+      expect((erro as Error).message).toContain('percentual_reducao')
+      expect((erro as Error).message).toContain('CONCESSAO-A')
+      expect((erro as Error).message).toContain('"0.5"')
+    }
+  })
+
+  it('percentual negativo é recusado, senão a redução aumentaria a RAP', () => {
+    expect(() => calcularFcffPorConcessao(comReducaoDe('-0.1'))).toThrow(RangeError)
+  })
+
+  it('o nome antigo não é mais aceito pelo schema de entrada', () => {
+    const comNomeAntigo = {
+      ...CONCESSAO_UNICA,
+      concessoes: [
+        {
+          ...CONCESSAO_UNICA.concessoes[0]!,
+          reducao_contratual: { fator: '0.5', a_partir_de: '2027-01-01' },
+        },
+      ],
+    }
+    expect(() => calcularFcffPorConcessao(comNomeAntigo)).toThrow()
   })
 })
 
@@ -274,7 +342,7 @@ describe('lacunas que o mutation testing achou, cada uma com o mutante que a exp
     // mutante: descartar a checagem de undefined, que quebraria no campo omitido
     const r = calcularFcffPorConcessao(MAIS_LONGA_PRIMEIRO)
     const breve = porNome(r, 'CONCESSAO-BREVE')
-    expect(breve.periodos.every((p) => p.fator_reducao_contratual === '1')).toBe(true)
+    expect(breve.periodos.every((p) => p.fator_remanescente_aplicado === '1')).toBe(true)
   })
 
   it('indenizacao_rab_estimada em null explícito é o mesmo que ausente', () => {

@@ -34,7 +34,7 @@ ou caso não tratado, não número errado silencioso.
 multiplicada pela participação, sem subtrair imposto de renda, capex, variação de capital de
 giro nem somar depreciação.
 
-**Onde está materializada:** `packages/dominio/src/engines/fcff-por-concessao.ts:207-209`,
+**Onde está materializada:** `packages/dominio/src/engines/fcff-por-concessao.ts:241-243`,
 onde `fluxo_atribuivel` sai direto de `rap_apos_reducao` vezes `percentual_participacao`.
 
 **Por que a engine assumiu isso:** os `inputs_obrigatorios` do playbook são `concessoes` e
@@ -58,7 +58,7 @@ Conhecimento.
 **O que a engine assume:** o número é anual, não mensal nem do ciclo inteiro somado; está em
 reais e não em milhares; e se refere ao ciclo tarifário vigente na `data_base`.
 
-**Onde está materializada:** `fcff-por-concessao.ts:174-175`, onde a RAP entra como `Money`
+**Onde está materializada:** `fcff-por-concessao.ts:205-206`, onde a RAP entra como `Money`
 e é multiplicada pela fração líquida sem nenhuma conversão de escala ou de periodicidade.
 
 **Se for falsa:** erro multiplicativo direto no resultado inteiro. Se for mensal, o
@@ -73,7 +73,7 @@ resultado fica doze vezes menor. Se for em milhares, mil vezes menor.
 inteira é atribuída a esse período.
 
 **Onde está materializada:** `packages/dominio/src/datas.ts:56-62`, na contagem de períodos
-anuais inteiros, e `fcff-por-concessao.ts:199-200`, onde o fim do período é `data_base` mais
+anuais inteiros, e `fcff-por-concessao.ts:230-231`, onde o fim do período é `data_base` mais
 `t` anos.
 
 **Se for falsa:** todo alinhamento de período fica deslocado. Se a RAP é publicada por ciclo
@@ -92,8 +92,8 @@ conferi.
 **O que a engine assume:** IPCA e IGPM projetam igual no longo prazo, e uma única premissa de
 inflação serve para todas as concessões.
 
-**Onde está materializada:** `fcff-por-concessao.ts:133-135` e `:201`. O campo
-`indice_reajuste` é validado como enum em `:49` e nunca é lido no cálculo.
+**Onde está materializada:** `fcff-por-concessao.ts:164-166` e `:232`. O campo
+`indice_reajuste` é validado como enum em `:59` e nunca é lido no cálculo.
 
 **Se for falsa:** o resultado de uma carteira com concessões em índices diferentes fica
 errado, e a direção depende do spread entre os dois índices no período, que não é conhecido a
@@ -111,7 +111,7 @@ a Etapa do Conhecimento.
 do primeiro período projetado, então o período 1 já sai reajustado uma vez. E o reajuste
 incide sobre a RAP líquida, não sobre a bruta antes das deduções.
 
-**Onde está materializada:** `fcff-por-concessao.ts:195` e `:201`, onde `rapReajustada`
+**Onde está materializada:** `fcff-por-concessao.ts:226` e `:232`, onde `rapReajustada`
 começa na RAP líquida e é multiplicada por `(1 + inflação)` antes de o período 1 ser gravado.
 
 **Se for falsa:** o resultado inteiro sai deslocado por um fator de `(1 + inflação)`, para
@@ -128,7 +128,7 @@ se refere frente à data base. Não conferi.
 **O que a engine assume:** o input é uma fração entre 0 e 1, aplicada uniformemente a toda a
 carteira e a todos os períodos.
 
-**Onde está materializada:** `fcff-por-concessao.ts:136` e `:175`.
+**Onde está materializada:** `fcff-por-concessao.ts:167` e `:206`.
 
 **Se for falsa:** se o número for um valor em reais em vez de fração, o erro é grosseiro e
 provavelmente aparece. Se as deduções variarem por concessão ou por período, o erro é
@@ -145,7 +145,7 @@ silencioso e proporcional à dispersão.
 **O que a engine assume:** participação de 0,25 significa direito a um quarto da RAP daquela
 concessão.
 
-**Onde está materializada:** `fcff-por-concessao.ts:208`.
+**Onde está materializada:** `fcff-por-concessao.ts:242`.
 
 **Se for falsa:** em consórcio onde a participação econômica difere da societária, o fluxo
 atribuível fica errado na proporção da diferença.
@@ -153,28 +153,36 @@ atribuível fica errado na proporção da diferença.
 **Fonte que responderia:** Formulário de Referência, seção de contratos relevantes. Não
 conferi.
 
-### B8. `reducao_contratual` é um fator multiplicativo aplicado do período em diante
+### B8. A redução contratual incide sobre a RAP já reajustada, e é um degrau só
 
-**O que a engine assume:** o campo carrega o fator que sobra, não o que se perde. `0.5`
-significa que a RAP passa a ser metade, e não que se corta metade de metade. E a redução vale
-do primeiro período cujo fim é igual ou posterior a `a_partir_de`, para sempre.
+> **Uma metade deste item foi fechada sem pesquisa, porque era ambiguidade de nome e não
+> pergunta sobre o mundo (D-078).** O campo se chamava `fator` e o valor `0.5` servia às duas
+> leituras, a que sobra e a que se corta, então o número não podia ser conferido contra o
+> contrato de onde ele viesse. O campo passou a `percentual_reducao`, que é o que se corta, e
+> a engine multiplica a RAP por `1 - percentual_reducao`. O comentário do playbook, que dizia
+> `-50%` e contradizia o código, agora concorda com o nome. **O que segue abaixo é o que
+> sobrou, e continua sem resposta.**
 
-**Onde está materializada:** `fcff-por-concessao.ts:204-207`.
+**O que a engine assume:** que o percentual informado incide sobre a RAP já reajustada pela
+inflação do período, e não sobre a RAP original do ciclo informado. E que existe um degrau só,
+valendo do primeiro período cujo fim é igual ou posterior a `a_partir_de`, para sempre.
 
-**Se for falsa:** se o campo for o percentual cortado, o resultado inverte a redução. Se a
-redução for escalonada em mais de um degrau, a estrutura não comporta e o segundo degrau
-some.
+**Onde está materializada:** `fcff-por-concessao.ts:235-241`, onde o fator remanescente
+multiplica `rapReajustada` e não `rapLiquida`.
 
-**Fonte que responderia:** contrato de concessão. Não conferi. O comentário do playbook diz
-"ex: -50% após 15o ano", com sinal negativo, o que sugere percentual cortado e não fator
-remanescente, e é a evidência que mais me faz desconfiar deste item.
+**Se for falsa:** se a redução for sobre o valor original, o resultado superestima a partir do
+degrau, e a diferença cresce com a inflação acumulada e com o prazo restante, então concessão
+longa erra mais que curta. Se a redução for escalonada em mais de um degrau, a estrutura não
+comporta e o segundo degrau some em silêncio.
+
+**Fonte que responderia:** contrato de concessão. Não conferi.
 
 ### B9. A indenização de RAB é descontada no período da concessão mais longa
 
 **O que a engine assume:** a indenização informada é um valor único para a carteira, recebido
 ao fim da última concessão a vencer, e descontado por esse número de períodos.
 
-**Onde está materializada:** `fcff-por-concessao.ts:244-254`.
+**Onde está materializada:** `fcff-por-concessao.ts:278-288`.
 
 **Se for falsa:** a indenização é por concessão e recebida no vencimento de cada uma, e aí
 descontar tudo pelo prazo mais longo subestima o valor presente.
@@ -189,7 +197,7 @@ conferi.
 
 **O que a engine assume:** todo valor é `Money<'BRL'>`.
 
-**Onde está materializada:** `fcff-por-concessao.ts:35`, na constante `MOEDA`.
+**Onde está materializada:** `fcff-por-concessao.ts:31`, na constante `MOEDA`.
 
 **Se for falsa:** não produz número errado, produz recusa de compilação, porque o tipo
 nominal barra a mistura. Está aqui como BLOQUEANTE e não como ROBUSTEZ porque o playbook
@@ -206,7 +214,7 @@ categoria.
 
 **O que a engine assume:** dois itens de `concessoes` não têm o mesmo `nome`.
 
-**Onde está materializada:** `fcff-por-concessao.ts:145-153`, que levanta `ErroDeRegraDura`.
+**Onde está materializada:** `fcff-por-concessao.ts:176-184`, que levanta `ErroDeRegraDura`.
 
 **Se for falsa:** erro explícito, com o nome duplicado na mensagem. Não produz número errado.
 O motivo de recusar em vez de aceitar é que o resultado é indexado por nome, e nome repetido
@@ -240,7 +248,7 @@ mais dependendo do ano base. Efeito de um período em mil, e visível na desagre
 declara `ajustavel_pelo_usuario: false`. A engine o aceita para poder aplicar RF-420, que
 manda bloquear horizonte que exceda o fato derivado.
 
-**Onde está materializada:** `fcff-por-concessao.ts:157-170`.
+**Onde está materializada:** `fcff-por-concessao.ts:188-201`.
 
 **Se for falsa:** nada, é caminho opcional. Registrado porque o campo não existe no playbook
 e foi acrescentado ao contrato da engine para a regra ter onde morder, e isso é escolha minha,
@@ -251,7 +259,7 @@ não do playbook.
 **O que a engine assume:** nada. O campo existe nas premissas do playbook e a engine não o
 consome.
 
-**Onde está materializada:** ausência. O schema de entrada em `fcff-por-concessao.ts:57-66`
+**Onde está materializada:** ausência. O schema de entrada em `fcff-por-concessao.ts:67-76`
 não tem o campo, e `strictObject` recusa se alguém mandar.
 
 **Se for falsa:** recusa explícita na entrada, não cálculo errado.
