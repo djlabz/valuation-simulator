@@ -2,11 +2,17 @@
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "packageManager": "npm",
   "testRunner": "vitest",
-  "reporters": ["progress", "clear-text"],
+  "reporters": [
+    "progress",
+    "clear-text"
+  ],
   "coverageAnalysis": "all",
   "mutate": [
     "packages/shared/src/**/*.ts",
-    "!packages/shared/src/**/*.test.ts"
+    "packages/conhecimento/src/**/*.ts",
+    "packages/dominio/src/**/*.ts",
+    "!packages/**/*.test.ts",
+    "!packages/**/*.fixtures.ts"
   ],
   "vitest": {
     "configFile": "vitest.config.ts"

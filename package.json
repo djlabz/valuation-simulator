@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/conhecimento/tsconfig.json && tsc --noEmit -p tools/tsconfig.json",
+    "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/conhecimento/tsconfig.json && tsc --noEmit -p packages/dominio/tsconfig.json && tsc --noEmit -p tools/tsconfig.json",
     "validar-conhecimento": "bun tools/validar-conhecimento.ts"
   },
   "devDependencies": {

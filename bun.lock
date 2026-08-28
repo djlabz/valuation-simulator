@@ -20,6 +20,14 @@
         "zod": "^4.4.3",
       },
     },
+    "packages/dominio": {
+      "name": "@valuation/dominio",
+      "version": "0.0.0",
+      "dependencies": {
+        "@valuation/shared": "workspace:*",
+        "zod": "^4.4.3",
+      },
+    },
     "packages/shared": {
       "name": "@valuation/shared",
       "version": "0.0.0",
@@ -246,6 +254,8 @@
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
 
     "@valuation/conhecimento": ["@valuation/conhecimento@workspace:packages/conhecimento"],
+
+    "@valuation/dominio": ["@valuation/dominio@workspace:packages/dominio"],
 
     "@valuation/shared": ["@valuation/shared@workspace:packages/shared"],
 

@@ -1111,3 +1111,74 @@ RF-116 é âncora de dois campos, e um deles, `fonte` de evento, é obrigatório
 lacuna pequena e real**, do mesmo formato da fixture de RF-106, e fica registrado em vez de
 corrigido, porque o escopo desta tarefa eram três e emendar escopo no meio foi como as quatro
 anteriores viraram lacuna. Fora ele, a categoria está fechada.
+
+### D-075. Formato de saída da engine, pensado para virar snapshot sem conhecer o snapshot
+
+**Decisão.** O resultado da engine é um objeto onde toda grandeza financeira é texto decimal,
+cada etapa do cálculo tem nome próprio, e cada item de lista carrega o identificador que o
+distingue. `number` aparece só em contagem de período e em componente de data.
+
+**Motivo.** RF-501 proíbe a engine conhecer o snapshot, e RF-504 exige resultado desagregado
+por etapa. O snapshot é passo próprio e vem depois. Se o formato não servir para gravação, é o
+passo do snapshot que descobre, e aí as engines são refeitas. Então a saída foi modelada para
+sobreviver a serialização e a leitura anos depois, sem a engine saber nada sobre gravação.
+
+**O que isso significa em concreto.** Round trip por JSON devolve estrutura idêntica, com
+teste. Nenhum `number` fora das contagens declaradas, com teste que varre a saída inteira.
+Cada concessão se acha por `nome` e cada período por `periodo`, então embaralhar a ordem dos
+arrays não perde informação, com teste. E a perpetuidade sai como `'0'` explícito, para R-001
+ficar auditável no snapshot em vez de auditável por ausência.
+
+**Descartado, devolver `Money` e `Rate` na saída.** Seria mais bonito no tipo e impossível de
+serializar sem a engine saber como. `Money` tem campo privado e `toString` que levanta erro de
+propósito, então JSON.stringify dele depende do `toJSON`, e amarrar o formato do snapshot ao
+formato interno de um tipo do `shared` é acoplamento que ninguém pediu.
+
+**Descartado, desagregar por índice de array.** Etapa identificada por posição quebra em
+silêncio quando alguém insere um passo no meio, e o snapshot é lido anos depois por quem não
+viu o código.
+
+**Descartado, versionar o formato do snapshot aqui.** É decisão do passo do snapshot. A engine
+declara `versao_engine`, que RF-505 exige, e não declara versão de formato.
+
+### D-076. Fixture de engine é sintética, e dado real fica para o caso de referência
+
+**Decisão.** Fixture de engine não contém dado de companhia real, nem número observado, nem
+procedência de documento. Números são inventados e redondos, e o arquivo se declara sintético
+no topo.
+
+**Motivo.** Dado real com procedência é caso de referência da Fase 8, que a D-016 governa e que
+exige premissas declaradas do autor original. Fixture com dado real seria indistinguível de nota
+de ativo, num projeto que acabou de expurgar conteúdo não autorado por não ter procedência
+(D-067, RNF-013). E número redondo tem uma vantagem que o número real não tem: o valor esperado
+de cada etapa é conferível na mão por quem lê o teste.
+
+**Sintético não é trivial.** A carteira principal tem a forma da estrutura real: três concessões
+com vencimentos escalonados, uma com redução contratual e uma com participação parcial. Isso
+exercita a estrutura sem afirmar fato sobre empresa.
+
+### D-077. Stryker cobre os três pacotes, e a regra é classificação e não limiar
+
+**Decisão.** O alvo do `stryker.config.json` passa a incluir `packages/conhecimento` e
+`packages/dominio`, além de `packages/shared`. Arquivos de teste e de fixture ficam de fora da
+mutação. Nenhum limiar numérico é configurado.
+
+**Motivo do alcance.** O schema inteiro e as dezenove fixtures nunca tinham passado por mutação,
+que é lacuna do mesmo tipo que a varredura de requisitos acabou de fechar: proteção que ninguém
+tentou furar.
+
+**Motivo de não ter limiar.** O valor do mutation testing neste projeto veio inteiramente da
+classificação e não do número. O falso sobrevivente do `toExpNeg` no Passo 1 só apareceu porque
+alguém desconfiou do relatório, e um limiar de 90 estaria satisfeito com ele lá. A regra é
+classificar cada sobrevivente em equivalente, inalcançável, falso sobrevivente ou lacuna real.
+Lacuna real vira teste, os outros três viram registro com motivo.
+
+**Custo medido.** 58 segundos para os três pacotes, contra 9 do alcance anterior. Fica como
+está: acelerar mexendo em `coverageAnalysis` foi justamente o que produziu falso sobrevivente
+no Passo 1.
+
+**Efeito da primeira rodada.** Seis lacunas reais na engine viraram teste, e o score de
+`packages/dominio` foi de 62,33% para 64,57%. O ganho pequeno no número esconde o que importa:
+duas das seis eram erro de comportamento que nenhum teste pegaria, o período da indenização
+usando a última concessão em vez da mais longa, e a redução contratual quebrando quando o campo
+é omitido em vez de nulo.

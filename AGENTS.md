@@ -10,10 +10,19 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 27/08/2026
-**Etapa concluída:** Passo 2, mais o expurgo do conhecimento analítico não autorado (D-067)
-**Etapa seguinte:** Passo 3, engines contra fixtures, aguardando aprovação explícita. A
-trilha B de conhecimento sai do Passo 3 e vira a Etapa do Conhecimento, depois da Fase 7
+**Data:** 28/08/2026
+**Etapa concluída:** Passo 3, primeiro bloco: a engine `fcff_por_concessao` como sonda
+deliberada (D-075). É a única engine que existe
+**Etapa seguinte:** o resto do Passo 3, `ddm`, `excess_return`, `fcff_normalizado`, `sotp`,
+as quatro auxiliares e os validadores, aguardando aprovação explícita. A trilha B de
+conhecimento virou a Etapa do Conhecimento, depois da Fase 7
+
+**A sonda entregou duas coisas, e a segunda é a que importa mais.** A engine funciona e está
+testada, e `docs/premissas-de-interpretacao-fcff-por-concessao.md` lista as dezesseis premissas
+de interpretação que ela foi obrigada a assumir sobre a natureza dos números, dez bloqueantes e
+seis de robustez. **Nada ali foi pesquisado**, e a lista existe para a pesquisa do curador
+contra fonte primária ser focada. A premissa B1, que o fluxo livre é a RAP líquida atribuível
+sem imposto nem capex, é a de maior consequência.
 
 **O que o expurgo mudou, para ninguém procurar o que não existe mais.** Os playbooks ficaram
 só com estrutura verificável. Saíram as onze heurísticas, a única faixa de referência, os
@@ -40,6 +49,8 @@ e o verbo "determina" saiu junto com H-044. Não procure por eles em `conhecimen
 - `packages/conhecimento`, o pacote `@valuation/conhecimento`, com o schema Zod dos quatro
   tipos de item, `comum.ts`, `playbook.ts`, `heuristica.ts`, `nota.ts`, `evento.ts`, mais
   `validar.ts`, que inclui a checagem cruzada de RF-109 entre nota e playbook
+- `packages/dominio`, o pacote `@valuation/dominio`, com `engines/fcff-por-concessao.ts`, os
+  helpers de data puros, e `validadores/` ainda vazio
 - `tools/validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista
   branca de pastas
 - `conhecimento/playbooks/` com os três playbooks, só estrutura verificável depois do
@@ -159,6 +170,7 @@ Nada aqui bloqueia o Passo 3.
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
+| As dezesseis premissas de interpretação da engine `fcff_por_concessao`, em `docs/premissas-de-interpretacao-fcff-por-concessao.md`. Dez bloqueantes, e a B1 muda a engine se for falsa | Pesquisa do curador contra fonte primária, antes das outras engines de fluxo |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |

@@ -1,0 +1,10 @@
+# Quebra RF-116: evento sem fonte, que e a procedencia do bloco 1 do alerta.
+# Valido em todo o resto.
+id: EV-904
+ativo: TICKER
+tipo: passivo_contingente
+descricao: "Fato registrado no documento, sem qualificar desfecho"
+acao: sinalizar_ao_usuario
+validade_ate: 2027-06-30
+revisar_em: 2026-12-31
+confianca: media

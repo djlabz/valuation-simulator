@@ -220,6 +220,15 @@ describe('RF-108, divergência exige as visões lado a lado', () => {
   })
 })
 
+describe('RF-116, evento declara a procedência que o bloco 1 do alerta exige', () => {
+  it('recusa evento sem fonte, citando RF-116', () => {
+    const erros = mensagens(join(FIXTURES, 'eventos', 'sem-fonte.yaml'), 'eventos')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-116')
+    expect(erros[0]).toContain('fonte')
+  })
+})
+
 describe('RF-111 e RP-007, evento não qualifica probabilidade de desfecho', () => {
   it('recusa qualificação de probabilidade na descricao, citando RF-111', () => {
     const erros = mensagens(join(FIXTURES, 'eventos', 'qualifica-probabilidade.yaml'), 'eventos')
