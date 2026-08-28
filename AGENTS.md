@@ -11,72 +11,103 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 ## 1. Estado atual
 
 **Data:** 28/08/2026
-**Etapa concluída:** Passo 3, primeiro bloco: a engine `fcff_por_concessao` como sonda
-deliberada (D-075). É a única engine que existe
-**Etapa seguinte:** o resto do Passo 3, `ddm`, `excess_return`, `fcff_normalizado`, `sotp`,
-as quatro auxiliares e os validadores, aguardando aprovação explícita. A trilha B de
-conhecimento virou a Etapa do Conhecimento, depois da Fase 7
+**Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
+como sonda deliberada (D-075)
+**Etapa seguinte:** aguardando pesquisa do curador, não aguardando código. Ver "o que
+bloqueia" abaixo
 
-**A sonda entregou duas coisas, e a segunda é a que importa mais.** A engine funciona e está
-testada, e `docs/premissas-de-interpretacao-fcff-por-concessao.md` lista as dezesseis premissas
-de interpretação que ela foi obrigada a assumir sobre a natureza dos números, dez bloqueantes e
-seis de robustez. **Nada ali foi pesquisado**, e a lista existe para a pesquisa do curador
-contra fonte primária ser focada. A premissa B1, que o fluxo livre é a RAP líquida atribuível
-sem imposto nem capex, é a de maior consequência.
+### O que existe, pacote por pacote
 
-**O que o expurgo mudou, para ninguém procurar o que não existe mais.** Os playbooks ficaram
-só com estrutura verificável. Saíram as onze heurísticas, a única faixa de referência, os
-quatro modos, o horizonte de bancos, as cinco entradas de múltiplo com `severidade: alerta`,
-o `sotp` de commodities e a designação de `custo_chave`. Tudo está em
-`docs/nao-autorado/EXPURGO-2026-08-27.md`, que não é carregado por nada. **Os itens que
-estavam na fila do curador deixaram de existir:** H-004, H-044 e os dois modos mínimos saíram,
-e o verbo "determina" saiu junto com H-044. Não procure por eles em `conhecimento/`.
+| Pacote | O que tem dentro |
+|---|---|
+| `packages/shared` | `@valuation/shared`. `decimal-config.ts`, o construtor de `decimal.js` clonado com precision 34 e ROUND_HALF_EVEN (D-046); `money.ts` com `Money<Moeda>`, moeda como tipo fantasma; `rate.ts` com `Rate` para toda grandeza adimensional e as conversões de bps; `index.ts` como porta pública, que não exporta o construtor cru nem, por tabela, o `toNumber` dele |
+| `packages/conhecimento` | `@valuation/conhecimento`. Schema Zod dos quatro tipos de item, em `playbook.ts`, `heuristica.ts`, `nota.ts` e `evento.ts`, com as peças compartilhadas e os três filtros de texto em `comum.ts`; `validar.ts` com a validação por pasta e as duas checagens cruzadas, RF-109 entre nota e playbook e RF-107 do `campo_relacionado` |
+| `packages/dominio` | `@valuation/dominio`. `engines/fcff-por-concessao.ts`, a única engine; `datas.ts`, aritmética de data em texto sem o objeto `Date`; `validadores/` criado e **vazio**; `pureza.test.ts`, que varre o pacote procurando relógio, rede, I/O e aleatoriedade e falha se achar |
+| `tools/` | `validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista branca de pastas |
 
-**Existe:**
+Fora dos pacotes: `conhecimento/playbooks/` com os três playbooks, só estrutura verificável
+depois do expurgo; `conhecimento/fixtures-invalidas/` com dezenove fixtures, cada uma
+quebrando exatamente uma regra; e `conhecimento/heuristicas`, `notas` e `eventos` vazias.
 
-- `docs/REQUISITOS-valuation-simulator-v2.4.md`, escopo fechado e aprovado. 113 requisitos
-  funcionais, 13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
-  `conhecimento/playbooks/`, o que é verificado por comparação programática (D-064)
-- `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico da sessão de 24/08/2026,
-  não é fonte de verdade. As divergências contra a v2.2 estão no cabeçalho do arquivo
-- os quatro arquivos de governança
-- repositório git inicializado, `/ingest` fora do versionamento
-- monorepo Bun com um workspace, `packages/shared`, mais `package.json` da raiz,
-  `tsconfig.base.json`, `vitest.config.ts`, `stryker.config.json` e `.editorconfig`
-- `packages/shared`, o pacote `@valuation/shared`, com `decimal-config.ts` (construtor
-  clonado de D-046), `money.ts` (`Money<Moeda>`), `rate.ts` (`Rate` e as conversões de bps)
-  e `index.ts` como porta pública
-- `packages/conhecimento`, o pacote `@valuation/conhecimento`, com o schema Zod dos quatro
-  tipos de item, `comum.ts`, `playbook.ts`, `heuristica.ts`, `nota.ts`, `evento.ts`, mais
-  `validar.ts`, que inclui a checagem cruzada de RF-109 entre nota e playbook
-- `packages/dominio`, o pacote `@valuation/dominio`, com `engines/fcff-por-concessao.ts`, os
-  helpers de data puros, e `validadores/` ainda vazio
-- `tools/validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista
-  branca de pastas
-- `conhecimento/playbooks/` com os três playbooks, só estrutura verificável depois do
-  expurgo, e `conhecimento/fixtures-invalidas/` com onze fixtures, cada uma quebrando uma
-  regra
-- `docs/nao-autorado/EXPURGO-2026-08-27.md`, o conteúdo expurgado com ressalva no topo. Não
-  é fonte de verdade, não é carregado, e copiar item de lá sem autoria viola RNF-013
-- suíte Vitest com 84 testes, e `tsc --noEmit` sobre `packages/shared`,
-  `packages/conhecimento` e `tools`
-- mutation testing rodando por Stryker sobre `packages/shared`, score de 97,87% (D-049).
-  O alvo do `stryker.config.json` ainda não inclui `packages/conhecimento`
-- `.claude/skills/inspecao-conformidade/`, usada pela primeira vez no fechamento do Passo 2
+### Só existe uma engine, e as outras quatro não foram escritas de propósito
 
-**Não existe:** os pacotes `dominio`, `core` e `desktop`, nenhuma engine, nenhum validador
-de regra dura executável, nenhum loader lendo `conhecimento/` em runtime (é do Passo 4),
-nenhuma nota nem evento real em `conhecimento/`, nenhum banco, nenhuma interface, nenhum
-linter (D-056).
+`ddm`, `excess_return`, `fcff_normalizado` e `sotp` **não existem**, e nenhuma auxiliar
+(`calcular_ke`, `calcular_beta`, `sensibilidade`, `ponderar_cenarios`) tampouco. Nenhum
+validador de regra dura executável existe: `validadores/` está vazio de propósito.
 
----
+Isso não é trabalho pela metade. A engine foi escrita como sonda deliberada, e **o curador
+mandou parar depois dela**, para as perguntas que ela gerasse serem respondidas antes de mais
+quatro engines herdarem as mesmas premissas.
+
+### O segundo entregável da sonda, e o que bloqueia
+
+`docs/premissas-de-interpretacao-fcff-por-concessao.md` lista as **dezesseis premissas de
+interpretação** que a engine foi obrigada a assumir sobre a natureza dos números: dez
+BLOQUEANTES, que se forem falsas mudam a engine, e seis de ROBUSTEZ, que se forem falsas
+produzem erro visível e não número errado silencioso. Cada uma diz o que a engine assume, onde
+no código isso está materializado, o que acontece se for falsa, e qual fonte primária
+responderia.
+
+**Nada ali foi pesquisado.** O arquivo existe para a pesquisa do curador contra fonte primária
+ser focada, e resposta inferida por agente é o que a RNF-013 proíbe.
+
+**O estado do projeto agora é: aguardando pesquisa do curador sobre B1, B3 e B8.** Não é
+aguardando aprovação de código.
+
+| Premissa | O que a engine assume | Por que trava |
+|---|---|---|
+| **B1** | o fluxo livre é a RAP líquida atribuível, sem imposto, capex nem capital de giro | **bloqueia `fcff_normalizado`**, que tem a mesma pergunta sobre o que é o fluxo livre. Resolver depois de quatro engines existirem custa quatro engines |
+| **B3** | os períodos são anuais ancorados na `data_base`, não no ciclo tarifário | se a RAP é publicada por ciclo de julho a junho, todo alinhamento fica deslocado, e o erro vale para todas as concessões ao mesmo tempo, então não se cancela |
+| **B8** | `reducao_contratual.fator` é o que **sobra**, então `0.5` é RAP pela metade | o comentário do playbook diz `# ex: -50% após 15o ano`, com sinal negativo, o que sugere percentual cortado. Se for, a redução inverte |
+
+### O que o expurgo tirou, para ninguém procurar o que não existe mais
+
+Os playbooks ficaram só com estrutura verificável. Saíram as onze heurísticas, a única faixa de
+referência, os quatro modos, o horizonte de bancos, as cinco entradas de múltiplo com
+`severidade: alerta`, o `sotp` de commodities e a designação de `custo_chave`. Tudo está em
+`docs/nao-autorado/EXPURGO-2026-08-27.md`, que não é fonte de verdade e não é carregado por
+nada. Copiar item de lá de volta sem autoria viola a RNF-013.
+
+**Itens que sumiram da fila do curador porque deixaram de existir:** H-004, H-044, os dois
+modos mínimos, e o verbo "determina" que saiu junto com H-044.
+
+### Documentos
+
+- `docs/REQUISITOS-valuation-simulator-v2.4.md`, fonte de verdade. 113 requisitos funcionais,
+  13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
+  `conhecimento/playbooks/`, verificado por teste (D-065)
+- `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as dezesseis premissas da sonda
+- `docs/nao-autorado/EXPURGO-2026-08-27.md`, o conteúdo expurgado, com ressalva no topo
+- `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico de 24/08/2026, não é fonte de
+  verdade, com as divergências no cabeçalho do próprio arquivo
+
+### Verificação
+
+- suíte Vitest com **149 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
+- CLI de conhecimento saindo zero contra `conhecimento/`
+- Stryker sobre os **três** pacotes (D-077), sem limiar, com a regra de classificar cada
+  sobrevivente. 58 segundos. Scores: `shared` 97,87%, `dominio` 64,57%, `conhecimento` 40,77%
+- `.claude/skills/inspecao-conformidade/`, com a varredura de proteção sem exercício como
+  passo obrigatório em etapa que mexa em validação (D-074)
+
+### Lacunas de baixo valor registradas, que ficam como estão
+
+Estas foram classificadas e deliberadamente não fechadas. Não são pendência esquecida.
+
+| Lacuna | Por que fica |
+|---|---|
+| 231 sobreviventes de mutação `StringLiteral` em mensagem de erro, nos três pacotes | são mensagens não afirmadas por teste. Afirmei as que um curador leria; afirmar as 231 é ruído com custo de manutenção |
+| 59 sobreviventes `Regex` nos gatilhos de RP-004 em `comum.ts` | cada variante de plural e gênero dos onze gatilhos seria um teste, e a D-061 já declara que o filtro é rede e não prova. Testar exaustivamente a rede não a transforma em prova |
+| `conhecimento` em 40,77% de score de mutação | o grosso são as duas classes acima. O número baixo é medida da quantidade de texto no pacote, não da qualidade da proteção |
+| RF-117, RF-416, RF-419, RF-503 e RF-902 saem na varredura de requisitos | todos triados como rótulo de âncora ou citação em comentário, nenhum é regra sem exercício |
 
 ## 2. Mapa de pastas alvo
 
-Estrutura alvo. `package.json`, `packages/shared` e os arquivos de configuração da raiz
-existem desde o Passo 1. O resto ainda não foi criado, e está aqui para o agente saber onde
-cada coisa vai antes de criar. Pacote nasce quando tem conteúdo, e o glob `packages/*` do
-workspace já aceita os que vierem.
+Estrutura alvo. Existem hoje `packages/shared`, `packages/conhecimento`, `packages/dominio`,
+`tools/`, `conhecimento/` e os arquivos de configuração da raiz. Faltam `packages/core` e
+`packages/desktop`, e as pastas `heuristicas`, `notas` e `eventos` de `conhecimento/` existem
+vazias. Pacote nasce quando tem conteúdo, e o glob `packages/*` do workspace já aceita os que
+vierem.
 
 ```
 valuation-simulator/
@@ -116,7 +147,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 0 | Governança, git, documento em `docs/` | Concluído |
 | 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
 | 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Concluído |
-| 3 | Duas trilhas em paralelo, ver abaixo | Pendente |
+| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe, e o passo está parado aguardando a pesquisa sobre B1, B3 e B8 |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
 Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos, com a **Etapa do
@@ -128,17 +159,17 @@ autora o conteúdo que o expurgo tirou.
 existir, dezenas de heurísticas nascem num formato que depois muda, e refaz tudo. A ordem é
 forçada por dependência, não por preferência.
 
-**Passo 3, trilha A, código.** Engines contra fixtures nesta ordem:
-`fcff_por_concessao`, `ddm`, `excess_return`, `fcff_normalizado`, `sotp`. Depois auxiliares:
-`calcular_ke`, `calcular_beta`, `sensibilidade`, `ponderar_cenarios`. Depois validadores,
-depois snapshot.
+**Passo 3, ordem das engines.** `fcff_por_concessao` está feita. Faltam `ddm`,
+`excess_return`, `fcff_normalizado` e `sotp`, depois as auxiliares `calcular_ke`,
+`calcular_beta`, `sensibilidade` e `ponderar_cenarios`, depois os validadores, depois o
+snapshot. **`fcff_normalizado` não começa antes de B1 ser respondida**, porque as duas
+engines fazem a mesma pergunta sobre o que é o fluxo livre.
 
-**Passo 3, trilha B, conhecimento.** Em três ondas: transcrever para YAML os três playbooks
-já prontos na seção 9 do documento, validando pelo CLI; ingerir aulas e vídeos, com
-proposta do agente e revisão do curador; notas de ativo dos papéis acompanhados, uma por
-vez. Nesta trilha nasce a skill `.claude/skills/extrair-conhecimento/`, que ensina o
-schema, o formato de alerta em quatro blocos (RF-116) e a proibição de sugerir valor
-(RP-006).
+**A trilha B de conhecimento não existe mais no Passo 3.** Ela virou a Etapa do
+Conhecimento, sem número de fase, entre a Fase 7 e a Fase 8 (D-070). Os três playbooks já
+foram transcritos e depois expurgados do conteúdo analítico, e o que restou de conhecimento a
+autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
+`.claude/skills/extrair-conhecimento/` nasce lá, não aqui.
 
 ---
 
@@ -163,14 +194,14 @@ schema, o formato de alerta em quatro blocos (RF-116) e a proibição de sugerir
 
 ## 5. Questões abertas
 
-Nada aqui bloqueia o Passo 3.
+**A primeira linha bloqueia o resto do Passo 3.** As outras não bloqueiam.
 
 | Questão | Quando resolve |
 |---|---|
+| **BLOQUEIA.** Pesquisa do curador sobre B1, B3 e B8 das premissas de interpretação, em `docs/premissas-de-interpretacao-fcff-por-concessao.md`. B1 decide o que é o fluxo livre e por isso trava `fcff_normalizado`; B3 decide o alinhamento de período e desloca tudo se estiver errada; B8 pode inverter a redução contratual | Agora, contra fonte primária, antes de qualquer engine nova |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
-| As dezesseis premissas de interpretação da engine `fcff_por_concessao`, em `docs/premissas-de-interpretacao-fcff-por-concessao.md`. Dez bloqueantes, e a B1 muda a engine se for falsa | Pesquisa do curador contra fonte primária, antes das outras engines de fluxo |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
