@@ -27,7 +27,7 @@ import {
  * entregável tão importante quanto este arquivo.
  */
 
-export const VERSAO_ENGINE = '0.1.0'
+export const VERSAO_ENGINE = '0.2.0'
 const MOEDA = 'BRL' as const
 
 const textoDecimal = (campo: string) =>
@@ -38,8 +38,18 @@ const dataTexto = (campo: string) =>
     error: `${campo}: esperava data no formato AAAA-MM-DD`,
   })
 
+/**
+ * `percentual_reducao` é o que se CORTA, e não o que sobra: "0.5" é redução de
+ * metade da RAP. A convenção está no nome porque o nome anterior, `fator`, não
+ * dizia a direção, e um campo cujo valor serve às duas leituras não tem como ser
+ * conferido contra o contrato de onde ele foi transcrito (D-078).
+ *
+ * O que o nome NÃO resolve, e continua em aberto na B8: se a redução incide
+ * sobre a RAP original ou sobre a já reajustada. Aqui ela incide sobre a
+ * reajustada, ver o laço de períodos.
+ */
 export const ReducaoContratual = z.strictObject({
-  fator: textoDecimal('reducao_contratual.fator'),
+  percentual_reducao: textoDecimal('reducao_contratual.percentual_reducao'),
   a_partir_de: dataTexto('reducao_contratual.a_partir_de'),
 })
 
@@ -69,7 +79,7 @@ export const PeriodoDoResultado = z.strictObject({
   periodo: z.number().int().positive(),
   data_fim: dataTexto('data_fim'),
   rap_liquida_reajustada: z.string(),
-  fator_reducao_contratual: z.string(),
+  fator_remanescente_aplicado: z.string(),
   rap_apos_reducao: z.string(),
   fluxo_atribuivel: z.string(),
   fator_desconto: z.string(),
@@ -119,6 +129,27 @@ export class ErroDeRegraDura extends Error {
 
 function brl(texto: string, campo: string): Money<'BRL'> {
   return Money.de(texto, MOEDA, campo)
+}
+
+/**
+ * Converte o percentual cortado no fator que multiplica a RAP, que é `1 - p`.
+ *
+ * A faixa de 0 a 1 fecha o erro de escala que o nome deixa em aberto, alguém
+ * escrever "50" quando quer dizer 50%. Esse erro é detectável, e foi por ele ser
+ * detectável que o nome `percentual_reducao` venceu `fator_remanescente`: o erro
+ * que sobrava do outro nome, escrever o corte onde se pede o remanescente,
+ * produz "0.5" nos dois casos e nenhum validador o pega (D-078).
+ */
+function fatorRemanescenteDe(texto: string, campo: string): Rate {
+  const um = Rate.de('1', 'um')
+  const percentual = Rate.de(texto, campo)
+  if (percentual.ehNegativo() || percentual.maiorQue(um)) {
+    throw new RangeError(
+      `${campo}: esperava fração entre "0" e "1", recebi "${texto}". ` +
+        'Redução de 50% se escreve "0.5"',
+    )
+  }
+  return um.subtrai(percentual)
 }
 
 export function calcularFcffPorConcessao(
@@ -181,9 +212,9 @@ export function calcularFcffPorConcessao(
       concessao.reducao_contratual === undefined || concessao.reducao_contratual === null
         ? undefined
         : {
-            fator: Rate.de(
-              concessao.reducao_contratual.fator,
-              `${concessao.nome}.reducao_contratual.fator`,
+            fatorRemanescente: fatorRemanescenteDe(
+              concessao.reducao_contratual.percentual_reducao,
+              `${concessao.nome}.reducao_contratual.percentual_reducao`,
             ),
             aPartirDe: lerData(
               concessao.reducao_contratual.a_partir_de,
@@ -203,8 +234,11 @@ export function calcularFcffPorConcessao(
 
       const aplicaReducao =
         reducao !== undefined && compararDatas(fim, reducao.aPartirDe) >= 0
-      const fatorReducao = aplicaReducao && reducao !== undefined ? reducao.fator : um
-      const rapAposReducao = rapReajustada.multiplicaPor(fatorReducao)
+      // a redução incide sobre a RAP já reajustada, e não sobre a original. É a
+      // metade da B8 que o nome do campo não resolve, e que espera o contrato
+      const fatorRemanescente =
+        aplicaReducao && reducao !== undefined ? reducao.fatorRemanescente : um
+      const rapAposReducao = rapReajustada.multiplicaPor(fatorRemanescente)
       const fluxoAtribuivel = rapAposReducao.multiplicaPor(participacao)
       const fluxoDescontado = fluxoAtribuivel.multiplicaPor(fatorDesconto)
       valorPresente = valorPresente.soma(fluxoDescontado)
@@ -213,7 +247,7 @@ export function calcularFcffPorConcessao(
         periodo,
         data_fim: escreverData(fim),
         rap_liquida_reajustada: rapReajustada.paraArmazenamento(),
-        fator_reducao_contratual: fatorReducao.paraArmazenamento(),
+        fator_remanescente_aplicado: fatorRemanescente.paraArmazenamento(),
         rap_apos_reducao: rapAposReducao.paraArmazenamento(),
         fluxo_atribuivel: fluxoAtribuivel.paraArmazenamento(),
         fator_desconto: fatorDesconto.paraArmazenamento(),

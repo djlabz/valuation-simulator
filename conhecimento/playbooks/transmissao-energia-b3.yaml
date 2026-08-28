@@ -1,5 +1,5 @@
 id: transmissao-energia-b3
-versao: 0.5.0
+versao: 0.6.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -53,7 +53,9 @@ inputs_obrigatorios:
       - indice_reajuste          # IPCA | IGPM
       - data_vencimento
       - percentual_participacao
-      - reducao_contratual       # ex: -50% após 15o ano
+      # subcampos percentual_reducao e a_partir_de. percentual_reducao é o que
+      # se corta: "0.3" é redução de 30% da RAP a partir da data (D-078)
+      - reducao_contratual
     onde_encontrar: |
       1. Resolução Homologatória anual da ANEEL (ciclo RAP)
       2. Formulário de Referência, seção de contratos relevantes

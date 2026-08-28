@@ -12,7 +12,8 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 **Data:** 28/08/2026
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
-como sonda deliberada (D-075)
+como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
+`percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa
 **Etapa seguinte:** aguardando pesquisa do curador, não aguardando código. Ver "o que
 bloqueia" abaixo
 
@@ -51,14 +52,20 @@ responderia.
 **Nada ali foi pesquisado.** O arquivo existe para a pesquisa do curador contra fonte primária
 ser focada, e resposta inferida por agente é o que a RNF-013 proíbe.
 
-**O estado do projeto agora é: aguardando pesquisa do curador sobre B1, B3 e B8.** Não é
-aguardando aprovação de código.
+**O estado do projeto agora é: aguardando pesquisa do curador sobre as dez premissas
+BLOQUEANTES.** Não é aguardando aprovação de código. As três abaixo são as que travam trabalho
+novo; as outras sete não travam trabalho e continuam significando que o número que a engine
+devolve hoje não é confiável. A ordem de pesquisa começa pela B2, que é a mais barata e a de
+maior consequência.
 
 | Premissa | O que a engine assume | Por que trava |
 |---|---|---|
 | **B1** | o fluxo livre é a RAP líquida atribuível, sem imposto, capex nem capital de giro | **bloqueia `fcff_normalizado`**, que tem a mesma pergunta sobre o que é o fluxo livre. Resolver depois de quatro engines existirem custa quatro engines |
 | **B3** | os períodos são anuais ancorados na `data_base`, não no ciclo tarifário | se a RAP é publicada por ciclo de julho a junho, todo alinhamento fica deslocado, e o erro vale para todas as concessões ao mesmo tempo, então não se cancela |
-| **B8** | `reducao_contratual.fator` é o que **sobra**, então `0.5` é RAP pela metade | o comentário do playbook diz `# ex: -50% após 15o ano`, com sinal negativo, o que sugere percentual cortado. Se for, a redução inverte |
+| **B8** | a redução incide sobre a RAP já reajustada, e é um degrau só | **metade fechada por D-078**, que era ambiguidade de nome: o campo virou `percentual_reducao`, o que se corta. O que sobra é pergunta de contrato, original contra reajustada, e degrau único contra escalonado |
+
+**Correção de rota registrada em 28/08/2026.** O estado anterior tratava a fila como três
+premissas pendentes, e são dez. A pesquisa cobre as dez.
 
 ### O que o expurgo tirou, para ninguém procurar o que não existe mais
 
@@ -147,7 +154,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 0 | Governança, git, documento em `docs/` | Concluído |
 | 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
 | 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Concluído |
-| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe, e o passo está parado aguardando a pesquisa sobre B1, B3 e B8 |
+| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe, e o passo está em parada dura aguardando a pesquisa das dez premissas BLOQUEANTES |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
 Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos, com a **Etapa do
@@ -198,7 +205,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 
 | Questão | Quando resolve |
 |---|---|
-| **BLOQUEIA.** Pesquisa do curador sobre B1, B3 e B8 das premissas de interpretação, em `docs/premissas-de-interpretacao-fcff-por-concessao.md`. B1 decide o que é o fluxo livre e por isso trava `fcff_normalizado`; B3 decide o alinhamento de período e desloca tudo se estiver errada; B8 pode inverter a redução contratual | Agora, contra fonte primária, antes de qualquer engine nova |
+| **BLOQUEIA.** Pesquisa do curador sobre as dez premissas BLOQUEANTES em `docs/premissas-de-interpretacao-fcff-por-concessao.md`, começando pela B2. A parada é dura e vale para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código, e a pesquisa é a que trava tudo | Agora, contra fonte primária, antes de qualquer engine nova |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |

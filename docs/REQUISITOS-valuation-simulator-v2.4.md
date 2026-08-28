@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.0
-**Data:** 27 de agosto de 2026
+**Versão:** 2.4.1
+**Data:** 28 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.0:** o subcampo `fator` de `reducao_contratual`, em Transmissão, passa a `percentual_reducao`, e o comentário do playbook deixa de ser a única coisa a dizer a direção do número (D-078). `transmissao-energia-b3` vai para 0.6.0. O nome do arquivo continua em `v2.4` porque ele acompanha a linha minor, e esta é correção de campo dentro da seção 9, não alteração de escopo.
 
 **Alterações desde 2.3.0:** expurgo do conhecimento analítico não autorado dos três playbooks, que passa a ser trabalho da Etapa do Conhecimento, com a fronteira do que fica declarada no critério de imutabilidade (D-067); toda entrada de múltiplo bloqueado com severidade `alerta` sai, inclusive a que passa no critério, porque a classificação é que é calibragem (D-068); nova RNF-013, conteúdo analítico não é escrito por agente (D-069); Etapa do Conhecimento entra na seção 8 entre a Fase 7 e a Fase 8, com nome e sem número, para não corromper citação de fase em arquivo append only (D-070); `modos`, `heuristicas_de_leitura` e `horizonte_projecao` voltam a opcionais, emendando a D-060 (D-071); `vida_util_reserva` vira subcampo da lista `ativos_produtivos` em Commodities, e R-204 passa a validar por ativo (D-072). RF-102 e RF-419 emendados em consequência.
 
@@ -509,7 +511,7 @@ Conteúdo integral. Ao migrar para repositório, cada bloco torna-se um arquivo 
 
 ```yaml
 id: transmissao-energia-b3
-versao: 0.5.0
+versao: 0.6.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -563,7 +565,9 @@ inputs_obrigatorios:
       - indice_reajuste          # IPCA | IGPM
       - data_vencimento
       - percentual_participacao
-      - reducao_contratual       # ex: -50% após 15o ano
+      # subcampos percentual_reducao e a_partir_de. percentual_reducao é o que
+      # se corta: "0.3" é redução de 30% da RAP a partir da data (D-078)
+      - reducao_contratual
     onde_encontrar: |
       1. Resolução Homologatória anual da ANEEL (ciclo RAP)
       2. Formulário de Referência, seção de contratos relevantes
