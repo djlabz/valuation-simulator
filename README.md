@@ -32,7 +32,7 @@ Electron, Zod, Vitest. Toda aritmética financeira em `decimal.js`.
 
 | Arquivo | Papel |
 |---|---|
-| `docs/REQUISITOS-valuation-simulator-v2.3.md` | Fonte de verdade. Vence qualquer outro documento |
+| `docs/REQUISITOS-valuation-simulator-v2.4.md` | Fonte de verdade. Vence qualquer outro documento |
 | `CLAUDE.md` | Constituição do agente: invariantes, casos de fronteira, conduta |
 | `AGENTS.md` | Estado do projeto, mapa de pastas, ordem de trabalho, questões abertas |
 | `DECISOES.md` | Log numerado de decisões |

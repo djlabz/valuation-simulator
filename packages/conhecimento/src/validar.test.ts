@@ -135,11 +135,36 @@ describe('D-059, null explícito declara ausência deliberada', () => {
   })
 })
 
-describe('D-060, modos é obrigatório no playbook', () => {
-  it('recusa playbook sem modos, porque RF-105 não teria onde exigir o aviso', () => {
-    const erros = mensagens(join(FIXTURES, 'playbooks', 'sem-modos.yaml'), 'playbooks')
+describe('D-071, modos e heuristicas_de_leitura são opcionais', () => {
+  it('aceita playbook sem modos, e RF-105 continua de pé para quando existir modo reduzido', () => {
+    const base = carregar(join(FIXTURES, 'playbooks', 'premissa-com-valor.yaml')) as Record<
+      string,
+      unknown
+    >
+    base['premissas_do_usuario'] = [{ campo: 'taxa_desconto', obrigatorio: true, default: null }]
+    delete base['modos']
+    delete base['heuristicas_de_leitura']
+    expect(Playbook.safeParse(base).success).toBe(true)
+  })
+
+  it('aceita null explícito, que é como a ausência deliberada se declara (D-059)', () => {
+    const base = carregar(join(FIXTURES, 'playbooks', 'premissa-com-valor.yaml')) as Record<
+      string,
+      unknown
+    >
+    base['premissas_do_usuario'] = [{ campo: 'taxa_desconto', obrigatorio: true, default: null }]
+    base['modos'] = null
+    base['heuristicas_de_leitura'] = null
+    base['horizonte_projecao'] = null
+    expect(Playbook.safeParse(base).success).toBe(true)
+  })
+
+  it('a proteção de RF-105 continua reprovando modo reduzido sem aviso', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'playbooks', 'modo-reduzido-sem-aviso.yaml'),
+      'playbooks',
+    )
     expect(erros.length).toBe(1)
-    expect(erros[0]).toContain('RF-102')
     expect(erros[0]).toContain('RF-105')
   })
 })
@@ -278,7 +303,7 @@ describe('RF-109 e D-020, nota restringe mas não amplia nem altera regra dura',
       ativo: 'KLBN11',
       tipo: 'caracteristica_estrutural',
       playbook: 'commodities-b3',
-      sobreescreve: { modelos_habilitados: ['sotp'] },
+      sobreescreve: { modelos_habilitados: ['fcff_normalizado'] },
       justificativa: 'Modelo verticalizado com receita relevante fora de celulose',
       confianca: 'alta',
       fonte: 'Analise propria',

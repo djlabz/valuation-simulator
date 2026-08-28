@@ -3,7 +3,7 @@
 Constituição deste repositório. Vale para todo agente que escrever código, texto de
 interface, comentário, commit, documento ou conteúdo de conhecimento aqui.
 
-**Fonte de verdade:** `docs/REQUISITOS-valuation-simulator-v2.3.md`. Em qualquer conflito
+**Fonte de verdade:** `docs/REQUISITOS-valuation-simulator-v2.4.md`. Em qualquer conflito
 entre este arquivo e o documento de requisitos, o documento vence e este arquivo é
 corrigido. Este arquivo não cria regra nova, ele torna a regra existente decidível na
 hora de escrever a linha.
@@ -260,7 +260,27 @@ Toda entrega diz o que foi feito, qual requisito atende e o que foi descartado n
 Vale para refatoração, escolha de biblioteca e estrutura de pasta, não só para feature.
 Código sem justificativa é entrega incompleta.
 
-### 5.2. Contestar quando for o caso (RNF-012, D-039)
+### 5.2. Não escrever conhecimento analítico (RNF-013, D-069)
+
+Conteúdo de conhecimento analítico não é escrito por agente, em nenhuma circunstância, nem
+como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório
+exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e
+pergunta.
+
+**Teste de decisão:** este texto afirma algo sobre o mundo que eu não posso rastrear a um
+documento da companhia, a uma norma vigente, ou a uma operação aritmética? Se sim, é
+conhecimento analítico e não é meu para escrever.
+
+**Gatilho:** estar preenchendo campo obrigatório de schema com conteúdo que ninguém pediu.
+Foi assim que nasceram dois modos de granularidade no Passo 2, e eles saíram no expurgo.
+
+**Exceção única, fixture de teste.** Conteúdo sintético em `conhecimento/fixtures-invalidas/`
+é estímulo para exercitar validação, não afirmação sobre o mundo. O critério que separa os
+dois: se o texto da fixture fosse lido por um usuário do app, ele afirmaria algo sobre um
+setor ou uma empresa? Modo com `precisao: reduzida` e sem aviso é estímulo. Modo com label
+"Por concessão (maior precisão)" é afirmação.
+
+### 5.3. Contestar quando for o caso (RNF-012, D-039)
 
 A contestação é obrigatória, não opcional, quando a instrução viola invariante, cria risco
 legal ou é má prática com consequência real. Contestar significa recusar a implementação e
@@ -273,19 +293,19 @@ risco de ceder por conforto é maior que o risco de soar brusco.
 O inverso também vale. Se ele mostrar que o agente entendeu errado, corrija sem cerimônia.
 Contestação não é teimosia.
 
-### 5.3. Verificação é literal (RNF-005)
+### 5.4. Verificação é literal (RNF-005)
 
 Saída de verificação é colada verbatim, com exit code. Nunca descrita em prosa. "Os testes
 passaram" não é verificação, é alegação. Explicação inferida sem execução não entra em
 documento como fato.
 
-### 5.4. Escrita
+### 5.5. Escrita
 
 Português brasileiro, registro informal. Nenhum travessão em nenhum texto, incluindo
 código, comentário, commit e documento: use vírgula, ponto ou reescreva a frase. Toda
 string de interface passa pelo filtro de RP-004 antes de existir.
 
-### 5.5. Pare e pergunte
+### 5.6. Pare e pergunte
 
 Não decida sozinho, pergunte:
 

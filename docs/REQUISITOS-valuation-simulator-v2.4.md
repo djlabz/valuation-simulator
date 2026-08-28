@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.3.0
-**Data:** 26 de agosto de 2026
+**Versão:** 2.4.0
+**Data:** 27 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.3.0:** expurgo do conhecimento analítico não autorado dos três playbooks, que passa a ser trabalho da Etapa do Conhecimento, com a fronteira do que fica declarada no critério de imutabilidade (D-067); toda entrada de múltiplo bloqueado com severidade `alerta` sai, inclusive a que passa no critério, porque a classificação é que é calibragem (D-068); nova RNF-013, conteúdo analítico não é escrito por agente (D-069); Etapa do Conhecimento entra na seção 8 entre a Fase 7 e a Fase 8, com nome e sem número, para não corromper citação de fase em arquivo append only (D-070); `modos`, `heuristicas_de_leitura` e `horizonte_projecao` voltam a opcionais, emendando a D-060 (D-071); `vida_util_reserva` vira subcampo da lista `ativos_produtivos` em Commodities, e R-204 passa a validar por ativo (D-072). RF-102 e RF-419 emendados em consequência.
 
 **Alterações desde 2.2.0:** taxa em arquivo de conhecimento passa a texto entre aspas, porque YAML sem aspas entrega float (D-058); ausência deliberada de campo opcional se escreve com `null` explícito (D-059); `modos` passa a obrigatório no playbook, com setor de modo único declarando um modo, e `bancos-b3` e `commodities-b3` ganham o seu (D-060); conteúdo de conhecimento exibido ao usuário passa por filtro de RP-004, com quatro ocorrências valorativas corrigidas nos playbooks (D-061, D-062); campo `alertas` removido do playbook e conteúdo redistribuído entre heurística e múltiplo bloqueado (D-063). A seção 10 deixa de ser o log corrente, ver a nota no início dela.
 
@@ -68,8 +70,8 @@ Do geral ao específico, com precedência crescente:
 
 ```
 Playbook setorial     ->  metodologia do setor         (transmissao-energia-b3)
-  └─ Nota de ativo    ->  característica estrutural     (KLBN11 é verticalizada)
-       └─ Evento      ->  circunstância temporária      (EGIE3 tem passivo em discussão)
+  └─ Nota de ativo    ->  característica estrutural     (companhia verticalizada)
+       └─ Evento      ->  circunstância temporária      (passivo em discussão)
 ```
 
 Camada mais específica restringe a mais geral. Nenhuma contraria regras duras.
@@ -167,7 +169,7 @@ O conhecimento vive em YAML versionado no repositório e é carregado no boot. O
 | ID | Requisito |
 |---|---|
 | RF-101 | Todo conhecimento é carregado e validado no boot. Arquivo malformado impede a inicialização com erro explícito |
-| RF-102 | Playbook setorial define detecção, múltiplos bloqueados, modelos habilitados, regras duras, modos de granularidade, horizonte de projeção, inputs obrigatórios, premissas e heurísticas |
+| RF-102 | Playbook setorial define detecção, múltiplos bloqueados, modelos habilitados, regras duras, inputs obrigatórios e premissas. Horizonte de projeção é declarado quando o setor o deriva de fato. Modos de granularidade e heurísticas de leitura são opcionais e são autorados na Etapa do Conhecimento (D-071) |
 | RF-103 | Todo input obrigatório declara `onde_encontrar`, com instrução de localização na documentação da companhia |
 | RF-104 | Múltiplo bloqueado declara severidade (`bloqueio_total` ou `alerta`) e motivo exibível. Múltiplo bloqueado não é exibido; em seu lugar aparece o motivo |
 | RF-105 | Modo de granularidade reduzida exige aviso obrigatório exibido antes da seleção |
@@ -296,7 +298,7 @@ Ke resultante                       ?
 | RF-416 | O horizonte é derivado de fato sempre que o setor permitir, e não constitui premissa do usuário nesses casos |
 | RF-417 | Transmissão: horizonte de cada concessão é a respectiva data de vencimento contratual |
 | RF-418 | Commodities: horizonte é limitado pela vida útil de reserva declarada pela companhia |
-| RF-419 | Bancos: horizonte segue convenção setorial declarada no playbook, ajustável pelo usuário, com justificativa exibida |
+| RF-419 | Bancos: o horizonte não é derivado de fato, porque não há contrato nem reserva definindo prazo, e portanto é premissa do usuário (RF-416), obrigatória, sem default e sem faixa de referência |
 | RF-420 | Horizonte que exceda o fato derivado é bloqueado por regra dura do playbook correspondente |
 | RF-421 | Flag booleana de premissa é proibida. A inclusão ou exclusão de um efeito é derivada da presença do valor correspondente informado pelo usuário |
 
@@ -456,6 +458,7 @@ Valor ponderado                 R$ 41,69
 | RNF-010 | **Justificativa obrigatória.** Toda implementação é acompanhada de explicação do que foi feito, do requisito que atende e das alternativas descartadas. Código entregue sem justificativa é entrega incompleta |
 | RNF-011 | **Inspeção adversarial de conformidade.** Ao fim de cada fase, código e textos de interface passam por revisão que simula leitura hostil, buscando ativamente a interpretação mais desfavorável de cada elemento. A revisão é conduzida por skill dedicada e produz relatório de brechas com severidade |
 | RNF-012 | **Autoridade de contestação.** O agente contesta instrução que viole invariante, lei aplicável ou boa prática de engenharia, em vez de executá-la. A contestação é obrigatória, não opcional, e precede qualquer implementação |
+| RNF-013 | **Conteúdo analítico não é escrito por agente.** Em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e pergunta ao curador. Teste de decisão: este texto afirma algo sobre o mundo que não se rastreia a documento da companhia, a norma vigente ou a operação aritmética? Exceção única: conteúdo sintético de fixture de teste, que não afirma sobre setor nem sobre empresa |
 
 ---
 
@@ -491,6 +494,7 @@ O usuário não é certificado pela CVM. A proteção é arquitetural, não decl
 | 5. Cenários | Até cinco cenários nomeados, ponderação, atribuição de diferença | Evento gera cenário adicional; diferença atribuída à origem correta; nenhum cenário marcado como provável; ponderação identificada como do usuário |
 | 6. MCP | Servidor com as quinze ferramentas | Agente classifica, propõe modelo, consulta contexto, registra fato e dispara cálculo; RF-1003 verificado |
 | 7. Electron | Cinco telas, conferência, composição, alertas, cenários, vigia | Fluxo completo pela interface; nenhuma premissa com default; alerta bloqueante impede prosseguimento |
+| Etapa do Conhecimento (sem número de fase, D-070) | Pesquisa, transcrição de material próprio e autoria de heurísticas, faixas, modos e notas, com revisão do curador | Todo item de conhecimento tem procedência declarada e revisão registrada; nenhum item foi escrito por agente (RNF-013) |
 | 8. Validação metodológica | Execução contra companhias reais e casos de referência | Resultados batem com cálculo manual independente dentro de tolerância |
 
 **Casos de referência.** Caso construído a partir de cálculo público de terceiro só é admitido quando as premissas do autor são conhecidas e declaradas. O teste executa a engine com essas premissas e compara o resultado. Divergência indica defeito na engine ou no playbook, e nunca motiva alteração de premissa. Resultado sem premissas declaradas não constitui caso válido, porque o mesmo valor pode ser alcançado por caminhos metodologicamente incorretos.
@@ -527,14 +531,9 @@ multiplos_bloqueados:
   - metrica: "P/L"
     severidade: bloqueio_total
     motivo: "lucro contábil carrega atualização financeira do ativo de concessão"
-  - metrica: "P/VPA"
-    severidade: alerta
-    motivo: "PL não representa capacidade de geração de caixa em ativo concedido"
-  - metrica: "Comparação de múltiplos entre pares do setor"
-    severidade: alerta
-    motivo: "Múltiplo tradicional não carrega a data de vencimento da concessão, então comparar companhias com prazos contratuais diferentes não informa nada sobre o ativo"
 
-modelos_habilitados: [fcff_por_concessao, ddm]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [ddm, fcff_por_concessao]
 
 horizonte_projecao:
   tipo: derivado_de_fato
@@ -552,18 +551,8 @@ regras_duras:
     validador: validarValorResidual
     mensagem: "Valor residual deve ser 0, salvo indenização de RAB não amortizada informada"
 
-modos:
-  - id: detalhado
-    label: "Por concessão (maior precisão)"
-    precisao: alta
-    inputs: [concessoes]
-  - id: consolidado
-    label: "RAP consolidada e prazo médio"
-    precisao: reduzida
-    aviso_obrigatorio: >
-      Prazo médio ponderado mascara concessões vencendo antes; o resultado
-      tende a superestimar o fluxo final.
-    inputs: [rap_total, prazo_medio_ponderado, indice_predominante]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
   - campo: concessoes
@@ -589,14 +578,8 @@ premissas_do_usuario:
     obrigatorio: true
     default: null
     composicao_disponivel: capm
-    faixa_referencia:
-      minimo: "0.09"
-      maximo: "0.14"
-      n_observacoes: 7
-      base: "premissas declaradas publicamente por analistas, setor transmissão"
-      confianca: media
-      atualizado_em: 2026-08
-      aviso: "Faixa observada, não recomendação. Sua escolha define o resultado."
+    # ausência temporária: faixa expurgada por D-067, volta na Etapa do Conhecimento
+    faixa_referencia: null
   - campo: inflacao_projetada_longo_prazo
     obrigatorio: true
     default: null
@@ -616,45 +599,8 @@ premissas_do_usuario:
       Preencher apenas se você projeta renovação. Sem termos informados, o fluxo
       encerra no vencimento contratual, que é fato do contrato.
 
-heuristicas_de_leitura:
-  - id: H-001
-    aplica_em: [release_resultados]
-    onde_olhar: "Conciliação entre RAP bruta e receita regulatória líquida"
-    o_que_verificar: "Deduções de PIS/COFINS, P&D e TFSEE não abatidas"
-    por_que_importa: "Projetar RAP bruta superestima o fluxo em cerca de 10%"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.2"
-  - id: H-002
-    aplica_em: [release_resultados, formulario_referencia]
-    onde_olhar: "Quadro de concessões e respectivos prazos"
-    o_que_verificar: "Concessões sujeitas a redução contratual de RAP após o 15o ano"
-    por_que_importa: "Ignorar a redução superestima o fluxo da segunda metade do contrato"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: concessoes
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.5"
-  - id: H-003
-    aplica_em: [dre]
-    onde_olhar: "Receita de construção segregada da receita de operação"
-    o_que_verificar: "Margem de construção IFRS inflando o resultado do período"
-    por_que_importa: "Receita de construção não corresponde a caixa disponível"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.3"
-  - id: H-004
-    aplica_em: [release_resultados]
-    onde_olhar: "Ciclo RAP a que a receita informada se refere"
-    o_que_verificar: "RAP do ciclo anterior sendo usada como receita do ciclo vigente"
-    por_que_importa: "O ciclo RAP vigora de julho a junho, então a RAP do ciclo anterior fica abaixo da receita do ciclo em curso"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: concessoes
-    severidade: informativo
-    confianca: media
-    fonte: "Campo alertas do playbook transmissao-energia-b3 v1.0, proposta de migração para revisão do curador (D-063)"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Guia de Valuation Setorial, seção 2"
 ```
@@ -685,22 +631,13 @@ multiplos_bloqueados:
   - metrica: "EV/qualquer"
     severidade: bloqueio_total
     motivo: "conceito de Enterprise Value não se aplica a instituições financeiras"
-  - metrica: "P/L"
-    severidade: alerta
-    motivo: "lucro distorcido por discricionariedade em PDD e marcação a mercado"
-  - metrica: "P/VPA"
-    severidade: alerta
-    motivo: "P/VPA isolado não informa: o que ele diz depende do spread entre ROE e Ke, que precisa ser lido junto"
 
-modelos_habilitados: [excess_return, ddm]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [ddm, excess_return]
 
-horizonte_projecao:
-  tipo: convencao_setorial
-  anos: 10
-  ajustavel_pelo_usuario: true
-  justificativa: >
-    Período típico de convergência do ROE ao custo de capital próprio.
-    Ajuste exige justificativa registrada no snapshot.
+# ausência temporária: bancos não deriva horizonte de fato, então o horizonte é
+# premissa do usuário (RF-416, RF-419 emendado por D-067)
+horizonte_projecao: null
 
 regras_duras:
   - id: R-101
@@ -715,11 +652,8 @@ regras_duras:
     validador: validarSpreadROEKe
     mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
 
-modos:
-  - id: consolidado
-    label: "Consolidado"
-    precisao: alta
-    inputs: [patrimonio_liquido_inicial, roe_historico_3a, indice_basileia_atual, rwa_atual]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
   - campo: patrimonio_liquido_inicial
@@ -749,37 +683,12 @@ premissas_do_usuario:
   - campo: basileia_alvo
     obrigatorio: true
     default: null
+  - campo: horizonte_anos
+    obrigatorio: true
+    default: null
 
-heuristicas_de_leitura:
-  - id: H-022
-    aplica_em: [release_resultados]
-    onde_olhar: "Composição do resultado de PDD"
-    o_que_verificar: "Reversão de provisão elevando o lucro do trimestre"
-    por_que_importa: "ROE recente deixa de representar ROE sustentável"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: roe_sustentavel_projetado
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.3"
-  - id: H-023
-    aplica_em: [dre, notas_explicativas]
-    onde_olhar: "Resultado com marcação a mercado da carteira de títulos"
-    o_que_verificar: "Ganho não recorrente de tesouraria dentro do lucro líquido"
-    por_que_importa: "Distorce tanto o P/L quanto o ROE do período"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.3"
-  - id: H-024
-    aplica_em: [release_resultados]
-    onde_olhar: "Índice de Basileia frente ao mínimo regulatório"
-    o_que_verificar: "Folga de capital reduzida limitando distribuição de dividendos"
-    por_que_importa: "Payout projetado acima da capacidade real infla o DDM"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: basileia_alvo
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.4"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Guia de Valuation Setorial, seção 1"
 ```
@@ -799,26 +708,24 @@ deteccao:
   sinais_fracos: ["menção a Brent/Platts/curva de referência no release"]
   exemplos: [PETR4, VALE3, CSNA3, SUZB3]
   subtipos:
-    - petroleo_e_gas: {referencia: Brent, custo_chave: custo_extracao_boe}
-    - minerio_de_ferro: {referencia: "índice 62% Fe", custo_chave: custo_caixa_c1}
-    - celulose: {referencia: BHKP, custo_chave: custo_caixa_tonelada}
+    - petroleo_e_gas: {referencia: Brent, custo_unitario: custo_extracao_boe}
+    - minerio_de_ferro: {referencia: "índice 62% Fe", custo_unitario: custo_caixa_c1}
+    - celulose: {referencia: BHKP, custo_unitario: custo_caixa_tonelada}
 
 multiplos_bloqueados:
   - metrica: "P/L (spot)"
     severidade: bloqueio_total
-    motivo: "P/L calculado sobre lucro de topo de ciclo não representa capacidade recorrente de geração de caixa"
+    motivo: "P/L usa o lucro de um ponto no tempo, e receita de price taker varia com a cotação da commodity nesse ponto, então o múltiplo não representa média de longo prazo"
   - metrica: "DY (trailing)"
     severidade: bloqueio_total
-    motivo: "DY elevado em topo de ciclo não é recorrente"
-  - metrica: "EV/EBITDA (spot)"
-    severidade: alerta
-    motivo: "só admissível sobre EBITDA normalizado"
+    motivo: "DY trailing divide provento já pago pela cotação atual, e os dois se referem a pontos diferentes no tempo, então o número não projeta distribuição futura"
 
-modelos_habilitados: [fcff_normalizado, sotp]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [fcff_normalizado]
 
 horizonte_projecao:
   tipo: derivado_de_fato
-  origem: "vida_util_reserva declarada pela companhia"
+  origem: "vida_util_reserva de cada item de ativos_produtivos"
   ajustavel_pelo_usuario: false
 
 regras_duras:
@@ -835,31 +742,35 @@ regras_duras:
     mensagem: "Preço normalizado abaixo do custo caixa da companhia invalida a projeção"
   - id: R-204
     validador: validarHorizonteVsReserva
-    mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva"
+    mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva do ativo, e a mensagem nomeia o ativo que excedeu"
 
-modos:
-  - id: consolidado
-    label: "Consolidado"
-    precisao: alta
-    inputs: [volume_producao_anual, custo_caixa_unitario, capex_manutencao, divida_liquida, vida_util_reserva]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
-  - campo: volume_producao_anual
-    onde_encontrar: "Relatório de produção e vendas (trimestral)"
-  - campo: custo_caixa_unitario
-    onde_encontrar: "Release, seção de custos (C1 na Vale, lifting cost na Petrobras)"
   - campo: capex_manutencao
     onde_encontrar: "DFC, investimentos; segregar manutenção de expansão"
   - campo: divida_liquida
     onde_encontrar: "Balanço e notas de endividamento"
-  - campo: vida_util_reserva
-    onde_encontrar: "Formulário de Referência, reservas provadas e vida útil estimada"
+  - campo: ativos_produtivos
+    tipo: lista
+    subcampos:
+      - nome
+      - vida_util_reserva
+      - volume_producao_anual
+      - custo_caixa_unitario
+      - percentual_participacao
+    onde_encontrar: "Formulário de Referência, reservas provadas e vida útil estimada por ativo"
+    fallback_manual: true
 
 premissas_do_usuario:
   - campo: preco_normalizado_lp
     obrigatorio: true
     default: null
-    faixa_referencia: null   # deliberadamente ausente, ver justificativa
+    # ausência PERMANENTE por D-014: em topo de ciclo os analistas convergem no mesmo
+    # preço superestimado, e exibir consenso aqui reforçaria a armadilha que R-201 impede.
+    # Não volta na Etapa do Conhecimento.
+    faixa_referencia: null
     ajuda: |
       Preço médio de longo prazo da commodity, na moeda de referência.
       O app exibe a série histórica de 10 anos para contexto, mas
@@ -876,46 +787,8 @@ premissas_do_usuario:
     default: null
     ajuda: "Reserva finita pode justificar g igual ou abaixo de zero"
 
-heuristicas_de_leitura:
-  - id: H-041
-    aplica_em: [release_resultados, dfc]
-    onde_olhar: "Segregação entre capex de manutenção e de expansão"
-    o_que_verificar: "Capex total sendo tratado como manutenção"
-    por_que_importa: "Superestima a necessidade de reinvestimento e deprime o fluxo livre"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: capex_manutencao
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-042
-    aplica_em: [release_resultados]
-    onde_olhar: "Custo caixa unitário nos últimos quatro trimestres"
-    o_que_verificar: "Trajetória de alta sustentada no custo de extração"
-    por_que_importa: "Custo de extração em alta reduz a distância entre preço e custo caixa no fundo do ciclo"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-043
-    aplica_em: [formulario_referencia]
-    onde_olhar: "Reservas provadas e vida útil estimada da mina ou campo"
-    o_que_verificar: "Vida útil inferior ao horizonte de perpetuidade projetado"
-    por_que_importa: "Reserva finita contradiz crescimento perpétuo positivo"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: crescimento_perpetuidade
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-044
-    aplica_em: [release_resultados]
-    onde_olhar: "Custo caixa unitário da companhia frente à curva global de custos do setor"
-    o_que_verificar: "Posição da companhia na curva global de custos"
-    por_que_importa: "A posição na curva de custos determina o resultado da companhia no fundo do ciclo, e o P/L não informa isso"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: custo_caixa_unitario
-    severidade: informativo
-    confianca: media
-    fonte: "Campo alertas do playbook commodities-b3 v1.0, proposta de migração para revisão do curador (D-063)"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"
 ```
@@ -924,35 +797,38 @@ fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"
 
 ### 9.4. Exemplos de nota de ativo e de evento
 
+Exemplos de **formato**, com valores placeholder. Não descrevem companhia real e não afirmam fato: dado sem procedência verificada é rejeitado por RF-304, e conteúdo analítico não é escrito por agente (RNF-013).
+
 ```yaml
-# conhecimento/notas/KLBN11.yaml
-id: NA-007
-ativo: KLBN11
+# conhecimento/notas/TICKER.yaml
+# Exemplo de formato. Os valores são placeholder e não descrevem companhia real.
+id: NA-000
+ativo: TICKER
+playbook: commodities-b3
 tipo: caracteristica_estrutural
 sobreescreve:
-  modelos_habilitados: [sotp]
+  modelos_habilitados: [fcff_normalizado]
 justificativa: >
-  Modelo verticalizado com receita relevante fora de celulose
-  (papel e embalagem). Avaliação por segmento captura a diferença
-  de margem entre as divisões.
-heuristicas_extras: [H-051]
+  Motivo estrutural e permanente da restrição, escrito pelo curador,
+  com a característica da companhia que a sustenta.
 confianca: alta
-fonte: "Análise própria a partir do release 4T25"
+fonte: "Documento da companhia, com seção e data"
 ```
 
 ```yaml
-# conhecimento/eventos/EGIE3-023.yaml
-id: EV-023
-ativo: EGIE3
+# conhecimento/eventos/TICKER-000.yaml
+# Exemplo de formato. Os valores são placeholder e não descrevem companhia real.
+id: EV-000
+ativo: TICKER
 tipo: passivo_contingente
-descricao: "Provisão registrada referente a processo em discussão administrativa"
+descricao: "Fato registrado no documento, descrito sem qualificar desfecho (RF-111)"
 acao: sinalizar_ao_usuario
 campo_relacionado: taxa_desconto
-apresenta_cenarios: [com_provisao_mantida, com_reversao]
+apresenta_cenarios: [com_efeito_mantido, com_reversao]
 validade_ate: 2027-06-30
 revisar_em: 2026-12-31
 confianca: media
-fonte: "Notas Explicativas 3T26, item 24"
+fonte: "Documento da companhia, com seção e data"
 ```
 
 ---
@@ -1017,7 +893,7 @@ fonte: "Notas Explicativas 3T26, item 24"
 | Rate limit ou fim de provider gratuito | Perda de cotação | Interface substituível, cache degrada com aviso |
 | Erro de extração em DRE ou BP | Cálculo errado com aparência de correto | Procedência obrigatória, heurísticas, conferência do usuário |
 | Beta instável em ativo de baixa liquidez | Ke composto sem significado | Janela declarada, número de observações exibido, composição opcional |
-| Playbook de Commodities sem base bibliográfica | Metodologia questionável | Marcado como elaboração própria, validado na Fase 8 |
+| Playbook de Commodities sem base bibliográfica | Metodologia questionável | O conteúdo analítico sem base foi removido para `docs/nao-autorado/` (D-067) e será autorado com material próprio na Etapa do Conhecimento; o que permanece é estrutura verificável, e a validação contra companhias reais segue na Fase 8 |
 | Acúmulo de heurísticas de baixa qualidade | Ruído de alerta, usuário ignora tudo | Campo `confianca`, revisão do curador, poda periódica |
 | Faixa envelhecendo em silêncio | Contexto enganoso | Data visível, marcação automática acima de 12 meses |
 | Convergência de analistas por eco | Faixa reforça erro coletivo | Confiança explícita, ausência de faixa em commodity |

@@ -35,7 +35,7 @@ premissas_do_usuario:
       minimo: "0.09"
       maximo: "0.14"
       n_observacoes: 7
-      base: "premissas declaradas publicamente por analistas"
+      base: "base de fixture, sem observação real"
       confianca: media
       atualizado_em: 2026-08
 heuristicas_de_leitura:

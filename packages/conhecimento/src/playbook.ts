@@ -175,30 +175,32 @@ export const Playbook = z.strictObject({
   modelos_habilitados: z.array(texto('modelos_habilitados', 'RF-102')).min(1, {
     error: 'RF-102: playbook declara pelo menos um modelo habilitado',
   }),
-  horizonte_projecao: HorizonteProjecao,
+  // D-071: opcional porque bancos não deriva horizonte de fato, e nesse caso o
+  // horizonte é premissa do usuário (RF-416, RF-419). null explícito declara a
+  // ausência, omitir a chave seria indistinguível de esquecer (D-059)
+  horizonte_projecao: HorizonteProjecao.nullish(),
   regras_duras: z.array(RegraDura).min(1, {
     error: 'RF-102: playbook declara as regras duras do setor',
   }),
+  // D-071: opcional. A proteção de RF-105 é condicional à presença de um modo com
+  // precisao reduzida, não à existência do campo, então ela continua de pé com modos
+  // ausente. O conteúdo saiu por D-067 e volta na Etapa do Conhecimento
   modos: z
-    .array(ModoGranularidade, {
-      error:
-        'RF-102: playbook declara os modos de granularidade do setor. ' +
-        'Sem modos, RF-105 não tem onde exigir o aviso de precisão reduzida',
-    })
-    .min(1, {
-      error: 'RF-102, RF-105: a lista de modos não pode ser vazia',
-    }),
+    .array(ModoGranularidade)
+    .min(1, { error: 'RF-105: a lista de modos, quando existe, não pode ser vazia' })
+    .nullish(),
   inputs_obrigatorios: z.array(InputObrigatorio).min(1, {
     error: 'RF-102, RF-103: playbook declara os inputs obrigatórios do setor',
   }),
   premissas_do_usuario: z.array(PremissaDoUsuario).min(1, {
     error: 'RF-102: playbook declara as premissas que o usuário informa',
   }),
+  // D-071: opcional. Heurística é conhecimento analítico e não é escrita por agente
+  // (RNF-013), então o campo espera a Etapa do Conhecimento em vez de ser preenchido
   heuristicas_de_leitura: z
-    .array(Heuristica, {
-      error: 'RF-102, RF-106: playbook declara as heurísticas de leitura do setor',
-    })
-    .min(1, { error: 'RF-102: a lista de heurísticas não pode ser vazia' }),
+    .array(Heuristica)
+    .min(1, { error: 'RF-106: a lista de heurísticas, quando existe, não pode ser vazia' })
+    .nullish(),
   fonte: texto('fonte', 'RF-102'),
   confianca: Confianca.optional(),
 })

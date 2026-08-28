@@ -836,3 +836,156 @@ para alguém refazer a mesma medição daqui a três meses e chegar na mesma con
 com a medição dentro fecha o assunto e deixa o caminho de volta aberto: se um dia a mensagem
 de chave do Zod passar a ser customizável, ou se a convenção de chave deixar de ser
 `snake_case`, a medição muda e a decisão se revisita.
+
+---
+
+## Sessão de 27/08/2026
+
+### D-067. Expurgo do conhecimento analítico, e a fronteira que separa o que fica
+
+**Decisão.** Todo conhecimento de análise de ativos sai dos playbooks e do documento de
+requisitos, e vai para uma fase dedicada, a Etapa do Conhecimento. O que permanece é estrutura
+verificável.
+
+**Critério da fronteira, único.** Um item é imutável quando é verdadeiro por força de contrato,
+de norma contábil, de regulação vigente ou de aritmética, independentemente de cenário
+macroeconômico, de desempenho da companhia e de opinião de analista. Se a resposta muda conforme
+o ano, o ciclo, a taxa de juros ou quem analisa, é mutável. **Critério subordinado:** se o item
+exige conhecimento setorial que não está em nenhum documento da companhia, é mutável, mesmo que
+pareça consensual.
+
+**Motivo.** Os playbooks foram populados com conhecimento que nunca foi autorado: as heurísticas
+saíram de um PDF numa conversa de planejamento, a faixa de 9% a 14% foi inventada e o
+`n_observacoes: 7` afirma sete observações que não existem, e nas últimas três etapas agente
+escreveu dois modos, duas heurísticas e três reescritas de metodologia. A causa não é
+indisciplina de execução: duas fases foram misturadas, estrutura verificável e conhecimento
+analítico entrando no mesmo lugar ao mesmo tempo.
+
+**O que o expurgo não faz.** Não remove capacidade de schema e não remove requisito. Os campos
+continuam existindo e viram opcionais, o conteúdo vira `null` explícito com comentário (D-059),
+e as fixtures que testam RF-113 e RF-105 continuam valendo porque testam proteção, não dado.
+Requisito sem dado é requisito à espera.
+
+**Nota que sustenta a viabilidade.** A D-006 nomeia três mecanismos que resolvem o campo vazio
+de premissa sem opinar: faixa de referência, composição por CAPM e tabela de sensibilidade. Dois
+sobrevivem intactos, porque a composição depende da NTN-B, que é fato de mercado, e a
+sensibilidade é aritmética repetida. Só a faixa depende de conhecimento autorado, e era o mais
+frágil dos três.
+
+### D-068. Severidade `alerta` sai inteira, inclusive o conteúdo que passa no critério
+
+**Decisão.** Toda entrada de `multiplos_bloqueados` com `severidade: alerta` sai, inclusive as
+duas cujo conteúdo passa no critério de imutabilidade. Vão para `docs/nao-autorado/` marcadas
+como conteúdo imutável com severidade a definir.
+
+**Motivo, e não é a origem do texto.** As duas entradas em questão têm conteúdo imutável de
+fato: o motivo do P/VPA de bancos é identidade aritmética entre preço sobre patrimônio e retorno
+versus custo de capital, e o da comparação entre pares em transmissão segue do contrato, porque
+múltiplo sobre resultado corrente não contém prazo contratual. Se fosse só o texto, ficariam.
+
+**O que decide é a classificação.** `severidade: alerta` significa "distorce mas ainda é
+utilizável com cuidado", e isso é calibragem. `bloqueio_total` significa "esta operação é
+inválida", que é binário e verificável. Entre os dois existe uma escala, e escolher onde na
+escala o item cai é juízo sobre quanta distorção importa. Não é o texto que é mutável, é a
+classificação, e ela não se separa do item.
+
+**Descartado, promover as duas a `bloqueio_total`.** Decidir que P/VPA é inutilizável em banco,
+e não apenas exige leitura conjunta com o spread, é decisão metodológica de peso, e o lugar dela
+é a Etapa. Na Etapa o curador decide se voltam como alerta, como bloqueio, ou como heurística.
+
+### D-069. RNF-013, conteúdo analítico não é escrito por agente
+
+**Decisão.** Nova exigência não funcional: conteúdo de conhecimento analítico não é escrito por
+agente, em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de
+schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser
+obrigatório ou a etapa para e pergunta ao curador.
+
+**Teste de decisão.** Este texto afirma algo sobre o mundo que eu não posso rastrear a um
+documento da companhia, a uma norma vigente, ou a uma operação aritmética? Se sim, é
+conhecimento analítico e não é meu para escrever.
+
+**Gatilho.** Estar preenchendo campo obrigatório de schema com conteúdo que ninguém pediu. Foi
+exatamente assim que os dois modos mínimos nasceram no Passo 2.
+
+**Exceção única, fixture de teste.** Conteúdo sintético em `conhecimento/fixtures-invalidas/`
+não é afirmação sobre o mundo, é estímulo para exercitar validação. Não sai da pasta, não é
+referenciado por playbook, e existe para provar que a proteção reprova. **Critério de teste para
+separar sintético de afirmação:** se o texto da fixture fosse lido por um usuário do app, ele
+afirmaria algo sobre um setor ou uma empresa? Se sim, não é sintético. Um modo com `precisao`
+reduzida e sem aviso é estímulo. Um modo com label "Por concessão (maior precisão)" já é
+afirmação.
+
+**Por que RNF e não RP.** As restrições permanentes RP-001 a RP-008 são sobre o que o produto
+faz quando roda. Esta é sobre como o projeto é desenvolvido, que é a família de RNF-010, RNF-011
+e RNF-012, todas conduta de agente. E classificar como RP-009 obrigaria a trocar "oito
+invariantes" em cinco arquivos, incluindo a skill de inspeção, e uma skill dizendo oito num
+projeto de nove restrições é proteção que não cobre a última.
+
+**Onde ela vive.** A RNF-013 entra na tabela de requisitos não funcionais do documento e ganha
+entrada na seção 5 do `CLAUDE.md`, que é onde a conduta vive. A contagem de invariantes da seção
+2 continua sendo oito.
+
+### D-070. A Etapa do Conhecimento entra sem número de fase
+
+**Decisão.** A Etapa do Conhecimento entra no roteiro entre a Fase 7 e a Fase 8, com nome e sem
+número. As fases 1 a 8 mantêm a numeração.
+
+**Motivo.** Renumerar corromperia citações em arquivo append only. A D-046 manda reavaliar o
+valor 34 de `precision` na Fase 8, comparando engines contra cálculo manual independente; se a
+Etapa fosse a nova Fase 8, aquele texto passaria a mandar reavaliar precisão numérica na etapa
+errada, e o `DECISOES.md` não pode ser editado. O levantamento confirmou sete citações de Fase 8
+no repositório, duas delas em `DECISOES.md`.
+
+**Custo aceito.** A tabela de fases passa a ter uma linha sem número. Esquisito de ler e correto
+ganha de elegante e errado.
+
+**Posição no roteiro, e o motivo dela.** A Etapa vem depois do app funcional, porque autorar
+conhecimento exige o app para exercitá-lo, e antes da validação metodológica, porque não se
+valida metodologia que ainda não foi autorada.
+
+### D-071. Emenda da D-060: `modos` e `heuristicas_de_leitura` voltam a opcionais
+
+**Decisão.** `modos` volta a ser campo opcional do playbook, e `heuristicas_de_leitura` também.
+A D-060, que tornou `modos` obrigatório, é superada nesta parte e permanece no log.
+
+**Motivo, e a premissa da D-060 estava errada.** Ela justificava a obrigatoriedade dizendo que
+com `modos` opcional, RF-105 não teria onde exigir o aviso de precisão reduzida. Isso não se
+sustenta: a proteção de RF-105 é condicional à presença de um modo com `precisao: reduzida`, não
+à existência do campo `modos`, e a fixture `modo-reduzido-sem-aviso.yaml` testa exatamente essa
+condicional. Com `modos` ausente não existe modo reduzido, logo não existe aviso a exigir, e a
+proteção continua de pé para o dia em que um modo reduzido for declarado.
+
+**Consequência.** A fixture `sem-modos.yaml` e o teste que a acompanha saem, porque a regra que
+eles testam deixa de existir. Fixture que testa regra inexistente falha, e alguém conserta
+reintroduzindo a regra.
+
+**Terceiro campo, achado no levantamento e não previsto.** `horizonte_projecao` também vira
+opcional, porque bancos perde o bloco por D-067 e por RF-419 emendado.
+
+### D-072. `ativos_produtivos` como lista em commodities
+
+**Decisão.** `vida_util_reserva` deixa de ser escalar e passa a ser subcampo de uma lista
+`ativos_produtivos` em commodities, no formato de `concessoes` em transmissão. R-204 passa a
+validar o horizonte de cada ativo contra a vida útil daquele ativo, e a mensagem de erro nomeia
+o ativo que estourou.
+
+**Motivo.** Que uma mineradora tenha várias minas com vidas úteis diferentes é fato do mundo, e
+estrutura que não comporta fato do mundo é defeito de arquitetura, não pendência de metodologia.
+Hoje o usuário é obrigado a colapsar em um número, nenhum lugar do repositório diz como
+colapsar, e as três formas plausíveis, menor, maior e média ponderada por reserva, dão
+horizontes diferentes e portanto valores diferentes. Com `ajustavel_pelo_usuario: false`, esse
+agregado sem regra alimenta o horizonte inteiro do cálculo, e R-204 valida contra ele sem saber
+que é agregado. Isso é RP-005: o número não é fato, porque a companhia declara vidas por ativo,
+e não é premissa, porque o campo é declarado não ajustável.
+
+**Por que agora e não na Etapa.** Se a lista esperar, o Passo 3 escreve fixtures de fluxo
+descontado com escalar e as engines consomem escalar, e refazer fixture de DCF mais assinatura
+de engine é caro.
+
+**Consequência aceita.** Commodities fica só com o modo detalhado até a Etapa, exigindo ativo
+por ativo. É mais restritivo e mais correto: quem quiser calcular uma mineradora informa mina
+por mina, que é o que o rigor manda de qualquer forma. O modo agregado é conveniência, e
+conveniência que afirma direção de viés precisa de conhecimento setorial, porque o
+`aviso_obrigatorio` de RF-105 teria que dizer que uma vida útil única mascara ativos se
+exaurindo antes, e a direção do viés nos três subtipos não é dedutível do arquivo. Como colapsar
+em horizonte único vai para a Etapa, junto com os modos.

@@ -21,14 +21,9 @@ multiplos_bloqueados:
   - metrica: "P/L"
     severidade: bloqueio_total
     motivo: "lucro contábil carrega atualização financeira do ativo de concessão"
-  - metrica: "P/VPA"
-    severidade: alerta
-    motivo: "PL não representa capacidade de geração de caixa em ativo concedido"
-  - metrica: "Comparação de múltiplos entre pares do setor"
-    severidade: alerta
-    motivo: "Múltiplo tradicional não carrega a data de vencimento da concessão, então comparar companhias com prazos contratuais diferentes não informa nada sobre o ativo"
 
-modelos_habilitados: [fcff_por_concessao, ddm]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [ddm, fcff_por_concessao]
 
 horizonte_projecao:
   tipo: derivado_de_fato
@@ -46,18 +41,8 @@ regras_duras:
     validador: validarValorResidual
     mensagem: "Valor residual deve ser 0, salvo indenização de RAB não amortizada informada"
 
-modos:
-  - id: detalhado
-    label: "Por concessão (maior precisão)"
-    precisao: alta
-    inputs: [concessoes]
-  - id: consolidado
-    label: "RAP consolidada e prazo médio"
-    precisao: reduzida
-    aviso_obrigatorio: >
-      Prazo médio ponderado mascara concessões vencendo antes; o resultado
-      tende a superestimar o fluxo final.
-    inputs: [rap_total, prazo_medio_ponderado, indice_predominante]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
   - campo: concessoes
@@ -83,14 +68,8 @@ premissas_do_usuario:
     obrigatorio: true
     default: null
     composicao_disponivel: capm
-    faixa_referencia:
-      minimo: "0.09"
-      maximo: "0.14"
-      n_observacoes: 7
-      base: "premissas declaradas publicamente por analistas, setor transmissão"
-      confianca: media
-      atualizado_em: 2026-08
-      aviso: "Faixa observada, não recomendação. Sua escolha define o resultado."
+    # ausência temporária: faixa expurgada por D-067, volta na Etapa do Conhecimento
+    faixa_referencia: null
   - campo: inflacao_projetada_longo_prazo
     obrigatorio: true
     default: null
@@ -110,44 +89,7 @@ premissas_do_usuario:
       Preencher apenas se você projeta renovação. Sem termos informados, o fluxo
       encerra no vencimento contratual, que é fato do contrato.
 
-heuristicas_de_leitura:
-  - id: H-001
-    aplica_em: [release_resultados]
-    onde_olhar: "Conciliação entre RAP bruta e receita regulatória líquida"
-    o_que_verificar: "Deduções de PIS/COFINS, P&D e TFSEE não abatidas"
-    por_que_importa: "Projetar RAP bruta superestima o fluxo em cerca de 10%"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.2"
-  - id: H-002
-    aplica_em: [release_resultados, formulario_referencia]
-    onde_olhar: "Quadro de concessões e respectivos prazos"
-    o_que_verificar: "Concessões sujeitas a redução contratual de RAP após o 15o ano"
-    por_que_importa: "Ignorar a redução superestima o fluxo da segunda metade do contrato"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: concessoes
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.5"
-  - id: H-003
-    aplica_em: [dre]
-    onde_olhar: "Receita de construção segregada da receita de operação"
-    o_que_verificar: "Margem de construção IFRS inflando o resultado do período"
-    por_que_importa: "Receita de construção não corresponde a caixa disponível"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 2.3"
-  - id: H-004
-    aplica_em: [release_resultados]
-    onde_olhar: "Ciclo RAP a que a receita informada se refere"
-    o_que_verificar: "RAP do ciclo anterior sendo usada como receita do ciclo vigente"
-    por_que_importa: "O ciclo RAP vigora de julho a junho, então a RAP do ciclo anterior fica abaixo da receita do ciclo em curso"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: concessoes
-    severidade: informativo
-    confianca: media
-    fonte: "Campo alertas do playbook transmissao-energia-b3 v1.0, proposta de migração para revisão do curador (D-063)"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Guia de Valuation Setorial, seção 2"

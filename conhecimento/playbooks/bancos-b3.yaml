@@ -21,22 +21,13 @@ multiplos_bloqueados:
   - metrica: "EV/qualquer"
     severidade: bloqueio_total
     motivo: "conceito de Enterprise Value não se aplica a instituições financeiras"
-  - metrica: "P/L"
-    severidade: alerta
-    motivo: "lucro distorcido por discricionariedade em PDD e marcação a mercado"
-  - metrica: "P/VPA"
-    severidade: alerta
-    motivo: "P/VPA isolado não informa: o que ele diz depende do spread entre ROE e Ke, que precisa ser lido junto"
 
-modelos_habilitados: [excess_return, ddm]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [ddm, excess_return]
 
-horizonte_projecao:
-  tipo: convencao_setorial
-  anos: 10
-  ajustavel_pelo_usuario: true
-  justificativa: >
-    Período típico de convergência do ROE ao custo de capital próprio.
-    Ajuste exige justificativa registrada no snapshot.
+# ausência temporária: bancos não deriva horizonte de fato, então o horizonte é
+# premissa do usuário (RF-416, RF-419 emendado por D-067)
+horizonte_projecao: null
 
 regras_duras:
   - id: R-101
@@ -51,11 +42,8 @@ regras_duras:
     validador: validarSpreadROEKe
     mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
 
-modos:
-  - id: consolidado
-    label: "Consolidado"
-    precisao: alta
-    inputs: [patrimonio_liquido_inicial, roe_historico_3a, indice_basileia_atual, rwa_atual]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
   - campo: patrimonio_liquido_inicial
@@ -85,36 +73,11 @@ premissas_do_usuario:
   - campo: basileia_alvo
     obrigatorio: true
     default: null
+  - campo: horizonte_anos
+    obrigatorio: true
+    default: null
 
-heuristicas_de_leitura:
-  - id: H-022
-    aplica_em: [release_resultados]
-    onde_olhar: "Composição do resultado de PDD"
-    o_que_verificar: "Reversão de provisão elevando o lucro do trimestre"
-    por_que_importa: "ROE recente deixa de representar ROE sustentável"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: roe_sustentavel_projetado
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.3"
-  - id: H-023
-    aplica_em: [dre, notas_explicativas]
-    onde_olhar: "Resultado com marcação a mercado da carteira de títulos"
-    o_que_verificar: "Ganho não recorrente de tesouraria dentro do lucro líquido"
-    por_que_importa: "Distorce tanto o P/L quanto o ROE do período"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.3"
-  - id: H-024
-    aplica_em: [release_resultados]
-    onde_olhar: "Índice de Basileia frente ao mínimo regulatório"
-    o_que_verificar: "Folga de capital reduzida limitando distribuição de dividendos"
-    por_que_importa: "Payout projetado acima da capacidade real infla o DDM"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: basileia_alvo
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Guia de Valuation Setorial, seção 1.4"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Guia de Valuation Setorial, seção 1"

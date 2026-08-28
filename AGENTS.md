@@ -3,22 +3,30 @@
 Continuidade entre sessões e entre agentes. Contém o que muda: estado, ordem de trabalho,
 questões abertas. Regra permanente está em `CLAUDE.md` e não se repete aqui.
 
-**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.3.md`,
+**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.4.md`,
 depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ---
 
 ## 1. Estado atual
 
-**Data:** 26/08/2026
-**Etapa concluída:** Passo 2, schema Zod do conhecimento e CLI de validação
-**Etapa seguinte:** Passo 3, engines contra fixtures e as duas trilhas em paralelo,
-aguardando aprovação explícita
+**Data:** 27/08/2026
+**Etapa concluída:** Passo 2, mais o expurgo do conhecimento analítico não autorado (D-067)
+**Etapa seguinte:** Passo 3, engines contra fixtures, aguardando aprovação explícita. A
+trilha B de conhecimento sai do Passo 3 e vira a Etapa do Conhecimento, depois da Fase 7
+
+**O que o expurgo mudou, para ninguém procurar o que não existe mais.** Os playbooks ficaram
+só com estrutura verificável. Saíram as onze heurísticas, a única faixa de referência, os
+quatro modos, o horizonte de bancos, as cinco entradas de múltiplo com `severidade: alerta`,
+o `sotp` de commodities e a designação de `custo_chave`. Tudo está em
+`docs/nao-autorado/EXPURGO-2026-08-27.md`, que não é carregado por nada. **Os itens que
+estavam na fila do curador deixaram de existir:** H-004, H-044 e os dois modos mínimos saíram,
+e o verbo "determina" saiu junto com H-044. Não procure por eles em `conhecimento/`.
 
 **Existe:**
 
-- `docs/REQUISITOS-valuation-simulator-v2.3.md`, escopo fechado e aprovado. 113 requisitos
-  funcionais, 12 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
+- `docs/REQUISITOS-valuation-simulator-v2.4.md`, escopo fechado e aprovado. 113 requisitos
+  funcionais, 13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, o que é verificado por comparação programática (D-064)
 - `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico da sessão de 24/08/2026,
   não é fonte de verdade. As divergências contra a v2.2 estão no cabeçalho do arquivo
@@ -34,8 +42,11 @@ aguardando aprovação explícita
   `validar.ts`, que inclui a checagem cruzada de RF-109 entre nota e playbook
 - `tools/validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista
   branca de pastas
-- `conhecimento/playbooks/` com os três playbooks da seção 9 transcritos byte a byte, e
-  `conhecimento/fixtures-invalidas/` com nove fixtures, cada uma quebrando uma regra
+- `conhecimento/playbooks/` com os três playbooks, só estrutura verificável depois do
+  expurgo, e `conhecimento/fixtures-invalidas/` com onze fixtures, cada uma quebrando uma
+  regra
+- `docs/nao-autorado/EXPURGO-2026-08-27.md`, o conteúdo expurgado com ressalva no topo. Não
+  é fonte de verdade, não é carregado, e copiar item de lá sem autoria viola RNF-013
 - suíte Vitest com 84 testes, e `tsc --noEmit` sobre `packages/shared`,
   `packages/conhecimento` e `tools`
 - mutation testing rodando por Stryker sobre `packages/shared`, score de 97,87% (D-049).
@@ -97,7 +108,10 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 3 | Duas trilhas em paralelo, ver abaixo | Pendente |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
-Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos.
+Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos, com a **Etapa do
+Conhecimento** entre a Fase 7 e a Fase 8, sem número de fase (D-070). É nela que o curador
+autora o conteúdo que o expurgo tirou.
+
 
 **Por que o Passo 2 vem antes de extrair conteúdo:** se a extração começar antes do schema
 existir, dezenas de heurísticas nascem num formato que depois muda, e refaz tudo. A ordem é
@@ -142,8 +156,9 @@ Nada aqui bloqueia o Passo 3.
 
 | Questão | Quando resolve |
 |---|---|
-| As duas heurísticas migradas do campo `alertas`, H-004 em Transmissão e H-044 em Commodities, são proposta e não conhecimento autorado. Elas têm `confianca: media` e `fonte` apontando o campo de origem, e esperam revisão do curador contra a fonte primária | Passo 3, trilha B, junto com os modos mínimos |
-| Os `modos` de `bancos-b3` e `commodities-b3` foram criados com um modo único e mínimo, por D-060. A taxonomia real de granularidade dos dois setores é questão de conhecimento, não de schema | Passo 3, trilha B, com o curador |
+| Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
+| As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
+| Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |

@@ -10,26 +10,24 @@ deteccao:
   sinais_fracos: ["menção a Brent/Platts/curva de referência no release"]
   exemplos: [PETR4, VALE3, CSNA3, SUZB3]
   subtipos:
-    - petroleo_e_gas: {referencia: Brent, custo_chave: custo_extracao_boe}
-    - minerio_de_ferro: {referencia: "índice 62% Fe", custo_chave: custo_caixa_c1}
-    - celulose: {referencia: BHKP, custo_chave: custo_caixa_tonelada}
+    - petroleo_e_gas: {referencia: Brent, custo_unitario: custo_extracao_boe}
+    - minerio_de_ferro: {referencia: "índice 62% Fe", custo_unitario: custo_caixa_c1}
+    - celulose: {referencia: BHKP, custo_unitario: custo_caixa_tonelada}
 
 multiplos_bloqueados:
   - metrica: "P/L (spot)"
     severidade: bloqueio_total
-    motivo: "P/L calculado sobre lucro de topo de ciclo não representa capacidade recorrente de geração de caixa"
+    motivo: "P/L usa o lucro de um ponto no tempo, e receita de price taker varia com a cotação da commodity nesse ponto, então o múltiplo não representa média de longo prazo"
   - metrica: "DY (trailing)"
     severidade: bloqueio_total
-    motivo: "DY elevado em topo de ciclo não é recorrente"
-  - metrica: "EV/EBITDA (spot)"
-    severidade: alerta
-    motivo: "só admissível sobre EBITDA normalizado"
+    motivo: "DY trailing divide provento já pago pela cotação atual, e os dois se referem a pontos diferentes no tempo, então o número não projeta distribuição futura"
 
-modelos_habilitados: [fcff_normalizado, sotp]
+# a ordem é alfabética e não carrega preferência (D-067)
+modelos_habilitados: [fcff_normalizado]
 
 horizonte_projecao:
   tipo: derivado_de_fato
-  origem: "vida_util_reserva declarada pela companhia"
+  origem: "vida_util_reserva de cada item de ativos_produtivos"
   ajustavel_pelo_usuario: false
 
 regras_duras:
@@ -46,31 +44,35 @@ regras_duras:
     mensagem: "Preço normalizado abaixo do custo caixa da companhia invalida a projeção"
   - id: R-204
     validador: validarHorizonteVsReserva
-    mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva"
+    mensagem: "Horizonte de projeção não pode exceder a vida útil declarada da reserva do ativo, e a mensagem nomeia o ativo que excedeu"
 
-modos:
-  - id: consolidado
-    label: "Consolidado"
-    precisao: alta
-    inputs: [volume_producao_anual, custo_caixa_unitario, capex_manutencao, divida_liquida, vida_util_reserva]
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+modos: null
 
 inputs_obrigatorios:
-  - campo: volume_producao_anual
-    onde_encontrar: "Relatório de produção e vendas (trimestral)"
-  - campo: custo_caixa_unitario
-    onde_encontrar: "Release, seção de custos (C1 na Vale, lifting cost na Petrobras)"
   - campo: capex_manutencao
     onde_encontrar: "DFC, investimentos; segregar manutenção de expansão"
   - campo: divida_liquida
     onde_encontrar: "Balanço e notas de endividamento"
-  - campo: vida_util_reserva
-    onde_encontrar: "Formulário de Referência, reservas provadas e vida útil estimada"
+  - campo: ativos_produtivos
+    tipo: lista
+    subcampos:
+      - nome
+      - vida_util_reserva
+      - volume_producao_anual
+      - custo_caixa_unitario
+      - percentual_participacao
+    onde_encontrar: "Formulário de Referência, reservas provadas e vida útil estimada por ativo"
+    fallback_manual: true
 
 premissas_do_usuario:
   - campo: preco_normalizado_lp
     obrigatorio: true
     default: null
-    faixa_referencia: null   # deliberadamente ausente, ver justificativa
+    # ausência PERMANENTE por D-014: em topo de ciclo os analistas convergem no mesmo
+    # preço superestimado, e exibir consenso aqui reforçaria a armadilha que R-201 impede.
+    # Não volta na Etapa do Conhecimento.
+    faixa_referencia: null
     ajuda: |
       Preço médio de longo prazo da commodity, na moeda de referência.
       O app exibe a série histórica de 10 anos para contexto, mas
@@ -87,45 +89,7 @@ premissas_do_usuario:
     default: null
     ajuda: "Reserva finita pode justificar g igual ou abaixo de zero"
 
-heuristicas_de_leitura:
-  - id: H-041
-    aplica_em: [release_resultados, dfc]
-    onde_olhar: "Segregação entre capex de manutenção e de expansão"
-    o_que_verificar: "Capex total sendo tratado como manutenção"
-    por_que_importa: "Superestima a necessidade de reinvestimento e deprime o fluxo livre"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: capex_manutencao
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-042
-    aplica_em: [release_resultados]
-    onde_olhar: "Custo caixa unitário nos últimos quatro trimestres"
-    o_que_verificar: "Trajetória de alta sustentada no custo de extração"
-    por_que_importa: "Custo de extração em alta reduz a distância entre preço e custo caixa no fundo do ciclo"
-    acao_do_agente: sinalizar_ao_usuario
-    severidade: informativo
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-043
-    aplica_em: [formulario_referencia]
-    onde_olhar: "Reservas provadas e vida útil estimada da mina ou campo"
-    o_que_verificar: "Vida útil inferior ao horizonte de perpetuidade projetado"
-    por_que_importa: "Reserva finita contradiz crescimento perpétuo positivo"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: crescimento_perpetuidade
-    severidade: bloqueia_ate_ciente
-    confianca: alta
-    fonte: "Elaboração própria"
-  - id: H-044
-    aplica_em: [release_resultados]
-    onde_olhar: "Custo caixa unitário da companhia frente à curva global de custos do setor"
-    o_que_verificar: "Posição da companhia na curva global de custos"
-    por_que_importa: "A posição na curva de custos determina o resultado da companhia no fundo do ciclo, e o P/L não informa isso"
-    acao_do_agente: sinalizar_ao_usuario
-    campo_relacionado: custo_caixa_unitario
-    severidade: informativo
-    confianca: media
-    fonte: "Campo alertas do playbook commodities-b3 v1.0, proposta de migração para revisão do curador (D-063)"
+# ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
+heuristicas_de_leitura: null
 
 fonte: "Elaboração própria a partir dos exemplos PETR4/VALE3"
