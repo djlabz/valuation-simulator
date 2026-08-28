@@ -1,0 +1,11 @@
+# Quebra RF-108: divergencia true sem as visoes conflitantes. Valida em todo o resto.
+id: H-903
+aplica_em: [release_resultados]
+onde_olhar: "Secao qualquer do release"
+o_que_verificar: "Item qualquer"
+por_que_importa: "Altera o fluxo projetado"
+acao_do_agente: sinalizar_ao_usuario
+divergencia: true
+severidade: informativo
+confianca: alta
+fonte: "Fixture de teste"

@@ -20,13 +20,13 @@ export const Heuristica = z
         error: 'RF-106: aplica_em é lista de documentos onde a heurística vale',
       })
       .min(1, { error: 'RF-106: aplica_em precisa de pelo menos um documento' }),
-    onde_olhar: texto('onde_olhar', 'RF-116'),
-    o_que_verificar: texto('o_que_verificar', 'RF-116'),
-    por_que_importa: texto('por_que_importa', 'RF-116'),
+    onde_olhar: texto('onde_olhar', 'RF-106, RF-116'),
+    o_que_verificar: texto('o_que_verificar', 'RF-106, RF-116'),
+    por_que_importa: texto('por_que_importa', 'RF-106, RF-116'),
     acao_do_agente: texto('acao_do_agente', 'RF-106').optional(),
     severidade: SeveridadeHeuristica,
     confianca: Confianca,
-    fonte: texto('fonte', 'RF-116'),
+    fonte: texto('fonte', 'RF-106, RF-116'),
     // RF-107: vincula a heurística a uma premissa, e o alerta aparece junto ao campo
     campo_relacionado: texto('campo_relacionado', 'RF-107').optional(),
     // RF-108: divergência exige as visões conflitantes lado a lado

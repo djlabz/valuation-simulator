@@ -1,0 +1,9 @@
+# Quebra RF-106: heuristica sem fonte. Valida em todo o resto.
+id: H-901
+aplica_em: [release_resultados]
+onde_olhar: "Secao qualquer do release"
+o_que_verificar: "Item qualquer"
+por_que_importa: "Altera o fluxo projetado"
+acao_do_agente: sinalizar_ao_usuario
+severidade: informativo
+confianca: alta

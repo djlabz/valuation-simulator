@@ -1,0 +1,13 @@
+# Quebra RF-107: campo_relacionado presente e vazio. Valida em todo o resto.
+# Limite conhecido: a protecao atual so checa tipo e nao vazio. Apontar para
+# premissa inexistente passa, e isso esta registrado como achado na D-073.
+id: H-902
+aplica_em: [release_resultados]
+onde_olhar: "Secao qualquer do release"
+o_que_verificar: "Item qualquer"
+por_que_importa: "Altera o fluxo projetado"
+acao_do_agente: sinalizar_ao_usuario
+campo_relacionado: ""
+severidade: informativo
+confianca: alta
+fonte: "Fixture de teste"

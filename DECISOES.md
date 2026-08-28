@@ -989,3 +989,63 @@ conveniência que afirma direção de viés precisa de conhecimento setorial, po
 `aviso_obrigatorio` de RF-105 teria que dizer que uma vida útil única mascara ativos se
 exaurindo antes, e a direção do viés nos três subtipos não é dedutível do arquivo. Como colapsar
 em horizonte único vai para a Etapa, junto com os modos.
+
+### D-073. Quatro proteções nunca exercitadas, e a prova B como exigência de fixture nova
+
+**Decisão.** RF-106, RF-107, RF-108 e RF-111 ganham fixture e teste. Toda fixture inválida nova
+passa a exigir duas provas, não uma: a reprovação específica e a prova de que corrigir a única
+violação faz a fixture passar.
+
+**A lacuna era pré-existente e não foi causada pelo expurgo.** As pastas
+`conhecimento/heuristicas`, `conhecimento/notas` e `conhecimento/eventos` sempre estiveram
+vazias, e nenhuma das doze fixtures criadas no Passo 2 cobria os quatro requisitos. O expurgo
+tirou heurística de dentro dos playbooks, e heurística dentro de playbook nunca exercitou
+`divergencia` nem `campo_relacionado` porque nenhuma das onze tinha esses campos. É o argumento
+da D-038 encontrado dentro do projeto que criou a D-038: proteção que ninguém tenta furar não
+foi testada.
+
+**Por que a prova B.** Fixture inválida boa não é a que fica vermelha, é a que fica vermelha
+pelo motivo certo. A prova A mostra que o CLI reprovou citando o requisito; ela não mostra que a
+reprovação veio daquela regra e não de outro defeito na mesma fixture. A prova B corrige a única
+violação numa cópia temporária e mostra que a fixture passa, o que prova que nada mais nela era
+inválido. As quatro novas têm as duas provas. As onze antigas têm só a A, e isso fica declarado.
+
+**O modo de falha da prova A não é teórico, foi medido.** Em `Heuristica`, o `superRefine` de
+RF-108 roda depois do parse do objeto, então **ele não roda quando outro campo está quebrado**.
+Uma heurística com `divergencia: true`, sem `visoes` e sem `confianca` é reprovada só por
+`confianca`, e a mensagem de RF-108 não aparece. Um teste que afirmasse apenas "reprovou" ficaria
+verde com a proteção de RF-108 ainda sem exercício. Há teste dedicado a esse comportamento.
+
+**O que a etapa 1 achou em cada proteção.**
+
+RF-106: dispara na ausência de qualquer um dos seis campos, mas quatro deles, `onde_olhar`,
+`o_que_verificar`, `por_que_importa` e `fonte`, citavam apenas RF-116 na mensagem, porque a
+âncora tinha sido escolhida pelo filtro de RP-004. Teste que afirmasse "reprovou por RF-106" não
+tinha como passar. As quatro mensagens passaram a citar `RF-106, RF-116`, que é o que elas são:
+exigidas por RF-106 e exibidas por RF-116.
+
+RF-107: **a proteção não checa nada além de tipo e não vazio.** `campo_relacionado` apontando
+para premissa que não existe em playbook nenhum passa limpo, medido em runtime. A fixture testa
+o que existe, que é a recusa do vazio, e há teste afirmando o limite, para a lacuna não sumir de
+vista. Fechar de verdade exige checagem cruzada contra `premissas_do_usuario` do playbook, no
+mesmo formato da que já existe para RF-109 entre nota e playbook, e isso é decisão de escopo, não
+conserto de mensagem.
+
+RF-108: dispara nos três casos, `divergencia: true` sem `visoes`, com uma visão só, e `visoes`
+sem `divergencia`, que é a condição invertida. O que a faz não disparar está acima.
+
+RF-111: dispara em `descricao` e em `mecanismo`, que são os dois campos que o filtro inspeciona.
+**Não dispara em `tipo`**, medido: um evento com `tipo: "processo com chance de reversao"` passa,
+porque `tipo` usa o helper padrão, que filtra vocabulário valorativo e não probabilidade. Há
+teste afirmando esse limite.
+
+**Duas outras proteções sem exercício, achadas na varredura e não fechadas aqui.** RF-103, input
+obrigatório sem `onde_encontrar`, e RF-507, regra dura sem `mensagem`. As duas disparam, medido
+em runtime, e nenhuma tem fixture. Ficam registradas em vez de corrigidas porque esta etapa tinha
+escopo de quatro, e emendar escopo no meio é como as quatro viraram lacuna. A varredura que as
+achou compara requisito citado no schema com requisito afirmado em teste, e vale repetir a cada
+etapa que mexer no schema.
+
+**Detalhe de mensagem que a varredura expôs.** O `onde_encontrar` do input obrigatório é exigido
+por RF-103 e a mensagem cita RF-302, que é onde o texto aparece na tela. Mesmo caso das quatro de
+RF-106, e não corrigido aqui pelo mesmo motivo de escopo.

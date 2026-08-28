@@ -1,0 +1,11 @@
+# Quebra RF-111 e RP-007: a descricao qualifica probabilidade de desfecho.
+# Valida em todo o resto.
+id: EV-903
+ativo: TICKER
+tipo: passivo_contingente
+descricao: "Fato registrado no documento, e a reversao e improvavel"
+acao: sinalizar_ao_usuario
+validade_ate: 2027-06-30
+revisar_em: 2026-12-31
+confianca: media
+fonte: "Documento da companhia, com secao e data"

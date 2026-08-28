@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { describe, expect, it } from 'vitest'
+import { Evento } from './evento'
+import { Heuristica } from './heuristica'
 import { Playbook, PremissaDoUsuario } from './playbook'
 import { texto, textoInterno } from './comum'
 import {
@@ -55,6 +57,120 @@ describe('RF-110, evento exige os dois prazos', () => {
     expect(erros.length).toBe(1)
     expect(erros[0]).toContain('RF-110')
     expect(erros[0]).toContain('revisar_em')
+  })
+})
+
+describe('RF-106, heurística declara os campos que o requisito exige', () => {
+  it('recusa heurística sem fonte, citando RF-106', () => {
+    const erros = mensagens(join(FIXTURES, 'heuristicas', 'sem-fonte.yaml'), 'heuristicas')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-106')
+    expect(erros[0]).toContain('fonte')
+  })
+})
+
+describe('RF-107, campo_relacionado vincula heurística a premissa', () => {
+  it('recusa campo_relacionado presente e vazio, citando RF-107', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'heuristicas', 'campo-relacionado-vazio.yaml'),
+      'heuristicas',
+    )
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-107')
+  })
+
+  it('limite conhecido: apontar para premissa inexistente passa (D-073)', () => {
+    // não é o comportamento desejado, é o comportamento atual, e está registrado
+    // como achado. O teste existe para a lacuna não sumir de vista
+    const heuristica = {
+      id: 'H-902',
+      aplica_em: ['release_resultados'],
+      onde_olhar: 'Secao qualquer do release',
+      o_que_verificar: 'Item qualquer',
+      por_que_importa: 'Altera o fluxo projetado',
+      campo_relacionado: 'premissa_que_nao_existe_em_playbook_nenhum',
+      severidade: 'informativo',
+      confianca: 'alta',
+      fonte: 'Fixture de teste',
+    }
+    expect(Heuristica.safeParse(heuristica).success).toBe(true)
+  })
+})
+
+describe('RF-108, divergência exige as visões lado a lado', () => {
+  it('recusa divergencia true sem visoes, citando RF-108', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'heuristicas', 'divergencia-sem-visoes.yaml'),
+      'heuristicas',
+    )
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-108')
+    expect(erros[0]).toContain('duas visões')
+  })
+
+  it('recusa também uma visão só, porque lado a lado exige duas', () => {
+    const base = carregar(
+      join(FIXTURES, 'heuristicas', 'divergencia-sem-visoes.yaml'),
+    ) as Record<string, unknown>
+    base['visoes'] = [{ fonte: 'Fonte A de fixture', posicao: 'Posicao A' }]
+    const r = Heuristica.safeParse(base)
+    expect(r.success).toBe(false)
+    expect(r.success ? '' : r.error.issues[0]?.message).toContain('RF-108')
+  })
+
+  it('recusa visoes sem divergencia, que é a condição invertida', () => {
+    const base = carregar(
+      join(FIXTURES, 'heuristicas', 'divergencia-sem-visoes.yaml'),
+    ) as Record<string, unknown>
+    delete base['divergencia']
+    base['visoes'] = [
+      { fonte: 'Fonte A de fixture', posicao: 'Posicao A' },
+      { fonte: 'Fonte B de fixture', posicao: 'Posicao B' },
+    ]
+    const r = Heuristica.safeParse(base)
+    expect(r.success).toBe(false)
+    expect(r.success ? '' : r.error.issues[0]?.message).toContain('RF-108')
+  })
+
+  it('o refine de RF-108 não roda se outro campo estiver quebrado, e por isso a prova B existe', () => {
+    const base = carregar(
+      join(FIXTURES, 'heuristicas', 'divergencia-sem-visoes.yaml'),
+    ) as Record<string, unknown>
+    delete base['confianca']
+    const r = Heuristica.safeParse(base)
+    expect(r.success).toBe(false)
+    const mensagensDoErro = r.success ? [] : r.error.issues.map((i) => i.message)
+    expect(mensagensDoErro.some((m) => m.includes('RF-108'))).toBe(false)
+    expect(mensagensDoErro.some((m) => m.includes('confianca'))).toBe(true)
+  })
+})
+
+describe('RF-111 e RP-007, evento não qualifica probabilidade de desfecho', () => {
+  it('recusa qualificação de probabilidade na descricao, citando RF-111', () => {
+    const erros = mensagens(join(FIXTURES, 'eventos', 'qualifica-probabilidade.yaml'), 'eventos')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-111')
+    expect(erros[0]).toContain('RP-007')
+  })
+
+  it('recusa também no mecanismo, que é o outro campo inspecionado', () => {
+    const base = carregar(
+      join(FIXTURES, 'eventos', 'qualifica-probabilidade.yaml'),
+    ) as Record<string, unknown>
+    base['descricao'] = 'Fato registrado no documento, sem qualificar desfecho'
+    base['mecanismo'] = 'A reversao tende a acontecer'
+    const r = Evento.safeParse(base)
+    expect(r.success).toBe(false)
+    expect(r.success ? '' : r.error.issues[0]?.message).toContain('RF-111')
+  })
+
+  it('limite conhecido: probabilidade escrita em tipo passa, o filtro não olha lá (D-073)', () => {
+    const base = carregar(
+      join(FIXTURES, 'eventos', 'qualifica-probabilidade.yaml'),
+    ) as Record<string, unknown>
+    base['descricao'] = 'Fato registrado no documento, sem qualificar desfecho'
+    base['tipo'] = 'processo com chance de reversao'
+    expect(Evento.safeParse(base).success).toBe(true)
   })
 })
 
