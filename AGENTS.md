@@ -10,7 +10,7 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 30/08/2026
+**Data:** 30/08/2026 (segunda sessão do dia)
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa
@@ -23,7 +23,7 @@ bloqueia" abaixo
 |---|---|
 | `packages/shared` | `@valuation/shared`. `decimal-config.ts`, o construtor de `decimal.js` clonado com precision 34 e ROUND_HALF_EVEN (D-046); `money.ts` com `Money<Moeda>`, moeda como tipo fantasma; `rate.ts` com `Rate` para toda grandeza adimensional e as conversões de bps; `index.ts` como porta pública, que não exporta o construtor cru nem, por tabela, o `toNumber` dele |
 | `packages/conhecimento` | `@valuation/conhecimento`. Schema Zod dos quatro tipos de item, em `playbook.ts`, `heuristica.ts`, `nota.ts` e `evento.ts`, com as peças compartilhadas e os três filtros de texto em `comum.ts`; `validar.ts` com a validação por pasta e as duas checagens cruzadas, RF-109 entre nota e playbook e RF-107 do `campo_relacionado` |
-| `packages/dominio` | `@valuation/dominio`. `engines/fcff-por-concessao.ts`, a única engine; `datas.ts`, aritmética de data em texto sem o objeto `Date`; `validadores/` criado e **vazio**; `pureza.test.ts`, que varre o pacote procurando relógio, rede, I/O e aleatoriedade e falha se achar |
+| `packages/dominio` | `@valuation/dominio`. `engines/fcff-por-concessao.ts`, a única engine; `grades.ts`, as três grades temporais como tipos distintos, ciclo tarifário, competência mensal e exercício social (D-081); `datas.ts`, aritmética de data em texto sem o objeto `Date`; `validadores/` criado e **vazio**; `pureza.test.ts`, que varre o pacote procurando relógio, rede, I/O e aleatoriedade e falha se achar |
 | `tools/` | `validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista branca de pastas |
 
 Fora dos pacotes: `conhecimento/playbooks/` com os três playbooks, só estrutura verificável
@@ -39,6 +39,21 @@ validador de regra dura executável existe: `validadores/` está vazio de propó
 Isso não é trabalho pela metade. A engine foi escrita como sonda deliberada, e **o curador
 mandou parar depois dela**, para as perguntas que ela gerasse serem respondidas antes de mais
 quatro engines herdarem as mesmas premissas.
+
+### A pesquisa entrou, e o que ela mudou
+
+A consolidação das quatro pesquisas está em `docs/pesquisa/consolidacao-valuation-b3.md`, com
+cabeçalho de ressalva (D-080). Ela classifica cada afirmação em A, B ou C, descarta a `qwen.md`
+como voto, e **declara de si mesma que nenhuma fonte primária foi aberta**.
+
+O que ela resolveu em código: a B3, que estava errada. A projeção passou do ano civil ancorado na
+data base para a grade do ciclo tarifário de julho a junho, e as três grades temporais viraram
+tipos distintos (D-081). A B8 foi conferida contra o código e a engine já conformava na base da
+redução. A B7 mudou de natureza e virou convenção declarada que contraria a regra formal (D-082),
+sem alteração de código.
+
+O que ela abriu: dezesseis premissas novas registradas, N1 a N16, entre grade temporal, os dez
+itens que contradizem premissa do projeto, e a contradição da Lei 9.991/2000 sobre P&D.
 
 ### O segundo entregável da sonda, e o que bloqueia
 
@@ -90,11 +105,13 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Verificação
 
-- suíte Vitest com **149 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
+- suíte Vitest com **177 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
 - CLI de conhecimento saindo zero contra `conhecimento/`
 - Stryker sobre os **três** pacotes (D-077), sem limiar, com a regra de classificar cada
-  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 65,95%,
-  `conhecimento` 40,77%. O `dominio` subiu de 64,57% com os testes de direção da D-078
+  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 74,42%,
+  `conhecimento` 40,77%. O `dominio` saiu de 64,57% e subiu em três etapas: os testes de direção
+  da D-078, a grade temporal da D-081 (`grades.ts` em 100%) e três lacunas reais que a
+  classificação de sobreviventes achou nesta sessão
 - `.claude/skills/inspecao-conformidade/`, com a varredura de proteção sem exercício como
   passo obrigatório em etapa que mexa em validação (D-074)
 
@@ -206,8 +223,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 
 | Questão | Quando resolve |
 |---|---|
-| **BLOQUEIA, e é o item de cima.** A pesquisa das quatro IAs foi feita, mas o arquivo de consolidação com a classificação por afirmação não está no repositório. `pesquisa-metodologia/pesquisa_valuation_setores.md`, que é o único arquivo lá, é uma saída de pesquisa sem atribuição por agente, sem classificação A, sem a seção de itens que contradizem premissa do projeto e sem a pergunta 7. Nada foi registrado a partir dele. Ver o relatório da sessão de 30/08/2026 | Assim que o arquivo certo entrar |
-| **BLOQUEIA.** Pesquisa do curador sobre as dez premissas BLOQUEANTES em `docs/premissas-de-interpretacao-fcff-por-concessao.md`, começando pela B2. A parada é dura e vale para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código, e a pesquisa é a que trava tudo | Agora, contra fonte primária, antes de qualquer engine nova |
+| **BLOQUEIA.** Abrir documento primário. A consolidação está versionada e classificada, e **nenhuma das dezesseis premissas está no estado CONFERIDA** (D-083): classe A é fonte citada, não lida. A fila de nove perguntas em aberto está na consolidação, em ordem de risco, e a primeira é a escala da RAP no anexo da REH, com erro possível de 1000x. A parada segue dura para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código | Agora, com o anexo da REH na tela |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |

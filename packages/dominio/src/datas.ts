@@ -42,21 +42,11 @@ export function compararDatas(a: Data, b: Data): number {
   return a.dia - b.dia
 }
 
-/** Soma anos inteiros preservando mês e dia. */
-export function somarAnos(data: Data, anos: number): Data {
-  return { ano: data.ano + anos, mes: data.mes, dia: data.dia }
-}
-
-/**
- * Quantos períodos anuais inteiros cabem entre base e limite.
- *
- * Período t termina em base mais t anos. Conta t enquanto o fim do período não
- * passa do limite. Limite anterior ou igual à base devolve zero.
+/*
+ * `somarAnos` e `periodosAnuaisInteiros` viviam aqui e foram removidos com a
+ * D-081. Eles existiam para projetar período anual ancorado na data base, que é a
+ * grade errada: a RAP é homologada por ciclo tarifário de 1º de julho a 30 de
+ * junho. A contagem de período agora mora em `grades.ts`, sobre datas fixas de
+ * virada, e por isso o caso do 29 de fevereiro deixou de existir junto: nenhum
+ * limite de ciclo cai em fevereiro.
  */
-export function periodosAnuaisInteiros(base: Data, limite: Data): number {
-  let periodos = 0
-  while (compararDatas(somarAnos(base, periodos + 1), limite) <= 0) {
-    periodos += 1
-  }
-  return periodos
-}

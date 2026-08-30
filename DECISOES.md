@@ -1280,3 +1280,138 @@ Stryker reduz a classe e não a fecha, e a pergunta do teste de decisão continu
 **Descartado, virar gate automático.** Não existe jeito mecânico de enumerar "as leituras
 plausíveis de um campo", que é justamente o julgamento que a regra pede. É a mesma razão pela
 qual a D-074 deixou a varredura como procedimento com triagem manual, e não como gate.
+
+### D-080. Material de pesquisa entra versionado, e o arquivo antigo sai sem histórico
+
+**Decisão.** A consolidação das quatro pesquisas entra em `docs/pesquisa/consolidacao-valuation-b3.md`,
+com cabeçalho de ressalva no topo. O arquivo anterior, `pesquisa-metodologia/pesquisa_valuation_setores.md`,
+de 93 linhas, foi removido pelo curador, e a pasta vazia sai junto. **Regra que decorre:
+material de pesquisa entra versionado desde o primeiro dia.**
+
+**O que este registro NÃO afirma.** O arquivo removido nunca esteve versionado, então o
+repositório **não tem como provar o que ele dizia**, e esta decisão não afirma o conteúdo dele.
+Não há histórico e não há recuperação.
+
+**O que tem lastro.** Uma observação feita e citada literalmente enquanto o arquivo existia, na
+sessão de 30/08/2026: ele afirmava que "a participação societária da holding (ex: proporção de
+25%) incide economicamente sobre a RAP (e o fluxo de caixa) na proporção da sua fatia na SPE".
+Isso é o oposto do veredito da seção 5 da consolidação nova, que é classe A e diz que
+formalmente a participação não incide sobre a RAP.
+
+**Por que a remoção é correta.** Dois documentos de pesquisa no repositório com vereditos opostos
+sobre o mesmo ponto, um deles sem atribuição de fonte e sem classificação, é a doença do handoff
+de planejamento em outra forma: dois arquivos com aparência equivalente de autoridade, e quem
+chega depois escolhe o errado. A D-048 resolveu aquele caso com cabeçalho de ressalva porque o
+handoff tinha valor histórico próprio. Aqui não tem: o arquivo era rodada anterior da mesma
+pergunta, superada por uma consolidação que classifica fonte.
+
+**O custo aceito, e é ele que gera a regra.** Remoção sem histórico é perda definitiva. Se o
+arquivo estivesse versionado, ele seria **superado** por commit, com o diff mostrando o que
+mudou de entendimento, em vez de **apagado**. Documento não versionado não pode ser superado, só
+apagado. Por isso material de pesquisa entra versionado desde o primeiro dia, mesmo bruto, mesmo
+provisório, mesmo sabendo que vai ser descartado.
+
+**Nota de método, e ela não é sobre este arquivo.** A tarefa anterior descreveu o conteúdo de um
+arquivo que não estava no disco, e a etapa parou. Três regras saíram disso, e valem daqui em
+diante: item zero de tarefa que dependa de arquivo é **verificação e não instrução**, com parada
+se o conteúdo não bater; prompt que descreve conteúdo de arquivo diz **de onde a descrição veio**;
+e arquivo que aparece em upload de conversa **não está no disco por padrão**.
+
+### D-081. Período vira conceito de primeira classe, com as três grades temporais separadas
+
+**Decisão.** Nasce `packages/dominio/src/grades.ts`, com `CicloTarifario`, `CompetenciaMensal` e
+`ExercicioSocial` como tipos distintos, discriminados pelo campo `grade`. A projeção de
+`fcff_por_concessao` passa a correr na grade do **ciclo tarifário**, de 1º de julho a 30 de
+junho. `somarAnos` e `periodosAnuaisInteiros` saem de `datas.ts`. `horizonte_maximo_anos` vira
+`horizonte_maximo_ciclos`, e o resultado passa a declarar `grade_de_projecao`,
+`primeiro_ciclo_projetado`, `trecho_inicial_nao_projetado` e `trecho_final_nao_projetado`.
+`VERSAO_ENGINE` vai a 0.3.0 (RF-505).
+
+**Motivo.** A seção 2 da consolidação é classe A: o ciclo tarifário não é o ano civil. A engine
+projetava ano civil ancorado na `data_base` e chamava aquilo de período da RAP, o que é a
+premissa B3 e ela era falsa.
+
+**Por que não bastou trocar o parâmetro, que era a saída barata.** Existem **três** grades no
+mesmo módulo e elas não são conversíveis por constante: ciclo tarifário, base da RAP homologada;
+competência mensal, porque a RAP é faturada em duodécimos e confundir anual com mensal é erro de
+12x; e exercício social civil, base de imposto e de demonstração contábil. Com um parâmetro só,
+a grade fica implícita, e grade implícita é o que deixou a B3 passar despercebida por uma etapa
+inteira. O campo `grade` existe para o compilador recusar a troca, e há teste com
+`@ts-expect-error` provando que ele recusa.
+
+**Dois relógios, e só um é modelado.** Reajuste anual, que cai na virada do ciclo em 1º de julho,
+está implementado. Revisão tarifária periódica, a cada quatro ou cinco anos conforme contrato,
+**não está**, e `grades.ts` declara a ausência em vez de deixá-la implícita. Um parâmetro só para
+os dois é o bug de modelagem que a consolidação aponta.
+
+**Descartado, ratear o ciclo parcial por duodécimos.** Seria a saída elegante para a data base
+que não cai na virada. Exigiria a convenção de harmonização temporal que a consolidação
+classifica como plausível e **sem fonte** (seção 7), e escrever convenção sem fonte é RNF-013.
+Em vez disso, o trecho não projetado sai declarado no resultado, e virou a premissa N1.
+
+**Descartado, ancorar a projeção no ciclo que contém a data base.** Traria caixa já passado para
+dentro de uma projeção que olha para frente.
+
+**Descartado, descontar por tempo decorrido de verdade.** Exige convenção de contagem de dias,
+que também não tem fonte. O desconto continua usando a posição do ciclo, e a defasagem virou a
+premissa N3.
+
+**O que NÃO encostou na B1, e por isso a etapa não parou.** A grade mensal existe como tipo e
+nenhuma aritmética de dinheiro passa por ela. Nada na engine consome valor mensal, porque
+imposto e OPEX dependem da B1, que segue aberta. Se algum dia a engine somar ou subtrair em base
+mensal, aí a B1 entra antes.
+
+**Efeito colateral que fecha uma premissa de graça.** A R3, sobre 29 de fevereiro em `somarAnos`,
+dissolveu: todo limite de período agora é 1º de julho ou 30 de junho, datas fixas.
+
+### D-082. `percentual_participacao` é reclassificada de aritmética para convenção declarada
+
+**Decisão.** A premissa B7 deixa de ser assunção sobre aritmética e passa a **CONVENÇÃO DECLARADA
+QUE CONTRARIA A REGRA FORMAL**, citando CPC 18/R2. **O código não muda.**
+
+**Motivo.** A seção 5 da consolidação é classe A para a regra contábil e diz que formalmente a
+participação **não incide sobre a RAP**: a RAP é receita integral da SPE, a participação da
+holding incide sobre patrimônio e resultado da SPE por equivalência patrimonial quando não há
+consolidação integral, e o caixa que chega à investidora é o dividendo efetivamente pago, sujeito
+a covenants e índices de cobertura dos contratos de financiamento da própria SPE.
+
+**Por que não mudar o código.** A própria consolidação registra que ponderar a RAP pelo percentual
+é defensável **como convenção declarada**, e a alternativa exigiria modelar dívida da SPE,
+covenants e política de distribuição, que não têm campo no playbook. Trocar uma convenção
+declarada por uma modelagem que o playbook não sustenta seria inventar estrutura.
+
+**A consequência, registrada em vez de escondida.** `%` × RAP e `%` × dividendo distribuível não
+são a mesma grandeza e podem divergir muito. Uma holding com participação minoritária em SPEs
+alavancadas pode ter `%` × RAP muito acima do que recebe de fato.
+
+**Interação com a D-078, e a ordem entre os dois problemas.** A D-078 registrou que
+`percentual_participacao` não tem checagem de faixa, na mesma família do erro de escala que ela
+fechou. **O problema desta decisão é anterior.** Faixa garante que o número está entre 0 e 1; não
+garante que ele mede a coisa certa. Faixa correta em campo que mede a grandeza errada valida um
+número que responde à pergunta errada, e ainda dá a sensação de que o campo foi endurecido.
+
+**Consequência para quando houver interface.** Este número precisa chegar ao usuário identificado
+como convenção e não como regra. Enquanto não há interface, o registro vive no arquivo de
+premissas.
+
+### D-083. Premissa tem quatro estados, e o estado CONFERIDA nasce vazio
+
+**Decisão.** O arquivo de premissas passa a registrar estado por premissa, em quatro valores:
+**CONFERIDA**, alguém abriu o documento primário e leu; **CITADA E NÃO ABERTA**, existe
+identificação suficiente para abrir e ninguém abriu; **CONVENÇÃO**, convergência de prática sem
+norma que a defina; e **ABERTA**, sem resposta. O arquivo declara em texto que **nenhuma das
+dezesseis está em CONFERIDA**.
+
+**Motivo, e são quatro e não três de propósito.** A consolidação define a própria classe A como
+"existe fonte primária citada com identificação suficiente para você abrir", e diz explicitamente
+que isso não significa que alguém abriu. Sem um estado separado para leitura de fato, "classe A"
+e "conferido" viram sinônimos, e a regra deste projeto é que explicação inferida sem verificação
+não entra em documento como fato. Fonte citada e fonte lida são coisas diferentes.
+
+**Por que declarar o vazio em texto, e não só deixar a coluna sem marca.** Ausência silenciosa
+apodrece, que é o argumento da D-021 e da D-059. Um leitor daqui a três meses que veja dez
+premissas classe A e nenhuma marca de conferência conclui que a conferência é implícita. A frase
+"nenhuma das dezesseis está em CONFERIDA" não deixa essa leitura de pé.
+
+**Descartado, três estados com CONFERIDA e CITADA juntos.** Era a proposta natural e é
+exatamente o colapso que a decisão existe para impedir.

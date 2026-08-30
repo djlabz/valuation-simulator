@@ -71,6 +71,61 @@ export const CARTEIRA_ESCALONADA: EntradaFcffPorConcessao = {
   inflacao_projetada_longo_prazo: '0',
 }
 
+/**
+ * Data base exatamente em 1º de julho, que é a virada do ciclo tarifário.
+ *
+ * Existe porque a projeção abre no próprio ciclo quando a data base cai na
+ * virada, e abre no seguinte em qualquer outro dia. As duas aberturas são
+ * caminhos diferentes no código e a fixture principal só exercita uma (D-079).
+ * Vencimento em 30 de junho fecha o terceiro ciclo exatamente, sem sobra.
+ */
+export const CICLO_ALINHADO: EntradaFcffPorConcessao = {
+  data_base: '2026-07-01',
+  concessoes: [
+    {
+      nome: 'CONCESSAO-ALINHADA',
+      rap_bruta_ciclo_atual: '1000',
+      indice_reajuste: 'IPCA',
+      data_vencimento: '2029-06-30',
+      percentual_participacao: '1',
+      reducao_contratual: null,
+    },
+  ],
+  deducoes_sobre_rap: '0.1',
+  taxa_desconto: '0.1',
+  inflacao_projetada_longo_prazo: '0',
+}
+
+/**
+ * A única fixture com inflação diferente de zero, e ela existe por causa da D-079.
+ *
+ * Todas as outras têm `inflacao_projetada_longo_prazo: "0"`, e com inflação zero o
+ * reajuste é invisível: a RAP reajustada é igual à RAP líquida em todo período, e
+ * a base sobre a qual a redução contratual incide fica invariante entre as duas
+ * leituras plausíveis, valor nominal e valor já reajustado. Ou seja, nenhuma
+ * fixture exercitava a seção 4 da consolidação.
+ *
+ * Números escolhidos para conferência na mão: RAP 1000 sem deduções, inflação de
+ * 10%, então a reajustada é 1100, 1210, 1331 e 1464,1. Corte de 40% a partir do
+ * ciclo que fecha em 2029-06-30, que é o terceiro.
+ */
+export const REDUCAO_COM_REAJUSTE: EntradaFcffPorConcessao = {
+  data_base: '2026-07-01',
+  concessoes: [
+    {
+      nome: 'CONCESSAO-REDUZIDA',
+      rap_bruta_ciclo_atual: '1000',
+      indice_reajuste: 'IPCA',
+      data_vencimento: '2030-06-30',
+      percentual_participacao: '1',
+      reducao_contratual: { percentual_reducao: '0.4', a_partir_de: '2029-06-30' },
+    },
+  ],
+  deducoes_sobre_rap: '0',
+  taxa_desconto: '0.1',
+  inflacao_projetada_longo_prazo: '0.1',
+}
+
 /** Carteira vazia, que precisa produzir zero e não quebrar. */
 export const CARTEIRA_VAZIA: EntradaFcffPorConcessao = {
   data_base: '2026-01-01',
