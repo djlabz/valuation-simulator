@@ -1241,3 +1241,42 @@ mesmo commit por causa do teste de equivalência da D-065.
 **Registrado e não feito.** `percentual_participacao` e `deducoes_sobre_rap` também são frações
 sem checagem de faixa, e o mesmo erro de escala cabe nos dois. Fica fora daqui de propósito:
 emendar escopo no meio foi como as quatro lacunas da D-073 nasceram.
+
+## Sessão de 30/08/2026
+
+### D-079. Valor de fixture não pode ser invariante sob a ambiguidade que ele exercita
+
+**Decisão.** Duas regras de método, irmãs, entram no repositório. A primeira, na seção 2 do
+`PROTOCOLO-ETAPA.md`: correção que invalida expectativa de teste refaz fixture e teste no mesmo
+commit, porque corrigir código e deixar teste antigo verde é pior que não corrigir, já que o
+verde passa a afirmar o comportamento errado. A segunda, na skill de inspeção: se duas
+interpretações plausíveis de um campo produzem o mesmo resultado com o valor escolhido para a
+fixture, o valor não testa nada, e o teste de decisão é perguntar se existe outra leitura
+plausível e exigir que o valor produza resultado diferente nas duas.
+
+**Motivo, e é a mesma causa nas três vezes.** A fixture foi escrita pela cabeça que escreveu o
+código e herdou o ponto cego dela. O teste veio da mesma cabeça, então ficou verde. Não é
+descuido de execução, é limite estrutural de quem escreve os dois lados.
+
+**Os três casos, todos deste repositório.** `fator: "0.5"` na redução contratual, onde
+`1 - 0,5 = 0,5` fazia o valor ser o próprio complemento e o teste ficar verde nas duas
+convenções (D-078). `maiorPeriodo` com todas as concessões em ordem crescente, onde devolver o
+último dá o mesmo que devolver o maior. E `reducao_contratual` sempre com `null` explícito,
+deixando o caminho do campo omitido sem exercício. Os dois últimos foram achados pelo Stryker
+(D-077).
+
+**Por que a varredura de proteção sem exercício não pega esta classe, e por isso ela é regra
+nova e não emenda da D-074.** A varredura compara requisito citado no schema com requisito
+afirmado em teste. Nos três casos o requisito ESTÁ afirmado em teste, então o ID aparece dos
+dois lados e some da saída. O que falha não é a existência do teste, é o poder discriminatório
+dele. Uma mede cobertura de requisito, a outra mede se o teste separa duas hipóteses.
+
+**O que o Stryker cobre e o que não cobre.** Ele achou dois dos três, e é a ferramenta certa
+para a classe, porque troca o comportamento e pergunta se alguém reclama. Não achou o `0.5`:
+inverter uma convenção de leitura não é mutação de operador, é outro significado do mesmo
+número, e nenhum mutante o produz. Esse apareceu porque alguém foi conferir a direção à mão.
+Stryker reduz a classe e não a fecha, e a pergunta do teste de decisão continua manual.
+
+**Descartado, virar gate automático.** Não existe jeito mecânico de enumerar "as leituras
+plausíveis de um campo", que é justamente o julgamento que a regra pede. É a mesma razão pela
+qual a D-074 deixou a varredura como procedimento com triagem manual, e não como gate.

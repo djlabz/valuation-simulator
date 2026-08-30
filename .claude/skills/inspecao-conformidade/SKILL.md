@@ -180,6 +180,39 @@ viraram fixture. Se alguém tivesse automatizado a varredura como gate, a etapa 
 por seis rótulos de âncora, a varredura viraria ruído e seria desligada, que é como proteção
 morre.
 
+## Valor de fixture não pode ser invariante sob a ambiguidade que ele exercita
+
+**Obrigatória em toda etapa que escrever ou alterar fixture.** Esta classe apareceu três vezes
+neste projeto, e nas três a fixture foi escrita pela mesma cabeça que escreveu o código, então
+herdou o ponto cego dela. O teste veio da mesma cabeça, e por isso ficou verde.
+
+**A regra.** Se duas interpretações plausíveis de um campo produzem o mesmo resultado com o
+valor escolhido, o valor não testa nada.
+
+**Teste de decisão.** Existe outra leitura plausível deste campo? Se existe, o valor escolhido
+tem que produzir resultado DIFERENTE nas duas leituras. Se produz o mesmo, troque o valor.
+
+**Os três casos reais, porque exemplo ensina melhor que regra.**
+
+| Fixture | Por que não exercitava | O que exercita |
+|---|---|---|
+| `fator: "0.5"` na redução contratual | `1 - 0,5 = 0,5`, então o valor é o próprio complemento. O teste ficava verde com a convenção do que sobra e com a do que se corta, e a direção nunca foi exercitada. Se a interpretação estivesse invertida, nenhum teste pegaria | `0.3`, que dá remanescente `0.7` |
+| `maiorPeriodo` com todas as concessões em ordem crescente de prazo | devolver o último item em vez do maior dá o mesmo resultado em lista ordenada | lista desordenada, que é a fixture `MAIS_LONGA_PRIMEIRO` |
+| `reducao_contratual` sempre com `null` explícito | omissão do campo e `null` explícito são caminhos diferentes no código, e só um estava exercitado | uma concessão com o campo omitido, na mesma fixture |
+
+**Por que a varredura da seção anterior NÃO pega esta classe.** A varredura compara requisito
+citado no schema com requisito afirmado em teste. Nos três casos o requisito ESTÁ afirmado em
+teste, então o ID aparece dos dois lados e some da saída. O que falha não é a existência do
+teste, é o poder discriminatório dele. Varredura mede cobertura de requisito; esta regra mede
+se o teste separa duas hipóteses.
+
+**O que pega, e é registro do que funcionou de fato.** Dois dos três casos foram achados pelo
+Stryker, que é a ferramenta certa para esta classe porque ela troca o comportamento e pergunta
+se algum teste reclama. O terceiro, o `0.5`, o Stryker não achou: nenhum mutante dele produz a
+convenção invertida, porque inverter a convenção não é mutação de um operador, é outra leitura
+do mesmo número. Esse só apareceu porque alguém foi conferir a direção à mão. Ou seja, Stryker
+reduz a classe e não a fecha, e a pergunta do teste de decisão continua sendo manual.
+
 ## Armadilhas da própria inspeção
 
 Estas são o modo de falha real, mais provável que deixar passar uma linha de código.
@@ -195,6 +228,9 @@ Estas são o modo de falha real, mais provável que deixar passar uma linha de c
   projeto. Pergunte o que o valor faz no cálculo, não de que tipo ele é
 - **Inspecionar só o que a etapa mudou.** A brecha costuma estar na interação entre o
   novo e o que já existia, e essa interação não aparece no diff
+- **Ler a fixture procurando se ela passa, em vez de se ela discrimina.** Fixture verde
+  com valor invariante é o modo de falha da seção acima, e ele passa por qualquer leitura
+  que pergunte apenas "o teste cobre isso?"
 
 ## Primeiro exemplo trabalhado, aritmética, inspeção do Passo 1
 

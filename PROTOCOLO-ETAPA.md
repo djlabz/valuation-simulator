@@ -33,6 +33,9 @@ Não avança sem aprovação. Não emenda a etapa seguinte na mesma resposta.
   prática com consequência real (RNF-012). A contestação precede a implementação, não vem
   depois dela
 - Decisão nova vai para `DECISOES.md` antes de virar código
+- Correção que invalida expectativa de teste refaz fixture e teste no mesmo commit.
+  Corrigir código e deixar teste antigo verde é pior que não corrigir, porque o verde passa
+  a afirmar o comportamento errado
 
 ---
 
