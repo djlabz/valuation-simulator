@@ -10,7 +10,7 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 28/08/2026
+**Data:** 30/08/2026
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa
@@ -93,7 +93,8 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 - suíte Vitest com **149 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
 - CLI de conhecimento saindo zero contra `conhecimento/`
 - Stryker sobre os **três** pacotes (D-077), sem limiar, com a regra de classificar cada
-  sobrevivente. 58 segundos. Scores: `shared` 97,87%, `dominio` 64,57%, `conhecimento` 40,77%
+  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 65,95%,
+  `conhecimento` 40,77%. O `dominio` subiu de 64,57% com os testes de direção da D-078
 - `.claude/skills/inspecao-conformidade/`, com a varredura de proteção sem exercício como
   passo obrigatório em etapa que mexa em validação (D-074)
 
@@ -205,6 +206,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 
 | Questão | Quando resolve |
 |---|---|
+| **BLOQUEIA, e é o item de cima.** A pesquisa das quatro IAs foi feita, mas o arquivo de consolidação com a classificação por afirmação não está no repositório. `pesquisa-metodologia/pesquisa_valuation_setores.md`, que é o único arquivo lá, é uma saída de pesquisa sem atribuição por agente, sem classificação A, sem a seção de itens que contradizem premissa do projeto e sem a pergunta 7. Nada foi registrado a partir dele. Ver o relatório da sessão de 30/08/2026 | Assim que o arquivo certo entrar |
 | **BLOQUEIA.** Pesquisa do curador sobre as dez premissas BLOQUEANTES em `docs/premissas-de-interpretacao-fcff-por-concessao.md`, começando pela B2. A parada é dura e vale para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código, e a pesquisa é a que trava tudo | Agora, contra fonte primária, antes de qualquer engine nova |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
