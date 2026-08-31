@@ -4,11 +4,13 @@ import {
   CARTEIRA_VAZIA,
   CICLO_ALINHADO,
   CONCESSAO_UNICA,
+  INDICES_DIVERGENTES,
   REDUCAO_COM_REAJUSTE,
   CONCESSAO_VENCIDA,
   MAIS_LONGA_PRIMEIRO,
 } from './fcff-por-concessao.fixtures'
 import {
+  ErroDePremissa,
   ErroDeRegraDura,
   EntradaFcffPorConcessao,
   ResultadoFcffPorConcessao,
@@ -281,6 +283,162 @@ describe('seção 4 da consolidação, a redução incide sobre a RAP já reajus
   it('sem redução informada, a reajustada e a pós redução são a mesma série', () => {
     const c = porNome(calcularFcffPorConcessao(CICLO_ALINHADO), 'CONCESSAO-ALINHADA')
     expect(c.periodos.every((p) => p.rap_apos_reducao === p.rap_liquida_reajustada)).toBe(true)
+  })
+})
+
+describe('D-084, cada concessão reajusta pelo índice dela', () => {
+  it('duas concessões idênticas menos o índice produzem fluxos diferentes', () => {
+    const r = calcularFcffPorConcessao(INDICES_DIVERGENTES)
+    const ipca = porNome(r, 'CONCESSAO-EM-IPCA')
+    const igpm = porNome(r, 'CONCESSAO-EM-IGPM')
+
+    // as duas têm a mesma RAP, o mesmo vencimento e a mesma participação. A única
+    // diferença é o índice, e ela precisa aparecer no número
+    expect(ipca.rap_liquida_ciclo_atual).toBe(igpm.rap_liquida_ciclo_atual)
+    expect(ipca.indice_reajuste).toBe('IPCA')
+    expect(igpm.indice_reajuste).toBe('IGPM')
+    expect(ipca.inflacao_aplicada).toBe('0.1')
+    expect(igpm.inflacao_aplicada).toBe('0.21')
+
+    expect(ipca.periodos.map((p) => p.rap_liquida_reajustada)).toEqual(['1100', '1210'])
+    expect(igpm.periodos.map((p) => p.rap_liquida_reajustada)).toEqual(['1210', '1464.1'])
+
+    // conferido fora da engine: IPCA a 10% com Ke de 10% dá 1000 por ciclo
+    expect(ipca.valor_presente_da_concessao).toBe('2000')
+    expect(igpm.valor_presente_da_concessao).toBe('2310')
+    expect(r.valor_presente_total).toBe('4310')
+    expect(ipca.valor_presente_da_concessao).not.toBe(igpm.valor_presente_da_concessao)
+  })
+
+  it('com os dois índices no mesmo valor a fixture não discriminaria nada', () => {
+    // esta é a prova de por que a fixture tem valores diferentes. Igualando os
+    // dois, as duas concessões voltam a ser indistinguíveis, e um teste montado
+    // assim ficaria verde com a engine lendo o índice OU aplicando um número só
+    // para a carteira, que é exatamente o defeito que a D-084 corrigiu
+    const igualados = {
+      ...INDICES_DIVERGENTES,
+      inflacao_projetada_por_indice: { IPCA: '0.1', IGPM: '0.1' },
+    }
+    const r = calcularFcffPorConcessao(igualados)
+    expect(porNome(r, 'CONCESSAO-EM-IPCA').valor_presente_da_concessao).toBe(
+      porNome(r, 'CONCESSAO-EM-IGPM').valor_presente_da_concessao,
+    )
+  })
+
+  it('índice usado por concessão e sem valor informado bloqueia, nomeando a concessão', () => {
+    const semIgpm = {
+      ...INDICES_DIVERGENTES,
+      inflacao_projetada_por_indice: { IPCA: '0.1' },
+    }
+    expect(() => calcularFcffPorConcessao(semIgpm)).toThrow(ErroDePremissa)
+    try {
+      calcularFcffPorConcessao(semIgpm)
+    } catch (erro) {
+      expect((erro as ErroDePremissa).campo).toBe('inflacao_projetada_por_indice')
+      expect((erro as Error).message).toContain('IGPM')
+      expect((erro as Error).message).toContain('RF-401')
+      // nomear a concessão é o que separa esta guarda da de chave sobrando. Sem
+      // isso, as duas devolvem ErroDePremissa e o teste não diz qual disparou
+      expect((erro as Error).message).toContain('CONCESSAO-EM-IGPM')
+    }
+  })
+
+  it('chave sobrando e chave faltando dão mensagens distinguíveis', () => {
+    const pegar = (entrada: unknown) => {
+      try {
+        calcularFcffPorConcessao(entrada)
+      } catch (erro) {
+        return (erro as Error).message
+      }
+      throw new Error('deveria ter lançado')
+    }
+    const faltando = pegar({
+      ...INDICES_DIVERGENTES,
+      inflacao_projetada_por_indice: { IPCA: '0.1' },
+    })
+    const sobrando = pegar({
+      ...CONCESSAO_UNICA,
+      inflacao_projetada_por_indice: { IPCA: '0', IGPM: '0.5' },
+    })
+    expect(faltando).toContain('falta o valor')
+    expect(sobrando).toContain('não aparece em concessão nenhuma')
+    expect(faltando).not.toBe(sobrando)
+  })
+
+  it('carteira vazia com os dois índices informados lista os dois, em ordem', () => {
+    // exercita a ordenação e o caso de mais de uma chave sobrando, que nenhuma
+    // outra fixture alcança porque só existem dois índices no enum
+    try {
+      calcularFcffPorConcessao({
+        ...CARTEIRA_VAZIA,
+        // IPCA primeiro na ordem de inserção, de propósito: a ordem do objeto e a
+        // ordem alfabética têm que divergir, senão o teste fica verde com sort e
+        // sem sort, e não exercita nada (D-079)
+        inflacao_projetada_por_indice: { IPCA: '0.1', IGPM: '0.2' },
+      })
+      throw new Error('deveria ter lançado')
+    } catch (erro) {
+      expect((erro as Error).message).toContain('IGPM, IPCA')
+    }
+  })
+
+  it('valor informado para índice que nenhuma concessão usa é recusado', () => {
+    const sobrando = {
+      ...CONCESSAO_UNICA,
+      inflacao_projetada_por_indice: { IPCA: '0', IGPM: '0.5' },
+    }
+    expect(() => calcularFcffPorConcessao(sobrando)).toThrow(ErroDePremissa)
+    try {
+      calcularFcffPorConcessao(sobrando)
+    } catch (erro) {
+      expect((erro as Error).message).toContain('IGPM')
+    }
+  })
+
+  it('premissa vazia com carteira que usa índice bloqueia, e não assume zero', () => {
+    const vazia = { ...CONCESSAO_UNICA, inflacao_projetada_por_indice: {} }
+    expect(() => calcularFcffPorConcessao(vazia)).toThrow(ErroDePremissa)
+  })
+
+  it('carteira vazia exige mapa vazio, e o mapa vazio passa', () => {
+    const r = calcularFcffPorConcessao(CARTEIRA_VAZIA)
+    expect(r.concessoes).toEqual([])
+    expect(r.valor_presente_total).toBe('0')
+  })
+
+  it('termos_de_renovacao é RECUSADO, e não aceito e ignorado como o índice era', () => {
+    // achado na inspeção desta etapa. A premissa R5 afirmava que strictObject
+    // recusa o campo, e nenhum teste afirmava isso. É a mesma família do defeito
+    // que a D-084 corrige, invertida: lá o campo era aceito e ignorado, aqui a
+    // recusa era alegada e não exercitada
+    const r = EntradaFcffPorConcessao.safeParse({
+      ...CONCESSAO_UNICA,
+      termos_de_renovacao: {
+        nova_data_vencimento: '2035-06-30',
+        nova_rap: '2000',
+        investimento_exigido: '500',
+      },
+    })
+    expect(r.success).toBe(false)
+    if (!r.success) {
+      expect(r.error.issues[0]?.code).toBe('unrecognized_keys')
+      expect(JSON.stringify(r.error.issues)).toContain('termos_de_renovacao')
+    }
+  })
+
+  it('índice fora do enum é recusado pelo schema, na chave e no valor', () => {
+    expect(
+      EntradaFcffPorConcessao.safeParse({
+        ...CONCESSAO_UNICA,
+        inflacao_projetada_por_indice: { IPCA: '0', INPC: '0.1' },
+      }).success,
+    ).toBe(false)
+    expect(
+      EntradaFcffPorConcessao.safeParse({
+        ...CONCESSAO_UNICA,
+        inflacao_projetada_por_indice: { IPCA: 0.1 },
+      }).success,
+    ).toBe(false)
   })
 })
 

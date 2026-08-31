@@ -27,7 +27,7 @@ export const CONCESSAO_UNICA: EntradaFcffPorConcessao = {
   ],
   deducoes_sobre_rap: '0.1',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0',
+  inflacao_projetada_por_indice: { IPCA: '0' },
 }
 
 /**
@@ -68,7 +68,11 @@ export const CARTEIRA_ESCALONADA: EntradaFcffPorConcessao = {
   ],
   deducoes_sobre_rap: '0.2',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0',
+  // esta carteira SEMPRE teve uma concessão em IGPM, e antes da D-084 a engine
+  // aplicava um número só para as três. Os dois índices ficam em zero aqui de
+  // propósito: o que esta fixture exercita é vencimento escalonado, e a
+  // divergência entre índices tem fixture própria, INDICES_DIVERGENTES
+  inflacao_projetada_por_indice: { IPCA: '0', IGPM: '0' },
 }
 
 /**
@@ -93,13 +97,13 @@ export const CICLO_ALINHADO: EntradaFcffPorConcessao = {
   ],
   deducoes_sobre_rap: '0.1',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0',
+  inflacao_projetada_por_indice: { IPCA: '0' },
 }
 
 /**
- * A única fixture com inflação diferente de zero, e ela existe por causa da D-079.
+ * Fixture com inflação diferente de zero, e ela existe por causa da D-079.
  *
- * Todas as outras têm `inflacao_projetada_longo_prazo: "0"`, e com inflação zero o
+ * Quase todas as outras têm inflação zero, e com inflação zero o
  * reajuste é invisível: a RAP reajustada é igual à RAP líquida em todo período, e
  * a base sobre a qual a redução contratual incide fica invariante entre as duas
  * leituras plausíveis, valor nominal e valor já reajustado. Ou seja, nenhuma
@@ -123,7 +127,45 @@ export const REDUCAO_COM_REAJUSTE: EntradaFcffPorConcessao = {
   ],
   deducoes_sobre_rap: '0',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0.1',
+  inflacao_projetada_por_indice: { IPCA: '0.1' },
+}
+
+/**
+ * Duas concessões, índices DIFERENTES e valores de inflação DIFERENTES.
+ *
+ * A D-079 manda o valor da fixture não ser invariante sob a ambiguidade que ela
+ * exercita. Aqui a ambiguidade é "a engine lê o índice de cada concessão ou aplica
+ * um número só para a carteira?", e ela some de duas formas: com índices iguais,
+ * porque aí não há o que separar; e com valores de inflação iguais, porque aí as
+ * duas leituras dão o mesmo número. Por isso os dois eixos divergem.
+ *
+ * Números escolhidos para conferência na mão, com Ke de 10% e dois ciclos:
+ * IPCA a 10% faz a RAP crescer exatamente no ritmo do desconto, então cada ciclo
+ * vale 1000 e o valor presente é 2000. IGPM a 21% dá 1100 e 1210, somando 2310.
+ */
+export const INDICES_DIVERGENTES: EntradaFcffPorConcessao = {
+  data_base: '2026-07-01',
+  concessoes: [
+    {
+      nome: 'CONCESSAO-EM-IPCA',
+      rap_bruta_ciclo_atual: '1000',
+      indice_reajuste: 'IPCA',
+      data_vencimento: '2028-06-30',
+      percentual_participacao: '1',
+      reducao_contratual: null,
+    },
+    {
+      nome: 'CONCESSAO-EM-IGPM',
+      rap_bruta_ciclo_atual: '1000',
+      indice_reajuste: 'IGPM',
+      data_vencimento: '2028-06-30',
+      percentual_participacao: '1',
+      reducao_contratual: null,
+    },
+  ],
+  deducoes_sobre_rap: '0',
+  taxa_desconto: '0.1',
+  inflacao_projetada_por_indice: { IPCA: '0.1', IGPM: '0.21' },
 }
 
 /** Carteira vazia, que precisa produzir zero e não quebrar. */
@@ -132,7 +174,9 @@ export const CARTEIRA_VAZIA: EntradaFcffPorConcessao = {
   concessoes: [],
   deducoes_sobre_rap: '0',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0',
+  // sem concessão não há índice usado, e o mapa tem que estar vazio pela mesma
+  // regra que recusa chave sobrando
+  inflacao_projetada_por_indice: {},
 }
 
 /** Vencimento anterior à data base: concessão já encerrada. */
@@ -169,6 +213,6 @@ export const MAIS_LONGA_PRIMEIRO: EntradaFcffPorConcessao = {
   ],
   deducoes_sobre_rap: '0',
   taxa_desconto: '0.1',
-  inflacao_projetada_longo_prazo: '0',
+  inflacao_projetada_por_indice: { IPCA: '0' },
   indenizacao_rab_estimada: '1000',
 }

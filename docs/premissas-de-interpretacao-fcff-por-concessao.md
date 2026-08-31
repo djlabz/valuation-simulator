@@ -77,21 +77,25 @@ afirmando ciclo de quatro anos, e a divergência dela é ruído pela tabela de c
 temporais viraram tipos distintos em `packages/dominio/src/grades.ts`. Ver D-081 e as premissas
 novas N1 a N4, que são o que sobrou em aberto depois da correção.
 
-### B4. O reajuste usa uma inflação única, e `indice_reajuste` é ignorado no cálculo
+### B4. Qual valor de inflação cada índice recebe
 
-**Estado:** ABERTA, e a engine **contraria** a orientação que a consolidação dá.
+**Estado:** ABERTA quanto ao **valor**. A parte estrutural foi **corrigida** pela D-084.
 
 **Fonte:** consolidação, seção 7. Veredito: **sem resposta**, classe C por omissão. O que
 sobrevive: contratos antigos por IGP-M e os celebrados após novembro de 2006 por IPCA, com
 fonte secundária, e a instrução explícita de tratar o índice como parâmetro **por contrato**,
 nunca como constante do setor.
 
-**Verificado agora, e não conforma:** `indice_reajuste` é declarado por concessão, validado
-como enum, e **nunca é lido no cálculo**. A projeção usa um único
-`inflacao_projetada_longo_prazo` para a carteira inteira, que é exatamente a constante do setor
-que a consolidação manda não usar.
+**O que era e foi corrigido (D-084).** `indice_reajuste` era declarado por concessão, validado
+como enum, e **nunca lido no cálculo**: a projeção usava um `inflacao_projetada_longo_prazo`
+único para a carteira, que é a constante do setor que a consolidação manda não usar. A premissa
+virou `inflacao_projetada_por_indice`, um valor por índice, e cada concessão reajusta pelo índice
+dela. Isso não é resposta de pesquisa, é a engine parar de aplicar um número único a concessões
+com índices diferentes.
 
-**O que ficou faltando:** ler a cláusula de reajuste de um contrato de cada safra.
+**O que ficou faltando, e é o que ainda depende de pesquisa:** qual valor cada índice recebe, e
+ler a cláusula de reajuste de um contrato de cada safra para confirmar o índice por contrato. A
+premissa nasce vazia e o cálculo bloqueia até ser preenchida, sem default e sem valor sugerido.
 
 ### B5. O reajuste incide a partir do primeiro período, sobre a RAP líquida
 
@@ -234,8 +238,11 @@ escolha da engine, para RF-420 ter onde morder, e não vem do playbook.
 
 ### R5. A engine não implementa `termos_de_renovacao`
 
-**Estado:** ABERTA, sem mudança. O campo existe nas premissas do playbook, o schema de entrada
-da engine não o tem, e `strictObject` recusa quem mandar. A interação de renovação com RF-420
+**Estado:** ABERTA quanto à renovação, e a **recusa agora tem teste** (D-084). O campo existe nas
+premissas do playbook, o schema de entrada da engine não o tem, e `strictObject` recusa quem
+mandar com `unrecognized_keys`. Até 30/08/2026 isso era afirmação sem exercício, achada na
+inspeção da própria etapa que corrigiu o defeito irmão: `indice_reajuste` era aceito e ignorado,
+esta recusa era alegada e não provada. A interação de renovação com RF-420
 continua sem decisão.
 
 ---

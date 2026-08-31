@@ -105,10 +105,10 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Verificação
 
-- suíte Vitest com **177 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
+- suíte Vitest com **187 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
 - CLI de conhecimento saindo zero contra `conhecimento/`
 - Stryker sobre os **três** pacotes (D-077), sem limiar, com a regra de classificar cada
-  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 74,42%,
+  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 75,38%,
   `conhecimento` 40,77%. O `dominio` saiu de 64,57% e subiu em três etapas: os testes de direção
   da D-078, a grade temporal da D-081 (`grades.ts` em 100%) e três lacunas reais que a
   classificação de sobreviventes achou nesta sessão

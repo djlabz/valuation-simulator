@@ -1415,3 +1415,64 @@ premissas classe A e nenhuma marca de conferência conclui que a conferência é
 
 **Descartado, três estados com CONFERIDA e CITADA juntos.** Era a proposta natural e é
 exatamente o colapso que a decisão existe para impedir.
+
+### D-084. A engine passa a ler `indice_reajuste`, e a inflação vira um valor por índice
+
+**Decisão.** A premissa `inflacao_projetada_longo_prazo` de Transmissão vira
+`inflacao_projetada_por_indice`, um mapa de índice para valor. A engine reajusta cada concessão
+pelo índice declarado nela. O conjunto de chaves do mapa tem que ser **exatamente** o conjunto de
+índices presentes nas concessões: chave faltando bloqueia o cálculo (RF-401), chave sobrando é
+recusada. O campo `indice_reajuste` **não sai** do playbook. `VERSAO_ENGINE` vai a 0.4.0,
+`transmissao-energia-b3` a 0.7.0, e o documento de requisitos a 2.4.2.
+
+**O defeito, e ele não era premissa em aberto.** `indice_reajuste` era declarado por concessão,
+validado como enum e **nunca lido no cálculo**. A projeção aplicava um `inflacao_projetada_longo_prazo`
+único para a carteira inteira. Uma carteira com concessões em IGP-M e em IPCA era projetada como
+se todas seguissem o mesmo índice. Campo declarado e ignorado é pior que campo ausente: quem
+preenche acha que informou algo que muda o resultado, e não muda.
+
+**Por quanto tempo esteve assim, determinado pelo git.** O campo entrou no playbook em
+`207b20c`, de 26/08/2026, no Passo 2. A engine passou a declará-lo sem ler em `2de5a85`, de
+28/08/2026, o primeiro bloco do Passo 3. Ficou declarado e não lido por dois dias de trabalho,
+atravessando duas etapas fechadas com inspeção adversarial. Nenhuma das duas pegou, e o que
+pegou foi a conferência de uma instrução da consolidação contra o código, na sessão de
+30/08/2026.
+
+**Saída escolhida, o mapa.** O conjunto de campos que o usuário vê é **derivado de um fato**, o
+índice de cada concessão. Todo campo exibido afeta o resultado, e valor para índice que ninguém
+usa é erro em vez de campo inerte.
+
+**Descartado, uma premissa por índice suportado com obrigatoriedade condicional.** Duas razões.
+Primeira, e é a que decide: uma carteira só de IPCA passaria a exibir uma premissa de IGP-M que
+não muda o resultado, o que é **a mesma doença que esta decisão cura**, em forma mais fraca.
+Segunda, obrigatoriedade condicional exige vocabulário novo no schema de playbook, onde
+`obrigatorio` é booleano hoje, e é máquina nova em `conhecimento` para um caso só.
+
+**Descartado, a engine recusar carteira com índices misturados.** Trocaria número errado por
+recusa de funcionalidade que a estrutura prevê: o playbook declara `indice_reajuste` como enum de
+dois valores por concessão justamente porque carteira mista é o caso normal.
+
+**Descartado, inflação por concessão em vez de por índice.** IPCA é IPCA. Permitir valores
+diferentes para o mesmo índice em concessões diferentes seria incoerente e multiplicaria campos.
+
+**O que a proteção do schema de conhecimento ensinou no meio do caminho.** A primeira tentativa
+acrescentou `tipo: mapa` e `chaves:` à premissa no playbook, e o CLI reprovou: a lista de chaves
+de premissa é fechada por RF-112, RP-006 e D-006, porque chave a mais é onde um valor de premissa
+entraria com nome novo. A proteção estava certa e o schema **não foi afrouxado**. A estrutura foi
+expressa com `subcampos`, que já existe e já é usado por `termos_de_renovacao`, listando os
+índices possíveis. Nenhum valor, só nomes de chave.
+
+**O que continua aberto.** Qual valor de inflação cada índice recebe é pesquisa, e é a premissa
+B4. Esta decisão não a responde: nenhum índice ganha default, nenhum ganha valor sugerido, e a
+engine não deriva o valor de um índice a partir do outro (RP-003, RP-006). O mapa nasce vazio e o
+cálculo bloqueia.
+
+**Rastreabilidade no resultado.** Cada concessão passa a sair com `indice_reajuste` e
+`inflacao_aplicada`, porque duas concessões com números diferentes precisam dizer por quê
+(RF-504, RP-005).
+
+**Achado da inspeção, corrigido dentro da etapa.** `termos_de_renovacao` é o outro campo do
+playbook que a engine não consome, e a premissa R5 afirmava que `strictObject` o recusa. Nenhum
+teste afirmava isso. É a mesma família invertida: o `indice_reajuste` era aceito e ignorado, a
+recusa de `termos_de_renovacao` era alegada e não exercitada. Provado em runtime nesta sessão,
+`unrecognized_keys`, e agora tem teste.
