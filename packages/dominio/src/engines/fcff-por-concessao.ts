@@ -27,7 +27,7 @@ import {
  * entregável tão importante quanto este arquivo.
  */
 
-export const VERSAO_ENGINE = '0.3.0'
+export const VERSAO_ENGINE = '0.4.0'
 const MOEDA = 'BRL' as const
 
 const textoDecimal = (campo: string) =>
@@ -53,12 +53,22 @@ export const ReducaoContratual = z.strictObject({
   a_partir_de: dataTexto('reducao_contratual.a_partir_de'),
 })
 
+/**
+ * O índice de reajuste é parâmetro POR CONTRATO, nunca constante do setor.
+ *
+ * A consolidação em `docs/pesquisa/` é explícita nisso, e o playbook já declarava
+ * o campo por concessão desde 26/08/2026. O que faltava era a engine ler (D-084).
+ */
+export const IndiceDeReajuste = z.enum(['IPCA', 'IGPM'], {
+  error: 'indice_reajuste é IPCA ou IGPM, conforme o playbook',
+})
+
+export type IndiceDeReajuste = z.infer<typeof IndiceDeReajuste>
+
 export const ConcessaoDeEntrada = z.strictObject({
   nome: z.string().trim().min(1, { error: 'concessao.nome não pode ser vazio' }),
   rap_bruta_ciclo_atual: textoDecimal('rap_bruta_ciclo_atual'),
-  indice_reajuste: z.enum(['IPCA', 'IGPM'], {
-    error: 'indice_reajuste é IPCA ou IGPM, conforme o playbook',
-  }),
+  indice_reajuste: IndiceDeReajuste,
   data_vencimento: dataTexto('data_vencimento'),
   percentual_participacao: textoDecimal('percentual_participacao'),
   reducao_contratual: ReducaoContratual.nullish(),
@@ -70,7 +80,16 @@ export const EntradaFcffPorConcessao = z.strictObject({
   concessoes: z.array(ConcessaoDeEntrada),
   deducoes_sobre_rap: textoDecimal('deducoes_sobre_rap'),
   taxa_desconto: textoDecimal('taxa_desconto'),
-  inflacao_projetada_longo_prazo: textoDecimal('inflacao_projetada_longo_prazo'),
+  // Um valor por índice presente na carteira, e o conjunto de chaves tem que ser
+  // exatamente o conjunto de índices das concessões. Chave faltando bloqueia o
+  // cálculo (RF-401), chave sobrando é recusada, porque valor de índice que
+  // nenhuma concessão usa é número que não afeta nada e mesmo assim aparece.
+  // Nasce vazio: nenhum índice tem valor sugerido nem derivado do outro (RP-003,
+  // RP-006). Qual valor cada índice recebe é pesquisa em aberto, ver premissa B4
+  inflacao_projetada_por_indice: z.partialRecord(
+    IndiceDeReajuste,
+    textoDecimal('inflacao_projetada_por_indice'),
+  ),
   indenizacao_rab_estimada: textoDecimal('indenizacao_rab_estimada').nullish(),
   // horizonte em CICLOS tarifários, não em anos civis. O nome carrega a grade de
   // propósito, porque "anos" era o que deixava a grade implícita (D-081)
@@ -105,6 +124,10 @@ export const ConcessaoDoResultado = z.strictObject({
   rap_bruta_ciclo_atual: z.string(),
   deducoes_aplicadas: z.string(),
   rap_liquida_ciclo_atual: z.string(),
+  // RF-504 e RP-005: o índice usado e o valor aplicado saem no resultado, senão
+  // duas concessões com índices diferentes viram números diferentes sem explicação
+  indice_reajuste: IndiceDeReajuste,
+  inflacao_aplicada: z.string(),
   percentual_participacao: z.string(),
   periodos: z.array(PeriodoDoResultado),
   valor_presente_da_concessao: z.string(),
@@ -143,6 +166,21 @@ export const ResultadoFcffPorConcessao = z.strictObject({
 
 export type EntradaFcffPorConcessao = z.infer<typeof EntradaFcffPorConcessao>
 export type ResultadoFcffPorConcessao = z.infer<typeof ResultadoFcffPorConcessao>
+
+/**
+ * Premissa obrigatória ausente, ou informada para algo que a carteira não usa.
+ *
+ * Não é regra dura de playbook, é RF-401: o cálculo fica bloqueado enquanto houver
+ * premissa obrigatória não preenchida.
+ */
+export class ErroDePremissa extends Error {
+  readonly campo: string
+  constructor(campo: string, mensagem: string) {
+    super(`${campo}: ${mensagem}`)
+    this.campo = campo
+    this.name = 'ErroDePremissa'
+  }
+}
 
 /** Erro de regra dura, com o id da regra, como RF-507 manda para o validador. */
 export class ErroDeRegraDura extends Error {
@@ -198,10 +236,42 @@ export function calcularFcffPorConcessao(
   const um = Rate.de('1', 'um')
   const deducoes = Rate.de(entrada.deducoes_sobre_rap, 'deducoes_sobre_rap')
   const ke = Rate.de(entrada.taxa_desconto, 'taxa_desconto')
-  const inflacao = Rate.de(entrada.inflacao_projetada_longo_prazo, 'inflacao_projetada_longo_prazo')
   const umMaisKe = exigirPositivo(um.soma(ke), 'um mais taxa_desconto')
-  const umMaisInflacao = um.soma(inflacao)
   const fracaoLiquida = um.subtrai(deducoes)
+
+  // O conjunto de chaves da premissa tem que ser exatamente o conjunto de índices
+  // das concessões. É a checagem que faz o campo deixar de mentir: antes da D-084
+  // `indice_reajuste` era declarado por concessão e a projeção aplicava um número
+  // só para a carteira inteira, então carteira mista era calculada como se fosse
+  // toda do mesmo índice
+  // UMA guarda por condição, de propósito. A primeira versão tinha uma checagem de
+  // índice faltante aqui e outra no laço de concessões, e o mutation testing mostrou
+  // que cada uma escondia a outra: derrubar qualquer uma delas deixava a suíte verde,
+  // porque a sobrevivente lançava o mesmo tipo de erro. É a armadilha da D-074, teste
+  // que passa pela camada errada, e a correção é não ter duas camadas (D-084)
+  const indicesUsados = new Set(entrada.concessoes.map((c) => c.indice_reajuste))
+  const umMaisInflacaoPorIndice = new Map<IndiceDeReajuste, Rate>()
+  const sobrando: IndiceDeReajuste[] = []
+  for (const chave of Object.keys(entrada.inflacao_projetada_por_indice).sort()) {
+    const indice = chave as IndiceDeReajuste
+    const valor = entrada.inflacao_projetada_por_indice[indice]
+    if (valor === undefined) continue
+    if (!indicesUsados.has(indice)) {
+      sobrando.push(indice)
+      continue
+    }
+    umMaisInflacaoPorIndice.set(
+      indice,
+      um.soma(Rate.de(valor, `inflacao_projetada_por_indice.${indice}`)),
+    )
+  }
+  if (sobrando.length > 0) {
+    throw new ErroDePremissa(
+      'inflacao_projetada_por_indice',
+      `${sobrando.join(', ')} não aparece em concessão nenhuma da carteira, e valor ` +
+        'informado que não entra em cálculo nenhum não deve existir',
+    )
+  }
 
   const nomesVistos = new Set<string>()
   const concessoes: ResultadoFcffPorConcessao['concessoes'] = []
@@ -246,6 +316,17 @@ export function calcularFcffPorConcessao(
       compararDatas(cicloSeguinte.inicio, vencimento) <= 0
         ? descreverTrecho(cicloSeguinte.inicio, vencimento)
         : null
+
+    // cada concessão reajusta pelo índice DELA, que é o ponto inteiro da D-084
+    const umMaisInflacao = umMaisInflacaoPorIndice.get(concessao.indice_reajuste)
+    if (umMaisInflacao === undefined) {
+      throw new ErroDePremissa(
+        'inflacao_projetada_por_indice',
+        `falta o valor de ${concessao.indice_reajuste}, que é o índice de ` +
+          `"${concessao.nome}". O cálculo fica bloqueado enquanto a premissa ` +
+          'obrigatória não for preenchida (RF-401)',
+      )
+    }
 
     const rapBruta = brl(concessao.rap_bruta_ciclo_atual, `${concessao.nome}.rap_bruta_ciclo_atual`)
     const rapLiquida = rapBruta.multiplicaPor(fracaoLiquida)
@@ -320,6 +401,8 @@ export function calcularFcffPorConcessao(
       rap_bruta_ciclo_atual: rapBruta.paraArmazenamento(),
       deducoes_aplicadas: deducoes.paraArmazenamento(),
       rap_liquida_ciclo_atual: rapLiquida.paraArmazenamento(),
+      indice_reajuste: concessao.indice_reajuste,
+      inflacao_aplicada: umMaisInflacao.subtrai(um).paraArmazenamento(),
       percentual_participacao: participacao.paraArmazenamento(),
       periodos,
       valor_presente_da_concessao: valorPresente.paraArmazenamento(),

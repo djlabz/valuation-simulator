@@ -1,5 +1,5 @@
 id: transmissao-energia-b3
-versao: 0.6.0
+versao: 0.7.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -72,9 +72,13 @@ premissas_do_usuario:
     composicao_disponivel: capm
     # ausência temporária: faixa expurgada por D-067, volta na Etapa do Conhecimento
     faixa_referencia: null
-  - campo: inflacao_projetada_longo_prazo
+  # um valor por índice, e a engine exige exatamente os índices que aparecem em
+  # concessoes.indice_reajuste. O índice é parâmetro por contrato, não constante
+  # do setor, e os subcampos abaixo são os índices possíveis, não valores (D-084)
+  - campo: inflacao_projetada_por_indice
     obrigatorio: true
     default: null
+    subcampos: [IPCA, IGPM]
   # Não existem flags booleanas de premissa. A inclusão de indenização ou de
   # renovação é derivada da presença dos valores abaixo (RF-421, D-040).
   - campo: indenizacao_rab_estimada

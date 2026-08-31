@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.1
-**Data:** 28 de agosto de 2026
+**Versão:** 2.4.2
+**Data:** 30 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.1:** a premissa `inflacao_projetada_longo_prazo` de Transmissão vira `inflacao_projetada_por_indice`, um valor por índice presente na carteira, porque `concessoes.indice_reajuste` era declarado por concessão e a projeção aplicava um número único à carteira inteira (D-084). `transmissao-energia-b3` vai para 0.7.0. Mudança de estrutura de premissa, sem conteúdo analítico novo.
 
 **Alterações desde 2.4.0:** o subcampo `fator` de `reducao_contratual`, em Transmissão, passa a `percentual_reducao`, e o comentário do playbook deixa de ser a única coisa a dizer a direção do número (D-078). `transmissao-energia-b3` vai para 0.6.0. O nome do arquivo continua em `v2.4` porque ele acompanha a linha minor, e esta é correção de campo dentro da seção 9, não alteração de escopo.
 
@@ -511,7 +513,7 @@ Conteúdo integral. Ao migrar para repositório, cada bloco torna-se um arquivo 
 
 ```yaml
 id: transmissao-energia-b3
-versao: 0.6.0
+versao: 0.7.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -584,9 +586,13 @@ premissas_do_usuario:
     composicao_disponivel: capm
     # ausência temporária: faixa expurgada por D-067, volta na Etapa do Conhecimento
     faixa_referencia: null
-  - campo: inflacao_projetada_longo_prazo
+  # um valor por índice, e a engine exige exatamente os índices que aparecem em
+  # concessoes.indice_reajuste. O índice é parâmetro por contrato, não constante
+  # do setor, e os subcampos abaixo são os índices possíveis, não valores (D-084)
+  - campo: inflacao_projetada_por_indice
     obrigatorio: true
     default: null
+    subcampos: [IPCA, IGPM]
   # Não existem flags booleanas de premissa. A inclusão de indenização ou de
   # renovação é derivada da presença dos valores abaixo (RF-421, D-040).
   - campo: indenizacao_rab_estimada
