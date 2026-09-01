@@ -40,6 +40,27 @@ Isso não é trabalho pela metade. A engine foi escrita como sonda deliberada, e
 mandou parar depois dela**, para as perguntas que ela gerasse serem respondidas antes de mais
 quatro engines herdarem as mesmas premissas.
 
+### A primeira conferência documental, 31/08/2026
+
+`docs/pesquisa/CONFERENCIA-taesa-2026-08.md` é a primeira vez que alguém abriu documento primário
+de companhia neste projeto. **Alcance de uma companhia e um trimestre**, TAESA no 2T26 mais o DCR
+de 2025.
+
+**Duas premissas chegaram ao estado CONFERIDA**, que estava vazio desde que a D-083 o criou: a
+escala da RAP e o mês base de reajuste. O bloco do arquivo de premissas que declarava o estado
+vazio foi reescrito, porque deixou de ser verdade.
+
+**Catorze premissas novas, N18 a N31**, nenhuma aplicada em código. As que mais mexem no desenho:
+a RAP tem quatro eixos e não um valor; existe concessão com cronograma de faixas e não degrau; o
+degrau é propriedade do ativo e não da concessão; a Parcela Variável tem teto contratual.
+
+**Duas decisões aceitas e não implementadas:** `concessoes` vira lista de parcelas de RAP (D-086),
+esperando o PRORET; e a lacuna de requisito sobre divergência entre fontes primárias de dado
+extraído, que RF-123 não cobre (D-087).
+
+**O que mudou no playbook:** só os `onde_encontrar`, que passam a apontar as Demonstrações
+Contábeis Regulatórias (D-085). Nenhuma estrutura de input, nenhum schema.
+
 ### A pesquisa entrou, e o que ela mudou
 
 A consolidação das quatro pesquisas está em `docs/pesquisa/consolidacao-valuation-b3.md`, com
@@ -227,6 +248,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
+| **Candidata a provider, achada na conferência de 31/08/2026.** A Central de Informações Econômico-Financeira do Setor Elétrico, no site da ANEEL, tem demonstrações societárias e regulatórias de todas as concessionárias a partir de 2011, e regulatórias completas com notas e auditoria a partir de 2015. É fonte única setorial no site do regulador. Cobre transmissão e distribuição, **não cobre geração nem commodities**. Nada foi implementado: provider é Fase 2 e RF-708 exige interface | Fase 2 |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |

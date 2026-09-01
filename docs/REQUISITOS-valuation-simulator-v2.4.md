@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.2
-**Data:** 30 de agosto de 2026
+**Versão:** 2.4.3
+**Data:** 31 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.2:** os `onde_encontrar` de `concessoes` e de `deducoes_sobre_rap`, em Transmissão, passam a apontar as Demonstrações Contábeis Regulatórias, que é a fonte com a estrutura que os inputs pedem, conferida contra documento da TAESA (D-085). `transmissao-energia-b3` vai para 0.8.0. Correção factual de localização de dado, sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.1:** a premissa `inflacao_projetada_longo_prazo` de Transmissão vira `inflacao_projetada_por_indice`, um valor por índice presente na carteira, porque `concessoes.indice_reajuste` era declarado por concessão e a projeção aplicava um número único à carteira inteira (D-084). `transmissao-energia-b3` vai para 0.7.0. Mudança de estrutura de premissa, sem conteúdo analítico novo.
 
@@ -513,7 +515,7 @@ Conteúdo integral. Ao migrar para repositório, cada bloco torna-se um arquivo 
 
 ```yaml
 id: transmissao-energia-b3
-versao: 0.7.0
+versao: 0.8.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -570,14 +572,40 @@ inputs_obrigatorios:
       # subcampos percentual_reducao e a_partir_de. percentual_reducao é o que
       # se corta: "0.3" é redução de 30% da RAP a partir da data (D-078)
       - reducao_contratual
+    # a fonte com a estrutura que este input pede é a DCR, e não o release. A DCR
+    # foi instituída pela Resolução Normativa ANEEL 396/2010, é de adoção obrigatória
+    # por concessionárias e permissionárias de transmissão e distribuição, integra a
+    # Prestação Anual de Contas e vai para o site da concessionária até 30 de abril
+    # do ano subsequente. Conferido contra a TAESA em 31/08/2026 (D-085)
     onde_encontrar: |
-      1. Resolução Homologatória anual da ANEEL (ciclo RAP)
-      2. Formulário de Referência, seção de contratos relevantes
-      3. Release de resultados, anexo de portfólio de concessões
+      1. Demonstrações Contábeis Regulatórias (DCR) da concessionária, e o input
+         exige juntar DUAS tabelas do mesmo documento:
+         a) "Linhas de Transmissão em Operação, Características Financeiras", que
+            traz por concessão o nome, a Propriedade que corresponde a
+            percentual_participacao, a RAP, o Ano de degrau da RAP com mes e ano,
+            o Mes Base Reajuste e o Indice de Correcao
+         b) a tabela de características físicas, que traz "Início Operação
+            Comercial" e "Venc. da Outorga"
+      2. Resolução Homologatória anual da ANEEL, para a RAP do ciclo. O ato mais
+         recente pode ser Despacho e não Resolução, então buscar só por REH deixa
+         de fora o ciclo corrente
+      3. Formulário de Referência, seção de contratos relevantes
+      Ressalva conferida: o mesmo documento tem uma tabela de projeção de RAP que
+      a conferência de 31/08/2026 não conseguiu ler, por desalinhamento de colunas
+      na extração, e que exige leitura da página renderizada antes de qualquer uso.
+      A tabela de características financeiras, que é a que este input usa, não é
+      essa, e a ressalva fica registrada porque indicar fonte sem indicar o que
+      nela não foi lido vende confiança que não existe
     fallback_manual: true
   - campo: deducoes_sobre_rap
     descricao: "PIS/COFINS, P&D, TFSEE e encargos que separam RAP bruta de líquida"
-    onde_encontrar: "Release de resultados, conciliação de receita regulatória"
+    # a ponte de receita completa, com a ordem das deduções, foi conferida contra a
+    # apresentação de resultados da TAESA em 31/08/2026. O release segue servindo,
+    # e a DCR é a fonte com a estrutura por concessão (D-085)
+    onde_encontrar: |
+      1. Demonstrações Contábeis Regulatórias (DCR), demonstração de resultado
+         regulatória, para a ponte entre receita bruta e líquida
+      2. Release de resultados, conciliação de receita regulatória
 
 premissas_do_usuario:
   - campo: taxa_desconto
