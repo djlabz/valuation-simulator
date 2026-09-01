@@ -1476,3 +1476,101 @@ playbook que a engine não consome, e a premissa R5 afirmava que `strictObject` 
 teste afirmava isso. É a mesma família invertida: o `indice_reajuste` era aceito e ignorado, a
 recusa de `termos_de_renovacao` era alegada e não exercitada. Provado em runtime nesta sessão,
 `unrecognized_keys`, e agora tem teste.
+
+## Sessão de 31/08/2026
+
+### D-085. A primeira conferência documental entra, e os `onde_encontrar` passam a apontar a DCR
+
+**Decisão.** O relatório da conferência da TAESA entra em
+`docs/pesquisa/CONFERENCIA-taesa-2026-08.md`, com cabeçalho de ressalva. Os `onde_encontrar` de
+`concessoes` e de `deducoes_sobre_rap`, no playbook de Transmissão, passam a apontar as
+**Demonstrações Contábeis Regulatórias**. `transmissao-energia-b3` vai a 0.8.0 e o documento de
+requisitos a 2.4.3. **Nenhuma estrutura de input muda**, e nenhum schema é tocado.
+
+**Por que a DCR e não o release.** O `onde_encontrar` mandava procurar no release de resultados,
+e o release não tem a estrutura que o input `concessoes` pede. A DCR tem: a tabela "Linhas de
+Transmissão em Operação, Características Financeiras" traz por concessão o nome, a Propriedade
+que corresponde a `percentual_participacao`, a RAP, o Ano de degrau da RAP com mês e ano, o Mês
+Base Reajuste e o Índice de Correção. O input exige juntar **duas** tabelas do mesmo documento,
+porque `data_vencimento` e a data de início de operação comercial estão na de características
+físicas.
+
+**A fonte não é peculiaridade da companhia.** A DCR foi instituída pela Resolução Normativa ANEEL
+nº 396/2010, é de adoção obrigatória por concessionárias e permissionárias de transmissão e
+distribuição, integra a Prestação Anual de Contas e vai para o site da concessionária até 30 de
+abril do ano subsequente.
+
+**A ressalva que entrou junto, e ela é parte da decisão.** O mesmo documento tem uma tabela de
+projeção de RAP que a conferência **não conseguiu ler**, por desalinhamento de colunas na
+extração. Indicar fonte sem indicar o que nela não foi lido vende confiança que não existe, e a
+ressalva está no próprio `onde_encontrar`, não só aqui. A tabela que o input usa não é essa.
+
+**O que este registro NÃO autoriza.** Alcance de uma companhia e um trimestre. O que a conferência
+confirma vale para a TAESA e é indício forte para o setor, não prova setorial. Dois pontos
+chegaram ao estado CONFERIDA da D-083, a escala da RAP e o mês base de reajuste, e o segundo vem
+com a marca explícita de não generalizar.
+
+**Efeito colateral de método, e ele importa mais que os campos.** A conferência achou nove coisas
+que nenhuma das quatro pesquisas tinha visto, entre elas ISS, ICMS, CDE, PROINFA, o teto da
+Parcela Variável e o cronograma de faixas da SIT. Abrir um documento de uma companhia rendeu mais
+que quatro agentes pesquisando o setor. Isso não desqualifica a pesquisa, que serviu para saber o
+que procurar, mas fixa a ordem: pesquisa orienta, documento decide.
+
+### D-086. `concessoes` vira lista de parcelas de RAP, aceita e não implementada
+
+**Decisão.** `concessoes` passa a ser lista de **parcelas de RAP**, cada uma com data de entrada,
+perfil temporal próprio e vencimento próprio. **Aceita e NÃO implementada nesta etapa.**
+
+**Motivo, e são dois achados que são o mesmo problema.** A concessão SIT tem cronograma de
+**faixas** e não degrau: 72,24% do 1º ao 5º ano, 100% do 6º ao 15º, 53,61% do 16º ao 30º, com a
+primeira faixa **abaixo** de 100% (N22). E o degrau é propriedade do **ativo**, não da concessão:
+reforços posteriores a 2008 em linhas antigas não têm decréscimo no 16º ano, então uma concessão
+antiga com reforço tem duas parcelas com comportamentos diferentes (N23). `percentual_reducao`
+com um ano de corte não expressa nenhum dos dois.
+
+**Como a estrutura resolve os dois de uma vez.** A SIT vira uma parcela com três faixas. O reforço
+pós-2008 vira uma parcela com faixa única de 100%. O degrau clássico vira uma parcela com duas
+faixas, 100% e 50%. O caso de hoje passa a ser o caso particular.
+
+**Custo aceito, declarado.** A granularidade da entrada sobe e **"por concessão" deixa de ser a
+unidade**. E a companhia publica na unidade concessão: a própria projeção de RAP do DCR é por
+linha de transmissão, não por parcela (N31). Quem preencher parcela vai ter que **decompor à
+mão**, e isso precisa estar no `onde_encontrar` quando a mudança for feita.
+
+**Por que não agora.** Depende do PRORET, que segue aberto quanto à dupla contagem de
+reinvestimento, e de decisões do curador sobre a B1. Mudar a estrutura de input antes disso é
+refazer duas vezes.
+
+**Registrado como aceito e não implementado, de propósito.** Decisão aceita que fica só no chat
+desaparece, e decisão implementada antes da hora custa retrabalho. Esta fica no log com o custo
+declarado, esperando o PRORET.
+
+### D-087. Divergência entre fontes primárias de dado extraído é lacuna de requisito
+
+**Decisão.** Registrar como **lacuna do documento de requisitos**, não como premissa de engine e
+não como defeito de código. Nada é implementado.
+
+**O caso.** Dois documentos primários da mesma companhia dizem coisas diferentes sobre o mesmo
+campo. O Excel do release traz "Concessão de Categoria II com ajuste pelo IPCA"; o DCR marca as
+concessões de IPCA como "Categoria III" e informa reajustes de 7,0% para Categoria II e 5,3% para
+Categoria III. Como 7,03% é IGP-M e 5,32% é IPCA, o DCR é internamente consistente e o Excel não.
+Um dos dois está errado, e os dois são primários.
+
+**Por que RF-123 não cobre.** RF-123 diz que conflito entre fontes é resolvido pelo curador, com
+uma prevalecendo ou as duas coexistindo com `divergencia: true`. Ele está na seção de **ingestão
+de conhecimento**, e trata de heurística, nota e evento. **Dado extraído não tem equivalente.**
+RF-304 exige procedência de todo dado, e RF-305 exige confirmação do usuário, mas nenhum dos dois
+diz o que acontece quando duas procedências válidas se contradizem.
+
+**Por que não resolver aqui.** Criar requisito novo é alteração da fonte de verdade, e o
+`CLAUDE.md` manda parar e perguntar. Além disso a forma da solução não é óbvia: pode ser estender
+`divergencia` para dado extraído, pode ser um campo de fonte preferida por playbook, pode ser
+recusa com pendência para o usuário. Escolher sem o curador seria decidir arquitetura por
+conveniência de fechamento de etapa.
+
+**Proposta de texto, para quem aprovar escolher o número.** Requisito novo na seção 5.3: dado
+extraído de duas fontes com procedência válida e valores conflitantes é apresentado ao usuário
+com as duas procedências, sem que o sistema escolha uma, e o cálculo fica bloqueado até a escolha.
+Justificativa: escolher a fonte por conta própria é a mesma família de RP-005, porque o número
+exibido deixa de ser rastreável a um documento e passa a ser rastreável a uma preferência do
+sistema que ninguém declarou.

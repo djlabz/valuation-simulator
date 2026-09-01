@@ -17,18 +17,26 @@
 | **CONVENÇÃO** | convergência de prática, sem norma que a defina |
 | **ABERTA** | sem resposta |
 
-> ## Nenhuma das dezesseis premissas está no estado CONFERIDA.
+> ## O estado CONFERIDA deixou de estar vazio em 31/08/2026, e continua sendo minoria
 >
-> Nenhuma. Zero. A consolidação declara isso de si mesma na seção "Como ler a classificação":
-> a classe A dela significa "existe fonte primária citada com identificação suficiente para
-> você abrir", e explicitamente **não** significa que alguém abriu. Nenhuma das quatro
-> pesquisas comprovou ter aberto o anexo tabular de uma REH, e uma delas registra bloqueio de
-> acesso ao `cedoc` da ANEEL.
+> **De 30/08 a 31/08/2026 este bloco dizia que nenhuma premissa estava em CONFERIDA.** Deixou
+> de ser verdade com a conferência documental da TAESA, registrada em
+> `docs/pesquisa/CONFERENCIA-taesa-2026-08.md`, que é a primeira vez que alguém abriu documento
+> primário de companhia neste projeto.
 >
-> O estado CONFERIDA existe neste arquivo justamente para ficar vazio de forma visível. Sem
-> ele, "classe A" e "conferido" viram sinônimos em três meses, e a regra deste projeto é que
-> explicação inferida sem verificação não entra em documento como fato. Fonte citada e fonte
-> lida são coisas diferentes.
+> **O que mudou de estado:** a escala da RAP (B2) e o mês base de reajuste (dentro de B5). Duas.
+> Todo o resto continua em CITADA E NÃO ABERTA, CONVENÇÃO ou ABERTA.
+>
+> **O alcance do que foi conferido é uma companhia e um trimestre.** CONFERIDA aqui significa
+> "alguém abriu e leu um documento da TAESA", não "vale para o setor". Onde a distinção importa,
+> a premissa marca. Generalizar sem abrir documento de outra companhia é o mesmo erro de tratar
+> classe A como leitura, com uma camada a mais de aparência de rigor.
+>
+> **Por que o estado existe.** A consolidação declara de si mesma que a classe A significa
+> "existe fonte primária citada com identificação suficiente para você abrir", e explicitamente
+> **não** significa que alguém abriu. Sem um estado separado, "classe A" e "conferido" viram
+> sinônimos, e a regra deste projeto é que explicação inferida sem verificação não entra em
+> documento como fato.
 
 ---
 
@@ -54,16 +62,32 @@ pesquisas citam submódulos diferentes (9.8, 9.1, 2.4) para funções adjacentes
 
 ### B2. `rap_bruta_ciclo_atual` é valor anual, em reais correntes, do ciclo vigente
 
-**Estado:** CITADA E NÃO ABERTA para "anual, em reais". **ABERTA** para a escala.
+**Estado:** **CONFERIDA** para a escala, contra documento da TAESA. A resposta é pior que as
+duas hipóteses que a premissa previa.
 
-**Fonte:** consolidação, seção 1. Classe **A** para anual em R$, com transcrição de cabeçalho
-de coluna. Classe **B com risco alto** para "reais inteiros e não milhares".
+**Fonte:** `CONFERENCIA-taesa-2026-08.md`, seção 1.1. Não é mais a consolidação.
 
-**O que ficou faltando, e é o item 1 da lista de perguntas sem resposta:** ninguém abriu o
-anexo tabular da REH. A transcrição do cabeçalho vem com URL de notícia, não do anexo. E a
-consolidação registra que as tabelas auxiliares do PRORET aparecem em `R$ x 1000`, ou seja,
-escala diferente da RAP homologada no mesmo universo documental. Erro possível de 1000x, e
-silencioso. **É a primeira coisa a conferir com documento na tela.**
+**A resposta, e ela não é "milhares" nem "reais".** Duas abas do mesmo Excel publicam o mesmo
+número em escalas diferentes **declarando a mesma unidade**: a aba `RAP Cycle` mostra `560,435`
+sob cabeçalho `RAP (R$ MM)`, e a aba `Ciclo RAP detalhado` mostra `560435,514` sob `(R$ MM)`. O
+cabeçalho mente numa das duas.
+
+**O que resolve é a aritmética, não o cabeçalho.** O total da aba detalhada em milhares dá cerca
+de R$ 4,56 bilhões, compatível com o que a apresentação declara. Em milhões daria R$ 4,5
+trilhões, absurdo.
+
+**Consequência para o desenho, e ela é diferente do que a premissa supunha.** Escala não é campo
+de schema, é **propriedade do dado extraído**, com verificação por ordem de grandeza. Um campo
+de schema descreve o que o documento diz, e o documento diz coisas diferentes em duas abas.
+
+**A limitação da própria verificação, que precisa ficar dita.** Ordem de grandeza só decide
+**contra uma referência externa**: "compatível com bilhões" pressupõe saber de antemão que a RAP
+daquela companhia é bilionária. O playbook não tem nenhuma referência dessas hoje, e sem ela a
+verificação não roda sozinha.
+
+**O que continua aberto:** o anexo tabular da REH em si não foi aberto, e a consolidação registra
+que as tabelas do PRORET aparecem em `R$ x 1000`. E isto é TAESA: outra companhia pode publicar
+em outra escala.
 
 ### B3. O período de projeção é anual e ancorado na `data_base`
 
@@ -93,17 +117,32 @@ virou `inflacao_projetada_por_indice`, um valor por índice, e cada concessão r
 dela. Isso não é resposta de pesquisa, é a engine parar de aplicar um número único a concessões
 com índices diferentes.
 
-**O que ficou faltando, e é o que ainda depende de pesquisa:** qual valor cada índice recebe, e
-ler a cláusula de reajuste de um contrato de cada safra para confirmar o índice por contrato. A
+**O dado é publicado, e agora se sabe onde (conferência, seção 1.3).** O DCR traz coluna
+"Índice de Correção" por linha de transmissão, e a nota 7.4 lista **nominalmente** as concessões
+de cada índice. Não é dedução, é tabela.
+
+**E a diferença entre índices é material, medida.** Os reajustes do ciclo 2026-2027 foram de
+1,95% e 4,72%, e os do ciclo anterior de 7,03% e 5,32%. Aplicar um número só para a carteira,
+que é o que a engine fazia antes da D-084, erra na diferença entre esses pares.
+
+**O que ficou faltando, e é o que ainda depende de pesquisa:** qual valor cada índice recebe. A
 premissa nasce vazia e o cálculo bloqueia até ser preenchida, sem default e sem valor sugerido.
 
 ### B5. O reajuste incide a partir do primeiro período, sobre a RAP líquida
 
 **Estado:** ABERTA.
 
+**Estado do mês base: CONFERIDA para a TAESA.** O DCR publica coluna "Mês Base Reajuste" por
+concessão, e **toda a carteira aparece como junho** (conferência, seção 1.2). Isso corrobora a
+grade de ciclo de julho a junho da B3 por um segundo caminho documental. **Não generalizar sem
+conferir outra companhia:** uma transmissora com mês base diferente quebraria o alinhamento
+entre o mês base e a virada do ciclo, e nada foi aberto fora da TAESA.
+
+**Estado do reajuste no primeiro período: INDÍCIO FORTE, não conferida.** Ver premissa N17, que
+é onde o indício está registrado com o que falta para fechar.
+
 **Fonte:** consolidação, seção 7, e é o item 2 da lista de perguntas sem resposta. Nenhuma das
-quatro trata do primeiro período de projeção. O que existe: a data de referência do reajuste é
-1º de julho, que a grade nova já usa como virada.
+quatro trata do primeiro período de projeção.
 
 **O que ficou faltando:** a data de aniversário, o índice e o tratamento pro rata, por safra de
 contrato. **Ver também a premissa N17**, que é a assimetria que a grade nova tornou visível e
@@ -404,17 +443,34 @@ tomada aqui.
 
 ### N15. P&D e TFSEE: dedução na ponte ou despesa, e o risco de contagem dupla
 
-**Estado:** ABERTA, e é contradição interna que nenhuma pesquisa resolveu. Consolidação,
-seção 6, e item 7 da lista de perguntas sem resposta.
+**Estado:** **RESPONDIDA PARA A APRESENTAÇÃO DA TAESA**, e não como enquadramento da obrigação
+legal. Consolidação, seção 6, item 7 da lista de perguntas sem resposta, mais a conferência,
+seção 1.4.
+
+> **Divergência de rótulo, registrada de propósito.** O relatório de conferência rotula este
+> ponto como "respondida, hipótese A". Aqui ele fica um grau abaixo, e o motivo está no parágrafo
+> da circularidade. O que a ponte prova é **onde a TAESA apresenta** esses itens, não como a
+> obrigação legal se enquadra.
 
 A **Lei 9.991/2000, art. 4º** obriga a concessionária a **aplicar** no mínimo 1% da receita
 operacional líquida em P&D, o que é obrigação de dispêndio. Duas pesquisas colocam o P&D dentro
 da ponte entre RAP bruta e RAP líquida, e a citação literal **não sustenta** esse enquadramento.
 Mesma dúvida para a TFSEE.
 
+**O que a conferência mostrou.** A ponte de receita da TAESA traz a linha literal "Quota para
+RGR, P&D, TFSEE, CDE e PROINFA" como **dedução entre bruta e líquida**, e não como despesa
+operacional.
+
+**A circularidade que a apresentação não resolve, e é por isso que o estado não é CONFERIDA.** Se
+o P&D é deduzido para chegar à receita **líquida**, e a Lei 9.991/2000 manda aplicar 1% da receita
+operacional **líquida**, então ou a quota daquela linha não é o dispêndio de que a lei fala, ou
+existe uma ordem de cálculo que a apresentação não mostra. As duas leituras continuam de pé.
+
 **A armadilha, e ela está armada e não disparada.** Se a engine subtrair P&D na ponte **e**
 reconhecer a despesa no OPEX, conta duas vezes. Hoje não conta, porque a engine não tem OPEX,
-por causa da B1. Quando a B1 fechar e o OPEX entrar, isto precisa ser resolvido antes.
+por causa da B1. Quando a B1 fechar e o OPEX entrar, isto precisa ser resolvido antes. **É a
+conclusão prática que sobrevive à circularidade**: qualquer que seja o enquadramento, esses
+itens não podem aparecer duas vezes.
 
 ### N16. Commodities: R/P por companhia e prazo de exaustão por ativo não são a mesma grandeza
 
@@ -458,3 +514,210 @@ Tornar a grade explícita é o que tornou a inconsistência visível, que é o e
 **Consequência:** superestima em um fator de `(1 + inflação)` quando a data base cai em 1º de
 julho, e não superestima nos outros dias. O erro depende da data base, não dos dados da
 companhia, que é a pior categoria: some quando alguém muda a data e reaparece depois.
+
+**Indício forte obtido em 31/08/2026, e ele não fecha a premissa.** A apresentação da TAESA
+reconcilia o ciclo: RAP operacional do ciclo 2025-2026 de 3.974,7, mais reajuste inflacionário de
+129,9, mais entrada em operação de 341,3, chegando a 4.445,9 no ciclo 2026-2027 (conferência,
+seção 7). Isso indica que **a RAP publicada para um ciclo já vem reajustada para aquele ciclo**, e
+portanto que a engine não deve reajustar de novo no primeiro período.
+
+**Por que continua ABERTA mesmo assim.** A resposta depende de **qual número o extrator vai
+pegar**, e a fonte do input mudou para a DCR nesta mesma etapa (D-085). Falta saber a que ciclo a
+coluna de RAP da DCR se refere. Enquanto isso não estiver respondido, "a RAP já vem reajustada"
+vale para o número da apresentação e não necessariamente para o número que a engine vai receber.
+
+---
+
+## Premissas novas vindas da conferência documental da TAESA
+
+Registradas em 31/08/2026, a partir de `docs/pesquisa/CONFERENCIA-taesa-2026-08.md`. **Nenhuma
+foi aplicada em código.**
+
+**Alcance, e vale para as catorze:** uma companhia, um trimestre. O que está marcado como
+confirmado vale para a TAESA e é indício forte para o setor, não prova setorial.
+
+### N18. RAP não é um valor, são quatro eixos
+
+**Estado:** CONFERIDA para a TAESA quanto à existência dos eixos.
+
+O campo `rap_bruta_ciclo_atual` carrega um número, e para aquele número significar alguma coisa
+faltam quatro respostas:
+
+| Eixo | Por que não é dedutível do campo |
+|---|---|
+| **Escala** | duas abas do mesmo Excel, mesmo número, escalas diferentes, mesma unidade declarada (B2) |
+| **Base tributária** | o Excel diz que toda RAP está adicionada de PIS/COFINS; o DCR sugere que só a Categoria III está (N29) |
+| **Ciclo de referência** | a que ciclo o número se refere, que é o que a N17 precisa saber da DCR |
+| **Ponto na ponte** | **este é novo** |
+
+**O quarto eixo, que a conferência descobriu.** A ponte da TAESA deduz a **Parcela Variável antes**
+do total da receita operacional bruta, e os tributos e encargos **depois**. Então existem pelo
+menos três números que alguém pode chamar de RAP: a homologada na REH, a após parcela variável, e
+a líquida de tributos e encargos. O campo não diz qual dos três.
+
+### N19. A ponte completa de receita, e o que ela diz sobre a B1
+
+**Estado:** CONFERIDA para a TAESA. Conferência, seção 1.5.
+
+Transcrita do documento, na ordem em que aparece:
+
+```
+RECEITA OPERACIONAL BRUTA
+  (−) Parcela variável
+= TOTAL DA RECEITA OPERACIONAL BRUTA
+  (−) PIS e COFINS
+  (−) ISS
+  (−) ICMS
+  (−) Quota para RGR, P&D, TFSEE, CDE e PROINFA
+  (−) Outras deduções
+= RECEITA OPERACIONAL LÍQUIDA
+  (−) Pessoal
+  (−) Material
+  (−) Serviços de terceiros
+  (−) Outras despesas operacionais
+  (−) Depreciação e amortização
+= RESULTADO OPERACIONAL
+```
+
+**O que isso significa para a B1, e é uma correção de leitura.** Isto é insumo direto e indica que
+**a lista de inputs do playbook está incompleta**, e não que a engine tenha simplificado
+deliberadamente. A distinção importa: a primeira leitura é defeito de levantamento, a segunda
+seria decisão de modelagem. É a primeira.
+
+### N20. ISS e ICMS existem na ponte, e ninguém os mencionou
+
+**Estado:** ABERTA.
+
+Aparecem como deduções próprias na ponte, e **nenhuma das quatro pesquisas nem a consolidação os
+citou**. ICMS sobre receita de transmissão é estranho o bastante para merecer conferência própria:
+pode ser específico de alguma operação, pode ser recuperável, pode ser resíduo de outra atividade
+da companhia. Nada disso foi verificado.
+
+### N21. CDE e PROINFA existem na quota, e ela vem agregada
+
+**Estado:** ABERTA.
+
+Os dois estão na linha "Quota para RGR, P&D, TFSEE, CDE e PROINFA" e também não foram mencionados
+por ninguém. E os cinco itens vêm em **linha única agregada**: um input que peça cada um
+separadamente não tem correspondente no documento.
+
+### N22. Existe concessão com cronograma de faixas, não com degrau
+
+**Estado:** CONFERIDA para a TAESA. Conferência, seção 3.1, nota 7.4 do DCR.
+
+A concessão SIT teve o recebimento da RAP dividido em quadrantes ao longo dos trinta anos:
+**72,24% do 1º ao 5º ano, 100% do 6º ao 15º, e 53,61% do 16º ao 30º**.
+
+**A primeira faixa é inferior a 100%.** `percentual_reducao` aplicado a partir de um ano de corte
+não expressa isso de jeito nenhum: ele pressupõe que a RAP começa cheia e cai uma vez.
+
+### N23. O degrau é propriedade do ativo, não da concessão
+
+**Estado:** CONFERIDA para a TAESA. Conferência, seção 3.2.
+
+A mesma nota afirma que, para uma lista nominal de concessões e **para os reforços realizados nas
+linhas de transmissão após 2008**, não há decréscimo do faturamento no 16º ano, com recebimento
+linear ao longo da concessão. Uma concessão antiga com reforço posterior tem **duas parcelas com
+comportamentos diferentes dentro da mesma concessão**.
+
+**A consequência que vai além do degrau.** A RAP de uma concessão **não é um número, é soma de
+parcelas com origens e datas diferentes**, e a companhia já publica assim: o Excel traz colunas
+distintas de RAP "Operacional" e "Em Construção" por concessão.
+
+### N24. `concessoes` vira lista de parcelas de RAP
+
+**Estado:** **DECISÃO ACEITA E NÃO IMPLEMENTADA.** Ver D-086.
+
+As premissas N22 e N23 são o mesmo problema, e a solução resolve as duas juntas. Não foi
+implementada porque depende do PRORET, que segue aberto, e de decisões do curador sobre a B1.
+
+### N25. Degrau e reajuste são eventos datados diferentes dentro do mesmo ciclo
+
+**Estado:** CONFERIDA para a TAESA quanto às datas, ABERTA quanto à ordem.
+
+O DCR traz coluna "Ano de degrau da RAP" com **mês e ano por concessão**, como `jun/18` e
+`mai/23`, e o mês base de reajuste de toda a carteira é junho. Então em pelo menos um caso o
+**degrau é em maio e o reajuste em junho**, dentro do mesmo ciclo.
+
+**A ordem entre os dois muda o valor daquele ciclo**, e nada declara qual vem primeiro.
+
+**O que isto não é.** Não é uma quarta grade temporal. É **evento datado dentro da grade do
+ciclo**, e o que falta é posição declarada, não grade nova. A distinção importa para não inflar o
+modelo de `grades.ts` com algo que é atributo de dado.
+
+### N26. A Parcela Variável tem teto contratual, e ele varia por concessão
+
+**Estado:** CONFERIDA para a TAESA. Conferência, seção 3.3.
+
+O desconto anual por indisponibilidade **não pode ultrapassar 12,5%** da receita anual de
+operação, manutenção e construção do período contínuo de doze meses anteriores, com o caso
+específico da **ECTE em 25%**. Nada no playbook representa isso.
+
+**Magnitude de referência:** no 6M26 a Parcela Variável foi de 0,73% da RAP, contra 0,51% no 6M25.
+
+### N27. A Parcela de Ajuste tem três componentes
+
+**Estado:** CONFERIDA para a TAESA. Conferência, seção 5.
+
+O Excel desdobra a Parcela de Ajuste em três colunas: **apuração e outros ajustes, retroativa, e
+vida útil**. A consolidação apontava a existência dela como item não previsto (N6); a conferência
+mostra que ela é **composta**, e que um campo único não a representa.
+
+**Magnitude:** para a Novatrans, a parcela retroativa é de menos R$ 36,8 milhões contra RAP de
+R$ 560,4 milhões.
+
+### N28. Divergência entre duas fontes primárias da mesma companhia
+
+**Estado:** **LACUNA DE REQUISITO**, não premissa de engine. Ver D-087.
+
+**O caso documentado (conferência, seção 4.1).** O Excel traz nota de rodapé "Concessão de
+Categoria II com ajuste pelo IPCA". O DCR marca as concessões de IPCA como "Concessão de
+categoria III", e afirma que no ciclo 2025-2026 os reajustes foram de 7,0% para Categoria II e
+5,3% para Categoria III. Como **7,03% é a variação do IGP-M e 5,32% a do IPCA**, o DCR é
+internamente consistente e o Excel não. Um dos dois está errado.
+
+**Por que é lacuna de requisito.** RF-123 cobre conflito entre fontes na **ingestão de
+conhecimento**, resolvido pelo curador. Não cobre **dado extraído**: dois documentos primários da
+mesma companhia dizendo coisas diferentes sobre o mesmo campo não tem mecanismo no projeto.
+
+### N29. A base de PIS/COFINS pode variar dentro da mesma tabela
+
+**Estado:** ABERTA. Conferência, seção 4.2.
+
+O Excel afirma em rodapé que **todos** os valores de RAP estão adicionados de PIS/COFINS. O DCR,
+na mesma tabela de características financeiras, traz nota dizendo que **a Categoria III** é
+apresentada com adição de PIS/COFINS, o que sugere que as demais não são.
+
+**Se confirmado, a mesma tabela mistura duas bases**, e o extrator não tem como saber por linha.
+É o segundo eixo da N18.
+
+### N30. A tabela de projeção de RAP do DCR não foi lida
+
+**Estado:** ABERTA, e **não é ativo do projeto**.
+
+O DCR traz tabela "RAP Esperada em moeda constante de 31/12/2025", por linha de transmissão, com
+colunas de 2024 a 2030, sendo 2024 e 2025 realizados.
+
+**A conferência NÃO conseguiu lê-la.** A seção 6 do relatório registra desalinhamento de colunas
+na extração de texto, com valores implausíveis em pelo menos uma linha, e diz que a tabela **exige
+leitura da página renderizada antes de qualquer uso**.
+
+**Consequência.** Ela é **candidata** a caso de referência da Fase 8, e **não serve como alvo de
+validação** enquanto ninguém a ler direito. Nenhum número dela entra em lugar nenhum.
+
+> **Nota de procedência desta entrada.** A tarefa que pediu este registro descrevia a tabela com
+> números específicos, incluindo quantas linhas reconciliam e valores por concessão. **Esses
+> números não existem no relatório de conferência**, verificado por busca. O que está registrado
+> acima é o que o relatório afirma. Registrar os números seria afirmar como fato uma leitura que o
+> próprio documento diz não ter conseguido fazer.
+
+### N31. A companhia projeta na unidade em que declara
+
+**Estado:** CONFERIDA quanto à unidade da tabela, que é o que a seção 6 descreve com segurança.
+
+A projeção de RAP do DCR é **por linha de transmissão**, mesma unidade da tabela de características
+financeiras, **não por parcela**.
+
+**O que isso responde e o que não responde.** Não resolve a questão de granularidade da N24: a
+companhia projeta na mesma unidade em que declara, então o documento não oferece a decomposição
+por parcela que a D-086 vai exigir. Quem preencher parcela vai ter que decompor à mão.
