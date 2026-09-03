@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.3
+**Versão:** 2.4.4
 **Data:** 31 de agosto de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.3:** a ressalva do `onde_encontrar` de `concessoes`, em Transmissão, deixou de ser verdadeira e foi corrigida. Ela dizia que a tabela de projeção de RAP do DCR não tinha sido lida; a página foi lida em rodada posterior e a tabela **não reconcilia** com a tabela de RAP do mesmo documento (D-088). O motivo da ressalva muda de "não lida" para "lida e divergente", e a ressalva continua. `transmissao-energia-b3` vai para 0.9.0. Correção factual, sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.2:** os `onde_encontrar` de `concessoes` e de `deducoes_sobre_rap`, em Transmissão, passam a apontar as Demonstrações Contábeis Regulatórias, que é a fonte com a estrutura que os inputs pedem, conferida contra documento da TAESA (D-085). `transmissao-energia-b3` vai para 0.8.0. Correção factual de localização de dado, sem alteração de estrutura de input nem de premissa.
 
@@ -515,7 +517,7 @@ Conteúdo integral. Ao migrar para repositório, cada bloco torna-se um arquivo 
 
 ```yaml
 id: transmissao-energia-b3
-versao: 0.8.0
+versao: 0.9.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -591,11 +593,11 @@ inputs_obrigatorios:
          de fora o ciclo corrente
       3. Formulário de Referência, seção de contratos relevantes
       Ressalva conferida: o mesmo documento tem uma tabela de projeção de RAP que
-      a conferência de 31/08/2026 não conseguiu ler, por desalinhamento de colunas
-      na extração, e que exige leitura da página renderizada antes de qualquer uso.
-      A tabela de características financeiras, que é a que este input usa, não é
-      essa, e a ressalva fica registrada porque indicar fonte sem indicar o que
-      nela não foi lido vende confiança que não existe
+      foi lida na página renderizada e NAO reconcilia com a tabela de RAP deste
+      mesmo documento, em sete de catorze linhas, sem explicação. A tabela de
+      características financeiras, que é a que este input usa, não é essa, e a
+      ressalva fica registrada porque indicar a DCR como fonte sem indicar que
+      duas tabelas dela não fecham vende confiança que não existe
     fallback_manual: true
   - campo: deducoes_sobre_rap
     descricao: "PIS/COFINS, P&D, TFSEE e encargos que separam RAP bruta de líquida"

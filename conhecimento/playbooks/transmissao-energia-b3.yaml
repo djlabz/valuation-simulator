@@ -1,5 +1,5 @@
 id: transmissao-energia-b3
-versao: 0.8.0
+versao: 0.9.0
 mercado: B3
 nome_exibicao: "Transmissão de Energia Elétrica"
 
@@ -75,11 +75,11 @@ inputs_obrigatorios:
          de fora o ciclo corrente
       3. Formulário de Referência, seção de contratos relevantes
       Ressalva conferida: o mesmo documento tem uma tabela de projeção de RAP que
-      a conferência de 31/08/2026 não conseguiu ler, por desalinhamento de colunas
-      na extração, e que exige leitura da página renderizada antes de qualquer uso.
-      A tabela de características financeiras, que é a que este input usa, não é
-      essa, e a ressalva fica registrada porque indicar fonte sem indicar o que
-      nela não foi lido vende confiança que não existe
+      foi lida na página renderizada e NAO reconcilia com a tabela de RAP deste
+      mesmo documento, em sete de catorze linhas, sem explicação. A tabela de
+      características financeiras, que é a que este input usa, não é essa, e a
+      ressalva fica registrada porque indicar a DCR como fonte sem indicar que
+      duas tabelas dela não fecham vende confiança que não existe
     fallback_manual: true
   - campo: deducoes_sobre_rap
     descricao: "PIS/COFINS, P&D, TFSEE e encargos que separam RAP bruta de líquida"
