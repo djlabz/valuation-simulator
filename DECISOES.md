@@ -1574,3 +1574,52 @@ com as duas procedências, sem que o sistema escolha uma, e o cálculo fica bloq
 Justificativa: escolher a fonte por conta própria é a mesma família de RP-005, porque o número
 exibido deixa de ser rastreável a um documento e passa a ser rastreável a uma preferência do
 sistema que ninguém declarou.
+
+### D-088. Leitura feita depois do documento volta para o documento
+
+**Decisão.** O relatório de conferência é substituído pela versão com a seção 9, que registra a
+leitura da página renderizada. A contagem da não reconciliação é corrigida para o que a tabela
+nominal da seção 9.2 mostra. E fica a regra: **leitura feita depois de o documento ser escrito
+volta para o documento, em commit, antes de virar insumo de qualquer tarefa.**
+
+**O que aconteceu, na ordem.** O relatório foi commitado em `72eb2cf` dizendo que a tabela de
+projeção não tinha sido conferida, por suspeita de desalinhamento na extração. O curador leu a
+página renderizada depois, escreveu a seção 9 e **não commitou**. A tarefa seguinte descreveu a
+seção 9 como se ela estivesse no repositório. O agente leu o arquivo commitado, não achou os
+números, e recusou registrá-los.
+
+**A recusa estava certa por dois motivos, e o segundo é o que importa.** O primeiro é óbvio: não
+dava para ver o que não estava no disco. O segundo apareceu depois: **a contagem agregada que o
+prompt trazia estava errada**. Ele dizia oito linhas reconciliando e seis divergindo; a tabela da
+seção 9.2 tem catorze linhas, **sete batendo e sete divergindo**, contadas sobre a tabela nesta
+sessão. Se o agente tivesse aceitado a descrição, o repositório teria registrado contagem
+incorreta **como fato conferido**, que é a pior categoria de erro deste projeto: número errado com
+carimbo de verificado.
+
+**A regra, e por que ela é a mesma família da regra de decisão em chat.** O `DECISOES.md` abre
+dizendo que decisão que só existe no chat desaparece quando a conversa fecha. Esta é a versão da
+mesma doença para leitura: **documento desatualizado que convive com informação mais nova em
+conversa produz duas versões da mesma conferência**, e quem escreve prompt junta as duas sem
+perceber. Foi exatamente isso que aconteceu.
+
+**Efeito colateral que também foi corrigido.** A sobrescrita do arquivo com a versão local do
+curador removeu, sem intenção, o cabeçalho de ressalva escrito na etapa anterior. Ele foi
+restaurado **a partir do commit `72eb2cf`**, e não reescrito de memória, com dois parágrafos
+ajustados: o que dizia que a tabela não tinha sido conferida virou o registro das duas rodadas e
+de qual vale, e o de documentos abertos passou a citar a leitura da página renderizada.
+
+**O que mudou de estado por causa disso.** A N30 sai de "não foi lida" para **CONFERIDA**, com o
+veredito de que as duas tabelas do mesmo documento não fecham. A suspeita de desalinhamento fica
+registrada **como descartada**, porque suspeita descartada apagada do registro reaparece como
+suspeita nova daqui a três meses. E a N28 passa a ter os dois casos no mesmo patamar: a segunda
+metade, que estava como suspeita sem evidência, virou divergência estabelecida, o que reforça a
+lacuna de requisito da D-087 sem resolvê-la.
+
+**O `onde_encontrar` ficou falso e foi corrigido.** Ele dizia que a tabela de projeção não tinha
+sido lida. A ressalva continua existindo, porque indicar a DCR como fonte sem dizer que duas
+tabelas dela não fecham vende confiança que não existe. **O que mudou é o motivo**, de "não lida"
+para "lida e divergente". Playbook a 0.9.0 e documento de requisitos a 2.4.4.
+
+**Descartado, apagar a menção à suspeita de desalinhamento.** Seria mais limpo de ler e apagaria
+a informação de que alguém já olhou e descartou. Registro de suspeita descartada é o que impede a
+mesma suspeita de custar uma segunda rodada.

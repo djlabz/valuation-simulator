@@ -11,7 +11,9 @@
 > **Documentos efetivamente abertos:** Apresentação de Resultados 2T26 (12/08/2026); tabelas do
 > release 2T26 em Excel (`Auxiliar-Release_TAESA_Site_2T26.xlsx`); Demonstrações Contábeis
 > Regulatórias de 2025 (`DCR-2025-TAESA-1.pdf`, 84 páginas); ITR findo em 30/06/2026 e release
-> de resultados 2T26, os dois consultados **parcialmente**.
+> de resultados 2T26, os dois consultados **parcialmente**. Em rodada posterior, a página 5 do
+> PDF do DCR, numerada como 3 no documento, foi lida na imagem renderizada e não só por extração
+> de texto (seção 9).
 >
 > **O que ele muda na classificação.** Para os pontos que cobre, este arquivo substitui a classe
 > "fonte primária citada" da consolidação em `consolidacao-valuation-b3.md` por **"fonte aberta e
@@ -19,10 +21,16 @@
 > `docs/premissas-de-interpretacao-fcff-por-concessao.md` (D-083). Para os pontos que ele **não**
 > cobre, a classificação da consolidação continua valendo, e ela não significa leitura.
 >
-> **O que ele NÃO confere, e está marcado como tal no corpo.** A tabela de projeção de RAP da
-> seção 6 **não foi conferida**: a extração de texto veio com desalinhamento de colunas e valores
-> implausíveis, e ela exige leitura da página renderizada antes de qualquer uso. Não use número
-> dela para nada.
+> **Duas rodadas, e a segunda mudou a primeira.** A seção 6 registrou a tabela de projeção de RAP
+> como não conferida, por suspeita de desalinhamento na extração de texto. A **seção 9** é a
+> rodada posterior: a página 5 do PDF do DCR foi renderizada e lida visualmente, a suspeita de
+> desalinhamento **não se confirmou**, e a tabela passou a ser conferida. Quando as duas seções
+> divergirem, **vale a 9**, que a 6 aponta.
+>
+> **O que a segunda rodada achou, e não é o que se esperava.** A tabela de projeção **não
+> reconcilia** com a tabela de RAP do mesmo documento, sem explicação. Ela continua candidata a
+> caso de referência da Fase 8 e **não serve como alvo de validação** enquanto a divergência não
+> for explicada.
 >
 > **Este arquivo não é fonte de verdade.** A fonte de verdade é
 > `docs/REQUISITOS-valuation-simulator-v2.4.md`. Nada daqui autoriza copiar conteúdo para
@@ -209,7 +217,7 @@ A consolidação apontava a existência da Parcela de Ajuste como item não prev
 
 O DCR traz tabela "RAP Esperada em moeda constante de 31/12/2025", por linha de transmissão, com colunas de 2024 a 2030, sendo 2024 e 2025 realizadas.
 
-**Não conferida.** A extração de texto apresentou desalinhamento de colunas nessa tabela, com valores implausíveis para pelo menos uma linha. Exige leitura da página renderizada antes de qualquer uso.
+**Conferida em rodada posterior. Ver seção 9.** Nesta primeira rodada a tabela não foi conferida, por suspeita de desalinhamento na extração de texto. A leitura da página renderizada foi feita depois e está registrada na seção 9, que substitui esta pendência.
 
 Se confirmada, é material relevante: a própria companhia publica projeção plurianual de RAP por ativo, o que serve tanto de insumo quanto de caso de referência para validação de engine.
 
@@ -243,5 +251,68 @@ Indício forte, de documento de companhia reconciliando o número oficial. Não 
 2. **PRORET**, qual submódulo faz o quê e se a RAP embute quota de reintegração regulatória.
 3. **Indenização de RAB por safra de contrato**, não coberta nesta conferência.
 4. **Regime de PIS/COFINS por concessão**, cumulativo ou não cumulativo.
-5. **Projeção de RAP do DCR**, pendente de leitura da página renderizada.
+5. **Explicação da não reconciliação** entre a projeção de RAP e a tabela de RAP do mesmo documento, registrada na seção 9. A leitura foi feita; a explicação não existe.
 6. **Generalidade setorial** de tudo que aqui está marcado como confirmado para a TAESA.
+
+---
+
+## 9. Rodada posterior: leitura da página renderizada da projeção
+
+**Adendo de 31/08/2026.** A seção 6 registrou a tabela de projeção como não conferida, por desalinhamento na extração de texto. A página foi posteriormente renderizada e lida visualmente. Esta seção registra o resultado e substitui a pendência da seção 6.
+
+**Referência:** DCR 2025, página 5 do PDF, numerada como página 3 no documento.
+
+### 9.1. A extração estava correta
+
+O desalinhamento suspeitado não existia. Os valores conferem com a imagem renderizada, e a soma da coluna de 2024 fecha com o total declarado de 2.095.014.
+
+### 9.2. A tabela não reconcilia com a tabela de RAP do mesmo documento
+
+Comparando a coluna de 2026 da projeção com a RAP homologada da tabela de características financeiras, duas páginas antes:
+
+| Linha | RAP homologada | Projeção 2026 | Bate |
+|---|---|---|---|
+| TSN | 510.318 | 521.623 | não |
+| Gtesa | 9.138 | 24.131 | não |
+| Munirah | 35.121 | 35.121 | sim |
+| Patesa | 28.520 | 28.520 | sim |
+| ETEO | 162.887 | 162.887 | sim |
+| NVT | 549.715 | 535.516 | não |
+| STE | 79.252 | 79.252 | sim |
+| NTE | 142.307 | 142.307 | sim |
+| ATE | 137.811 | 150.262 | não |
+| ATE II | 215.867 | 215.867 | sim |
+| ATE III | 103.787 | 115.584 | não |
+| SAN | 93.047 | 91.866 | não |
+| SIT | 191.732 | 170.390 | não |
+| MIR | 104.249 | 104.249 | sim |
+
+Sete batem exatamente, sete divergem.
+
+O caso mais extremo é Gtesa: RAP homologada de 9.138, projeção de 24.131 em 2026, precedida de 472.845 em 2024 e 542.010 em 2025, ambos marcados como realizados. A trajetória cai mais de vinte vezes entre 2025 e 2026, e nenhum dos três valores guarda relação óbvia com a RAP declarada da mesma concessão.
+
+**Nenhuma explicação foi encontrada, e nenhuma foi construída.** O registro é que as duas tabelas do mesmo documento não fecham entre si.
+
+### 9.3. Perfis temporais são visíveis na projeção
+
+ETEO permanece em 162.887 de 2026 a 2029 e cai para 67.870 em 2030.
+
+SIT sobe de 129.394 em 2024 para 170.390 em 2026 e 190.298 de 2027 em diante, onde estabiliza. Compatível em forma com o cronograma de quadrantes descrito na nota 7.4, sem que a proporção exata tenha sido reconciliada.
+
+Os dois confirmam que perfil temporal de RAP é fenômeno observável em documento publicado, e não apenas cláusula contratual.
+
+### 9.4. A projeção não responde a questão de granularidade
+
+A projeção é por linha de transmissão, mesma unidade da tabela de RAP e mesma unidade que o input `concessoes` usa hoje. Não é por parcela.
+
+Portanto ela não informa qual granularidade a estrutura de entrada deveria ter. A companhia projeta na mesma unidade em que declara, e a decomposição em parcelas, se adotada, será trabalho de quem preenche.
+
+### 9.5. Consequência para o uso como caso de referência
+
+A tabela continua **candidata** a caso de referência da Fase 8, e não serve como alvo de validação enquanto a não reconciliação não for explicada. Validar engine contra número que não fecha com a própria fonte produziria concordância ou discordância igualmente sem significado.
+
+### 9.6. Achado adicional na mesma página
+
+A tabela de características físicas, imediatamente acima da financeira, traz as colunas "Início Operação Comercial" e "Venc. da Outorga" por concessão.
+
+Ou seja, o input `concessoes` exige juntar duas tabelas do mesmo documento: a física, que contém as datas, e a financeira, que contém RAP, ano de degrau, mês base e índice.

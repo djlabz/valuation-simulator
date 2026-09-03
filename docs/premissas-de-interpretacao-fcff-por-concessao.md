@@ -670,11 +670,20 @@ R$ 560,4 milhões.
 
 **Estado:** **LACUNA DE REQUISITO**, não premissa de engine. Ver D-087.
 
-**O caso documentado (conferência, seção 4.1).** O Excel traz nota de rodapé "Concessão de
-Categoria II com ajuste pelo IPCA". O DCR marca as concessões de IPCA como "Concessão de
-categoria III", e afirma que no ciclo 2025-2026 os reajustes foram de 7,0% para Categoria II e
-5,3% para Categoria III. Como **7,03% é a variação do IGP-M e 5,32% a do IPCA**, o DCR é
-internamente consistente e o Excel não. Um dos dois está errado.
+**São DOIS casos, e os dois estão estabelecidos.** Na primeira versão desta premissa o segundo
+era suspeita não confirmada, por falta de evidência no arquivo. A segunda rodada da conferência
+fechou (D-088).
+
+**Caso 1, categoria da concessão (conferência, seção 4.1).** O Excel traz nota de rodapé
+"Concessão de Categoria II com ajuste pelo IPCA". O DCR marca as concessões de IPCA como
+"Concessão de categoria III", e afirma que no ciclo 2025-2026 os reajustes foram de 7,0% para
+Categoria II e 5,3% para Categoria III. Como **7,03% é a variação do IGP-M e 5,32% a do IPCA**, o
+DCR é internamente consistente e o Excel não. Um dos dois está errado.
+
+**Caso 2, projeção que não reconcilia (conferência, seção 9.2).** Duas tabelas **do mesmo
+documento**, o DCR, discordam sobre a RAP de 2026 em sete de catorze linhas. A tabela nominal está
+na seção 9.2 e o detalhe na N30. Este caso é pior que o primeiro: lá são dois documentos
+diferentes e um pode ser descartado, aqui é o mesmo documento contra ele mesmo.
 
 **Por que é lacuna de requisito.** RF-123 cobre conflito entre fontes na **ingestão de
 conhecimento**, resolvido pelo curador. Não cobre **dado extraído**: dois documentos primários da
@@ -691,33 +700,61 @@ apresentada com adição de PIS/COFINS, o que sugere que as demais não são.
 **Se confirmado, a mesma tabela mistura duas bases**, e o extrator não tem como saber por linha.
 É o segundo eixo da N18.
 
-### N30. A tabela de projeção de RAP do DCR não foi lida
+### N30. A projeção de RAP do DCR não reconcilia com a tabela de RAP do mesmo documento
 
-**Estado:** ABERTA, e **não é ativo do projeto**.
+**Estado:** **CONFERIDA**, na segunda rodada da conferência (seção 9 do relatório). O veredito é
+que **as duas tabelas do mesmo documento não fecham entre si**, e ninguém explicou por quê.
 
-O DCR traz tabela "RAP Esperada em moeda constante de 31/12/2025", por linha de transmissão, com
-colunas de 2024 a 2030, sendo 2024 e 2025 realizados.
+**A suspeita de desalinhamento foi levantada e descartada.** A seção 6 registrou a tabela como não
+conferida por suspeita de desalinhamento na extração de texto. A seção 9.1 diz que **o
+desalinhamento suspeitado não existia**: os valores conferem com a imagem renderizada, e a soma da
+coluna de 2024 fecha com o total declarado de 2.095.014. **A extração estava correta.** Registrar
+uma suspeita descartada como se estivesse de pé é pior que não registrar, e por isso ela está
+aqui como descartada e não sumiu.
 
-**A conferência NÃO conseguiu lê-la.** A seção 6 do relatório registra desalinhamento de colunas
-na extração de texto, com valores implausíveis em pelo menos uma linha, e diz que a tabela **exige
-leitura da página renderizada antes de qualquer uso**.
+**O que a tabela é.** "RAP Esperada em moeda constante de 31/12/2025", por linha de transmissão,
+colunas de 2024 a 2030, com 2024 e 2025 marcados como realizados.
 
-**Consequência.** Ela é **candidata** a caso de referência da Fase 8, e **não serve como alvo de
-validação** enquanto ninguém a ler direito. Nenhum número dela entra em lugar nenhum.
+**A divergência, e ela está linha por linha na seção 9.2.** Comparando a coluna de 2026 com a RAP
+homologada da tabela de características financeiras, duas páginas antes, **catorze linhas, sete
+batendo exatamente e sete divergindo**. A tabela nominal está na seção 9.2 do relatório, e é para
+lá que se deve olhar: contagem agregada repetida à mão é o que produziu erro na primeira tentativa
+de registrar isto.
 
-> **Nota de procedência desta entrada.** A tarefa que pediu este registro descrevia a tabela com
-> números específicos, incluindo quantas linhas reconciliam e valores por concessão. **Esses
-> números não existem no relatório de conferência**, verificado por busca. O que está registrado
-> acima é o que o relatório afirma. Registrar os números seria afirmar como fato uma leitura que o
-> próprio documento diz não ter conseguido fazer.
+O caso mais extremo é a Gtesa, com RAP homologada de 9.138 e projeção de 24.131 em 2026,
+precedida de 472.845 em 2024 e 542.010 em 2025, os dois marcados como realizados. **Nenhuma
+explicação foi encontrada, e nenhuma foi construída.**
+
+**O que a seção 9 fecha.** Que a projeção é **por linha de transmissão**, mesma unidade da tabela
+de RAP e mesma unidade que o input `concessoes` usa hoje, e **não por parcela**. Ou seja, ela
+**não responde** a questão de granularidade da D-086: a companhia projeta na unidade em que
+declara, e a decomposição em parcelas, se adotada, é trabalho de quem preenche. Ver N31.
+
+**O que ela mostra sem fechar.** Perfil temporal de RAP é **fenômeno observável em documento
+publicado**, e não só cláusula contratual: a ETEO fica em 162.887 de 2026 a 2029 e cai para 67.870
+em 2030, e a SIT sobe de 129.394 em 2024 para 170.390 em 2026 e 190.298 de 2027 em diante. A
+seção 9.3 registra que isso é **compatível em forma** com o cronograma de quadrantes da nota 7.4,
+e declara explicitamente que **a proporção exata não foi reconciliada**. Forma, não proporção.
+
+**A consequência que sobrevive.** A tabela continua **candidata** a caso de referência da Fase 8 e
+**não serve como alvo de validação** enquanto a não reconciliação não for explicada. Validar
+engine contra número que não fecha com a própria fonte produz concordância ou discordância
+igualmente sem significado.
+
+> **Nota de procedência desta entrada, e ela vale como registro de método.** A primeira versão
+> desta premissa dizia que a tabela não tinha sido lida, e estava correta contra o arquivo que
+> existia no repositório naquele momento. O relatório foi editado depois do commit, a seção 9
+> nasceu no working tree sem passar por commit, e a tarefa seguinte descreveu a versão nova
+> enquanto o disco ainda tinha a antiga. Ver D-088.
 
 ### N31. A companhia projeta na unidade em que declara
 
-**Estado:** CONFERIDA quanto à unidade da tabela, que é o que a seção 6 descreve com segurança.
+**Estado:** **CONFERIDA**, seção 9.4, na segunda rodada.
 
 A projeção de RAP do DCR é **por linha de transmissão**, mesma unidade da tabela de características
-financeiras, **não por parcela**.
+financeiras e **mesma unidade que o input `concessoes` usa hoje**. Não é por parcela.
 
-**O que isso responde e o que não responde.** Não resolve a questão de granularidade da N24: a
-companhia projeta na mesma unidade em que declara, então o documento não oferece a decomposição
-por parcela que a D-086 vai exigir. Quem preencher parcela vai ter que decompor à mão.
+**O que isso responde e o que não responde.** Não resolve a questão de granularidade da N24 e da
+D-086: a companhia **projeta na unidade em que declara**, então o documento não oferece a
+decomposição por parcela que a reestruturação vai exigir. Quem preencher parcela vai ter que
+decompor à mão, e é por isso que a D-086 registra esse custo em vez de supor que a fonte resolve.
