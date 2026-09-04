@@ -1623,3 +1623,123 @@ para "lida e divergente". Playbook a 0.9.0 e documento de requisitos a 2.4.4.
 **Descartado, apagar a menção à suspeita de desalinhamento.** Seria mais limpo de ler e apagaria
 a informação de que alguém já olhou e descartou. Registro de suspeita descartada é o que impede a
 mesma suspeita de custar uma segunda rodada.
+
+## Sessão de 04/09/2026
+
+### D-089. Transcrição vem de legenda ou de reconhecimento de fala local, nunca de LLM
+
+**Decisão.** Transcrição de vídeo para ingestão vem da **legenda que a plataforma publica**, ou de
+**reconhecimento de fala local** quando não houver legenda em idioma útil. **Nunca de provedor de
+LLM.**
+
+**Leia a frase inteira antes de aplicar, porque a versão curta dela está errada.** "Nunca de IA"
+proibiria o `--transcrever` que a própria ferramenta implementa, e alguém desligaria a
+funcionalidade por conformidade. **Reconhecimento de fala local é explicitamente permitido**, e o
+motivo é a distinção abaixo, não uma exceção de conveniência.
+
+**A distinção que decide, e ela é sobre o que a ferramenta faz quando não sabe.** Um modelo de
+reconhecimento de fala **mapeia áudio para texto**: ele não consulta conhecimento próprio, não
+resume, e não completa lacuna com plausibilidade. O erro dele é **fonético e visível**, do mesmo
+tipo que a legenda automática comete, e por isso conferível contra o áudio. Um LLM **completa**:
+onde falta sinal, ele produz o texto mais provável, e o erro sai indistinguível do acerto.
+
+**A medição que originou.** Três provedores receberam o mesmo pedido de transcrição do mesmo
+vídeo. **Nenhum devolveu transcrição:** dois devolveram resumo e um recusou explicitamente, o que
+foi o comportamento certo. Um deles, rodando sem acesso à fonte, produziu **quatro afirmações que
+não existem no vídeo**, tiradas de conhecimento próprio e apresentadas como conteúdo da fonte.
+Isso não se corrige com instrução melhor: instrução melhor não corrige ausência de acesso à fonte.
+
+**Dependência declarada, e ela é o que sustenta a permissão.** Esta decisão **se apoia na D-090**.
+Reconhecimento de fala é aceitável porque não inventa, e ele não inventa porque o filtro de
+atividade de voz está ligado. **Se alguém desligar o filtro, esta decisão deixa de se sustentar**,
+e a permissão ao `--transcrever` cai junto.
+
+### D-090. Filtro de atividade de voz é obrigatório e não configurável
+
+**Decisão.** O `vad_filter` do reconhecimento de fala fica **sempre ligado**, e o script **não o
+expõe como opção**.
+
+**Medido, não suposto.** Um arquivo com tom puro de 440 Hz, ou seja, som sem fala alguma, foi
+transcrito nas duas configurações:
+
+| Configuração | Resultado |
+|---|---|
+| Com detecção de atividade de voz | **zero segmentos** |
+| Sem detecção de atividade de voz | uma frase curta e genérica, **inventada** |
+
+Sem o filtro, vinheta de abertura, música de fundo e pausa longa produzem texto que ninguém
+falou, dentro de um arquivo que se apresenta como transcrição.
+
+**Por que decisão numerada e não comentário no código.** Comentário não protege, porque **quem
+desliga o filtro mexe no código, e o comentário sai junto na mesma edição**. A proteção precisa
+morar onde a edição não alcança.
+
+**Ela reduz e não elimina.** O cabeçalho do arquivo gerado registra que frase curta e genérica
+isolada, perto de vinheta ou de música, é suspeita.
+
+**Candidato a teste executável, e NÃO implementado agora.** O caso do tom puro é controle
+negativo no mesmo padrão que o projeto já usa: gerar o tom, transcrever nas duas configurações,
+afirmar zero segmentos na primeira. Fica registrado como candidato porque a ferramenta é Python e
+está fora da suíte por D-092, então o teste precisa decidir onde mora antes de existir.
+
+### D-091. Glossário de termo de domínio: o mecanismo é ferramenta, a lista é conhecimento
+
+**Decisão.** A normalização de termo de domínio se divide em duas metades com classificações
+diferentes. **O mecanismo é ferramenta.** **A lista é conhecimento**, mora em `conhecimento/`, com
+schema próprio, e passa pelo CLI de validação como os outros tipos.
+
+**O problema.** Reconhecimento de fala e legenda automática erram exatamente o termo de domínio, e
+sempre a mesma classe: sigla de indicador, nome de agência, nome de norma, nome de companhia.
+Observado: WACC virou "WK", Basileia virou "basiled", Cemig virou "Semig", WEG virou "Veg", Bazin
+virou "Bazinha". Sem lista de correção, a extração transcreve o erro para dentro do repositório.
+
+**A fronteira, e ela é a da RNF-013.** Aplicar um mapa de erro fonético para termo correto é
+código. Mas **o conteúdo da lista é vocabulário setorial**: decidir que "Veg" significa WEG exige
+saber que WEG existe. Quem não conhece o setor não monta a lista. Então **a lista nasce vazia e é
+preenchida pelo curador, uma entrada por vez**, conforme os erros aparecem, e **agente não escreve
+entrada**.
+
+**Por que em `conhecimento/` e não em `tools/`.** Ela **influencia dado extraído**, e dado extraído
+alimenta cálculo. Entrada errada propaga até o número. O que influencia cálculo passa por
+validação.
+
+**A ressalva que vai junto, e é a parte mais importante desta decisão.** Correção automática de
+termo é **a única operação desta ferramenta que altera o texto da fonte**; todo o resto preserva.
+Então o texto normalizado **tem que marcar onde houve correção**. Sem a marca, a procedência
+aponta para um timestamp cujo áudio diz outra coisa, e o RP-005 quebra num lugar onde ninguém
+está olhando.
+
+**DECIDIDO E NÃO IMPLEMENTADO, e isto contraria o relatório.** A seção 4.3 diz que o mecanismo
+"nasce agora". O escopo foi revisto e **o mecanismo não nasce nesta tarefa**.
+
+A razão que decide: **a marcação de correção faz parte da procedência, e a procedência está sendo
+redefinida** na emenda proposta ao RF-304. Implementar antes é implementar contra um formato que
+vai mudar. Duas razões secundárias: a lista nasce vazia, então o mecanismo entraria sem uma única
+entrada exercitando; e sendo a única operação que altera a fonte, ela é a mais delicada das que a
+ferramenta faz, e nasceria sem caso real para testar.
+
+**Dois gatilhos para implementar:** a procedência definida no documento de requisitos, e a
+primeira entrada real na lista.
+
+### D-092. Python como segundo runtime, exceção justificada e não precedente
+
+**Decisão.** `tools/baixar-legenda.py` roda em Python, com ambiente virtual próprio em
+`tools/.venv-ingest`, que entra no `.gitignore`. **É exceção justificada, e ferramenta futura não
+herda a permissão.**
+
+**O que se perde, declarado.** O projeto é TypeScript sobre Bun, e `tools/validar-conhecimento.ts`
+roda com bun. Esta ferramenta **nunca passa por `tsc --noEmit` nem pela suíte Vitest**. Não é
+esquecimento nem pendência: é consequência direta da escolha, e precisa ser dita em toda
+verificação de etapa que a envolva, para ninguém supor cobertura que não existe.
+
+**Por que mesmo assim.** As duas ferramentas que fazem o trabalho, a de download e a de
+reconhecimento de fala, **não têm equivalente em JavaScript**. Reimplementar qualquer uma das duas
+seria trabalho de outra ordem de grandeza, para uma ferramenta de apoio que não entra no produto.
+
+**O que a exceção NÃO autoriza.** Ferramenta nova em Python porque já existe um venv. A
+justificativa é a ausência de equivalente, e ela se argumenta caso a caso. Segunda ferramenta
+Python exige decisão nova.
+
+**Fronteira do runtime, e ela é o que mantém a exceção contida.** O Python fica em `tools/`, não
+produz artefato que entre em `packages/`, e o que ele grava vai para `ingest/`, fora do
+versionamento. Nada do produto depende dele para rodar.

@@ -68,6 +68,11 @@ Thumbs.db
 /.claude/*
 !/.claude/skills/
 
+# Ambiente virtual da ferramenta de ingestão de vídeo (D-092).
+# Python é segundo runtime por exceção justificada: ele não passa por tsc nem
+# pela suíte, e o venv é resíduo de instalação, não fonte. O script recria.
+/tools/.venv-ingest/
+
 # Saída do Stryker, gerada a cada rodada de mutation testing (D-049)
 .stryker-tmp
 reports
