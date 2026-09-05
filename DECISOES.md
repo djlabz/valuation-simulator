@@ -1743,3 +1743,69 @@ Python exige decisão nova.
 **Fronteira do runtime, e ela é o que mantém a exceção contida.** O Python fica em `tools/`, não
 produz artefato que entre em `packages/`, e o que ele grava vai para `ingest/`, fora do
 versionamento. Nada do produto depende dele para rodar.
+
+## Sessão de 05/09/2026
+
+### D-093. Rebase and merge mata a branch local, e commit feito depois do PR precisa ser transplantado
+
+**Decisão.** O `rebase and merge` continua sendo a estratégia de merge deste projeto, pelos
+motivos já registrados: o `DECISOES.md` referencia commits, e squash quebraria essas referências
+em bloco, enquanto merge commit registraria bifurcação num histórico que não divergiu. **O que se
+acrescenta é a consequência operacional, que ninguém antecipou.**
+
+**O que acontece depois do merge.** O rebase reescreve todos os commits do PR, com hashes novos.
+A partir daí, **a branch local está morta**: ela deixa de ser ancestral da main e passa a ser uma
+linha paralela com o mesmo conteúdo e identidades diferentes. Três efeitos observados no PR #1:
+
+1. `git push` da branch **não é no-op**. Ele subiu 323 objetos e criou branch nova no remote,
+   porque para o git aqueles commits não existiam lá.
+2. `git log origin/main..branch` conta **todos** os commits do PR, e não zero. Quem ler essa
+   contagem conclui que o merge não aconteceu. O comando que responde de verdade é
+   `git cherry -v`, que compara por patch-id e mostra `-` para o que já está na main sob outro
+   hash.
+3. Commit feito na branch **depois** de abrir o PR não entra no merge e precisa ser transplantado
+   por cherry-pick.
+
+**A regra que sai disso.** Depois de abrir o PR, **não commitar na branch**. Se houver trabalho
+novo, ele espera o merge e nasce em cima da main nova. Quem escolher commitar assim mesmo
+**aceita o transplante como custo conhecido**, e o transplante tem uma conferência obrigatória
+antes de qualquer limpeza: a árvore da ponta da branch tem que ser idêntica à da main depois do
+cherry-pick. Sem essa conferência, um cherry-pick sobre main incompleta esconde a perda: o commit
+novo entra, tudo parece certo, e o que o rebase deixou para trás some sem rastro.
+
+**A segunda regra, sobre citação de hash.** **Citar hash em decisão só é estável para commit que
+já está na main.** Commit que ainda vai passar por rebase muda de identidade, e a citação passa a
+apontar para objeto que só existe numa branch que vai ser apagada. Duas citações da D-088 caíram
+nesse caso, apontando para `72eb2cf`, cujo equivalente na main é `1760a55`. **Elas não são
+corrigidas**, porque o `DECISOES.md` é append only, e porque as duas identificam o commit também
+pelo assunto, o que as mantém legíveis. Fica esta decisão como o registro que explica por que
+aquele hash não resolve.
+
+**Uma terceira consequência, que o levantamento expôs e que não é sobre git.** A previsão de que
+o rebase quebraria a citação da D-088 foi feita **antes** do merge e o merge seguiu assim mesmo,
+o que foi decisão consciente. O que faltou não foi a previsão, foi **agir sobre ela**: bastaria,
+antes do merge, trocar as duas citações por referência ao assunto do commit, e o problema não
+existiria. A regra prática: **previsão registrada e não endereçada vira dano registrado**, e o
+momento de agir sobre ela é enquanto o objeto ainda tem a identidade citada.
+
+**Por que não se agiu, e o argumento que produziu a recusa estava errado.** A oferta de um commit
+pequeno na branch, trocando as duas citações de hash por referência ao assunto, foi feita antes
+do merge e **recusada**, com o argumento de que o commit do conserto também passaria pelo rebase
+e portanto participaria do problema que resolve.
+
+O argumento não se sustenta, e o motivo é o que torna a regra utilizável: o **hash** do commit de
+conserto seria reescrito, sim, mas o **conteúdo** dele era remover a dependência de hash. Depois
+do rebase as citações estariam por assunto, e não haveria hash morto. **O conserto funcionaria
+justamente por não depender de identidade de commit.**
+
+A generalização, e ela vale além do git: **conserto que remove uma dependência não é invalidado
+por ser aplicado no mesmo meio de que a dependência depende.** Confundir as duas coisas é o que
+produziu a recusa. O teste para não repetir: pergunte se o conserto **precisa** da propriedade
+que vai ser destruída, ou se ele **elimina** a necessidade dela. No segundo caso, aplicar antes é
+exatamente o certo.
+
+**Descartado, mudar de estratégia de merge.** Squash resolveria o problema da branch morta,
+porque não haveria o que transplantar, e criaria um pior: quebraria todas as citações de hash de
+uma vez e fundiria assuntos distintos num commit só. Merge commit preservaria os hashes e
+registraria bifurcação inexistente. O custo do rebase é conhecido e contornável; o das
+alternativas, não.
