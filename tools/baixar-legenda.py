@@ -40,6 +40,11 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 JANELA_SEGUNDOS = 30.0
+# Proibidos em nome de arquivo no Windows, que e o mais restritivo dos alvos.
+# Linux e macOS aceitam quase tudo, e usar a lista mais restritiva mantem a
+# mesma pasta valida nas tres plataformas.
+PROIBIDOS_EM_NOME = '<>:"/\\|?*'
+LIMITE_DE_NOME = 150
 MODELOS_FALA = ("tiny", "base", "small", "medium", "large-v2", "large-v3")
 VENV = Path(__file__).resolve().parent / ".venv-ingest"
 DESTINO = RAIZ / "ingest"
@@ -131,14 +136,76 @@ def escolher_idioma(meta: dict, pedido: str) -> tuple[str, str]:
     return "", ""
 
 
-def slug(texto: str, limite: int = 40) -> str:
-    """Slug em ASCII puro. Acento em nome de arquivo quebra em sistema com
-    locale diferente, e o nome tem que ser identico em qualquer maquina."""
-    t = unicodedata.normalize("NFKD", texto)
-    t = t.encode("ascii", "ignore").decode("ascii").lower()
-    t = re.sub(r"[^a-z0-9\s-]", "", t)
-    t = re.sub(r"[\s_]+", "-", t).strip("-")
-    return t[:limite].strip("-") or "video"
+def pasta_para_titulo(titulo: str) -> str:
+    """Nome de pasta legivel por pessoa, a partir do titulo do video.
+
+    PRESERVA espaco e acento de proposito. Quem abre ingest/ e uma pessoa, e o
+    titulo e a informacao util. A versao anterior usava slug em ASCII minusculo,
+    o que trocava legibilidade por nada: este nome nao entra em url, nem em
+    import, nem em identificador de codigo.
+
+    Remove SO o que o sistema de arquivos recusa:
+
+    - os caracteres proibidos do Windows, que e o mais restritivo dos alvos
+    - caractere de controle
+    - ponto e espaco no fim, que o Windows tambem nao aceita
+
+    Corta tambem o comprimento, porque componente de caminho tem limite de 255
+    bytes na maioria dos sistemas e titulo longo faria o mkdir falhar com
+    ENAMETOOLONG. O corte e em bytes e nao em caracteres, senao acento passaria
+    do limite sem o contador perceber.
+    """
+    limpo = "".join(
+        c
+        for c in titulo
+        if c not in PROIBIDOS_EM_NOME and unicodedata.category(c) != "Cc"
+    )
+    limpo = re.sub(r"\s+", " ", limpo).strip().rstrip(". ")
+    while len(limpo.encode("utf-8")) > LIMITE_DE_NOME:
+        limpo = limpo[:-1]
+    return limpo.strip().rstrip(". ") or "video"
+
+
+def url_declarada(pasta: Path) -> str | None:
+    """Le a url do cabecalho de um arquivo de texto ja gravado na pasta.
+
+    E o que resolve colisao de titulo sem precisar de indice em lugar nenhum: o
+    proprio artefato declara de onde veio. So le o bloco de cabecalho, que sao
+    as linhas iniciadas por #, e para na primeira linha de conteudo.
+    """
+    for nome in ("legenda.txt", "transcrito.txt"):
+        arquivo = pasta / nome
+        if not arquivo.exists():
+            continue
+        for linha in arquivo.read_text(encoding="utf-8", errors="replace").splitlines():
+            if not linha.startswith("#"):
+                break
+            if linha.startswith("# URL:"):
+                return linha.split(":", 1)[1].strip()
+    return None
+
+
+def pasta_do_video(titulo: str, id_video: str) -> Path:
+    """Uma pasta por video, nomeada pelo titulo limpo.
+
+    Colisao de titulo acontece em reupload, e resolve acrescentando o
+    identificador do video. A deteccao le a url declarada no cabecalho de
+    arquivo ja gravado: mesmo titulo com mesmo id REAPROVEITA a pasta, e mesmo
+    titulo com id diferente cria pasta nova.
+
+    Pasta que existe e nao declara url nenhuma e reaproveitada. Ela e resultado
+    de execucao interrompida antes de gravar texto, e criar pasta nova a cada
+    tentativa acumularia orfa. A ambiguidade se resolve sozinha, porque esta
+    execucao grava o cabecalho.
+    """
+    nome = pasta_para_titulo(titulo)
+    base = DESTINO / nome
+    if not base.exists():
+        return base
+    declarada = url_declarada(base)
+    if declarada is None or id_video in declarada:
+        return base
+    return DESTINO / f"{nome} ({id_video})"
 
 
 def srt_para_texto(srt: str) -> str:
@@ -221,7 +288,7 @@ def cabecalho_de_fala(meta: dict, url: str, idioma: str, modelo: str) -> str:
 
 def baixar_audio(py: Path, url: str, destino: Path) -> Path:
     """Baixa a trilha de audio sem converter, o que dispensa ffmpeg no sistema."""
-    modelo = str(destino / "%(id)s-audio.%(ext)s")
+    modelo = str(destino / "audio.%(ext)s")
     r = rodar_ytdlp(
         py,
         [
@@ -237,7 +304,7 @@ def baixar_audio(py: Path, url: str, destino: Path) -> Path:
         print("falha ao baixar o audio:", file=sys.stderr)
         print(r.stderr.strip()[-900:], file=sys.stderr)
         sys.exit(1)
-    achados = sorted(destino.glob("*-audio.*"))
+    achados = sorted(destino.glob("audio.*"))
     if not achados:
         print("download terminou sem erro mas nenhum audio apareceu", file=sys.stderr)
         sys.exit(1)
@@ -363,15 +430,16 @@ def main() -> None:
         )
         return
 
-    DESTINO.mkdir(parents=True, exist_ok=True)
-    base = f"{slug(meta['canal'])}-{slug(meta['titulo'])}-{meta['id']}"
+    pasta = pasta_do_video(meta["titulo"], meta["id"])
+    pasta.mkdir(parents=True, exist_ok=True)
+    print(f"pasta: {pasta.relative_to(RAIZ)}")
 
     if a.transcrever:
         preparar_fala(py, a.atualizar)
-        audio = baixar_audio(py, url, DESTINO)
+        audio = baixar_audio(py, url, pasta)
         print(f"audio: {audio.relative_to(RAIZ)}")
         corpo = transcrever(py, audio, a.idioma, a.modelo)
-        texto = DESTINO / f"{base}.transcrito.txt"
+        texto = pasta / "transcrito.txt"
         texto.write_text(
             cabecalho_de_fala(meta, url, a.idioma, a.modelo) + corpo + "\n",
             encoding="utf-8",
@@ -416,7 +484,7 @@ def main() -> None:
 
     print(f"legenda escolhida: {codigo} ({origem})")
 
-    modelo = str(DESTINO / f"{base}.%(ext)s")
+    modelo = str(pasta / "legenda.%(ext)s")
 
     args = [
         "--skip-download",
@@ -436,11 +504,17 @@ def main() -> None:
         print(r.stderr.strip()[:800], file=sys.stderr)
         sys.exit(1)
 
-    achados = sorted(DESTINO.glob(f"{base}*.srt"))
+    achados = sorted(pasta.glob("legenda*.srt"))
     if not achados:
         print("yt-dlp terminou sem erro mas nenhum .srt apareceu", file=sys.stderr)
         sys.exit(1)
+    # o yt-dlp grava legenda.<idioma>.srt, e o nome fixo dispensa quem le ter
+    # que saber qual idioma saiu. O idioma continua declarado no cabecalho do .txt
     srt = achados[0]
+    fixo = pasta / "legenda.srt"
+    if srt != fixo:
+        srt.replace(fixo)
+        srt = fixo
 
     cabecalho = "\n".join(
         [
@@ -465,7 +539,7 @@ def main() -> None:
         ]
     )
 
-    texto = DESTINO / f"{base}.txt"
+    texto = pasta / "legenda.txt"
     texto.write_text(
         cabecalho + srt_para_texto(srt.read_text(encoding="utf-8")) + "\n",
         encoding="utf-8",

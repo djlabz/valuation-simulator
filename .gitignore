@@ -73,6 +73,14 @@ Thumbs.db
 # pela suíte, e o venv é resíduo de instalação, não fonte. O script recria.
 /tools/.venv-ingest/
 
+# Bytecode do Python, mesma família do venv acima e do .stryker-tmp abaixo.
+# Rodar a ferramenta como script NÃO gera isto, verificado; só gera quem a
+# importa como módulo, que é o que um teste em Python faria. A regra entra antes
+# desse teste existir, porque depois ninguém lembra e o resíduo entra num
+# git add -A distraído, que é o caso concreto da D-050.
+__pycache__/
+*.pyc
+
 # Saída do Stryker, gerada a cada rodada de mutation testing (D-049)
 .stryker-tmp
 reports
