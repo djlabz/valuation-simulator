@@ -56,6 +56,11 @@ Regras:
 - exit code diferente de zero fecha o assunto: a etapa não avança
 - suíte que não existe não pode ser citada como verde
 - verificação que não foi executada nesta sessão não vale como executada
+- **verificação descrita em prompt não é verificação executada** (D-100). Quem implementa
+  escreve a própria bateria, independente do que a especificação afirme ter sido testado, e
+  declara no relatório que a verificação é sua. Sem essa declaração o leitor não distingue
+  bateria própria de bateria herdada, e as duas se parecem no relatório. Esta regra não depende
+  de quem escreveu o prompt ter lembrado de nada, e é por isso que ela segura
 - explicação inferida sobre comportamento não verificado não entra em documento como fato
 - saída reportada como sucesso precisa carregar prova de execução: versão, hash, contagem,
   nome de arquivo ou número de linha. Exit code zero sozinho não basta, porque o wrapper desta
@@ -123,8 +128,12 @@ Nesta ordem:
 2. `AGENTS.md` atualizado: estado atual, etapa concluída, etapa seguinte, questões abertas
 3. `CLAUDE.md` atualizado, só se surgiu caso de fronteira novo ou gatilho novo
 4. Relatório de inspeção adversarial anexado à etapa
-5. Commit com referência aos requisitos atendidos
-6. Parar. A etapa seguinte precisa de pedido explícito
+5. **Se a etapa alterou o documento de requisitos**, o relatório diz a **versão corrente** e o
+   **caminho exato** do arquivo depois da alteração (D-101). Os dois juntos, porque o nome do
+   arquivo acompanha a linha minor por D-078, então versão nova com nome antigo é estado
+   inconsistente que só aparece se as duas informações forem ditas lado a lado
+6. Commit com referência aos requisitos atendidos
+7. Parar. A etapa seguinte precisa de pedido explícito
 
 ---
 

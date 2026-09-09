@@ -2018,3 +2018,84 @@ referencia é auditável por ele e por mais ninguém**.
 Isso **tensiona o CR-006 sem quebrá-lo**: o número continua reproduzível, o contexto de decisão
 não. Fica registrado como consequência declarada, e fica registrado que **o snapshot precisa dizer
 isso na cara** em vez de referenciar a camada pessoal em silêncio. Não é motivo para não fazer.
+
+## Sessão de 10/09/2026
+
+### D-100. Prompt declara o estado do trabalho descrito, e verificação descrita não é verificação executada
+
+**Decisão.** Duas regras, uma de cada lado da conversa. Elas **estendem a nota de método da
+D-080**, que cobre de onde a descrição veio, e não a revogam: são perguntas diferentes.
+
+**PRIMEIRA METADE, do lado de quem especifica.** Prompt que descreve trabalho já feito declara o
+**estado** desse trabalho, em três valores:
+
+| Valor | Significa |
+|---|---|
+| existe no disco do repositório | o agente confere e usa |
+| existe fora do disco e vai ser posto lá antes da tarefa rodar | o agente confere e para se não estiver |
+| **não existe**, e precisa ser implementado a partir desta especificação | o agente implementa |
+
+**SEGUNDA METADE, do lado de quem implementa, e é a que importa mais.**
+
+> **Verificação descrita em prompt não é verificação executada.**
+
+Quem implementa **escreve a própria bateria**, independente do que a especificação afirme ter
+sido testado, e **declara no relatório que a verificação é sua**. Sem essa declaração o leitor não
+tem como distinguir bateria própria de bateria herdada, e as duas se parecem no relatório.
+
+**Por que a D-080 não bastava.** A regra dela cobre a **origem** da descrição. Esta cobre se o que
+está descrito **existe**. No caso que motivou, a origem era "quem escreveu o prompt escreveu", o
+que era verdade, **e mesmo assim o trabalho não existia**. Origem correta e existência falsa.
+
+**A assimetria, e ela é o motivo de a segunda metade ser a que segura.** A primeira depende de
+quem escreve o prompt **lembrar**. A segunda **não depende de ninguém lembrar nada**, porque é
+comportamento de quem executa. Regra que depende de memória de terceiro protege enquanto a
+memória funciona; regra que é comportamento próprio protege sempre.
+
+**O caso que originou, e por que a natureza dele é outra.** Um prompt descreveu mudança na
+ferramenta de legenda como já desenvolvida e testada, com cinco casos de limpeza de nome e três
+cenários de colisão passando. O arquivo estava **idêntico ao commit**: não havia mudança nenhuma.
+O agente conferiu antes de agir, implementou do zero a partir da especificação, declarou que
+**não herdava a verificação descrita**, e escreveu a própria bateria, com cinco casos e cinco
+cenários.
+
+**É a quarta ocorrência de descrição que não bate com o disco, e a única desta natureza.** As três
+anteriores foram **conteúdo descrito de outra versão**: existia arquivo em algum lugar, só não o
+que o agente tinha. Esta foi **trabalho descrito como entregue sem entrega**: não existia arquivo
+nenhum.
+
+**E o modo de falha é pior, que é o que justifica regra própria.** Nas três anteriores o pior caso
+era registrar conteúdo errado, que é recuperável: o texto fica no repositório e alguém corrige
+depois, como a D-088 corrigiu. Aqui o pior caso é **a verificação não acontecer e o relatório
+dizer que aconteceu**. Isso não se corrige depois porque não deixa rastro: um relatório que herda
+bateria alheia é indistinguível de um que executou a própria.
+
+**Onde a regra operante mora.** A segunda metade entra na seção 3 do `PROTOCOLO-ETAPA.md`, ao lado
+da linha que já diz que verificação não executada nesta sessão não vale como executada. É o mesmo
+padrão da D-052, cuja regra virou gate no protocolo em vez de ficar só aqui: decisão explica o
+porquê, protocolo diz o que fazer, e é o protocolo que alguém lê na hora de fechar etapa.
+
+### D-101. Relatório de fechamento declara versão e caminho do documento de requisitos
+
+**Decisão.** Sempre que uma tarefa alterar o documento de requisitos, o relatório de fechamento
+diz a **versão corrente** e o **caminho exato** do arquivo depois da alteração.
+
+**Motivo.** Quem escreve os prompts trabalha com uma cópia do documento que fica defasada, e a
+divergência já produziu efeito duas vezes: emenda montada a partir de uma versão e conferida
+contra outra, e levantamento mostrando que o estado real divergia do descrito. **Hoje a
+divergência só é descoberta por acidente.** Com o reporte, ela vira rotina.
+
+**O caso concreto como evidência.** Numa tarefa recente o agente conferiu que **o RF-309 não
+existia e que a versão seguia 2.4.4**, quando o prompt tratava a emenda de procedência como se ela
+pudesse já estar gravada. Foi **conferência do agente, não reporte de rotina**: se ele não tivesse
+conferido por conta própria, a decisão que depende da emenda teria sido gravada com dependência
+falsa.
+
+**Por que o caminho e não só a versão.** Porque os dois se movem juntos e por regra diferente. A
+D-078 fixou que o nome do arquivo acompanha a **linha minor**: patch mantém o nome, minor
+renomeia. Então "2.5.0" e `v2.4.md` é um estado inconsistente que só aparece se as duas
+informações forem ditas juntas.
+
+**Onde a regra operante mora.** Seção 5 do `PROTOCOLO-ETAPA.md`, que é o fechamento de etapa, e
+não aqui. Quem fecha etapa lê o protocolo; ninguém abre o log de decisões para descobrir o que o
+relatório precisa dizer. Mesmo padrão da D-052 e da D-079.
