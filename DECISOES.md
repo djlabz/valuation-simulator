@@ -1809,3 +1809,212 @@ porque não haveria o que transplantar, e criaria um pior: quebraria todas as ci
 uma vez e fundiria assuntos distintos num commit só. Merge commit preservaria os hashes e
 registraria bifurcação inexistente. O custo do rebase é conhecido e contornável; o das
 alternativas, não.
+
+## Sessão de 09/09/2026
+
+### D-094. O conhecimento tem dois eixos, e o eixo da natureza tem três valores
+
+**Decisão.** O conhecimento do projeto se classifica em **dois eixos independentes**.
+
+**ALCANCE:** setorial ou por empresa. É a divisão que a seção 1.4 do documento de requisitos já
+implementa, com playbook para o setor, nota de ativo para característica de empresa, e evento
+para circunstância temporária.
+
+**NATUREZA:** norma, aritmética, ou julgamento.
+
+**O eixo da natureza tem três valores e não dois.** O critério da D-067 nomeia quatro origens
+para o que é imutável: contrato, norma contábil, regulação vigente **e aritmética**. Aritmética
+não é norma nem julgamento, e existem dois casos no repositório que provam isso. A R-103, que
+exige ROE e Ke na mesma base, não sai de resolução nenhuma: comparar nominal com real é **erro de
+unidade**. A R-203, que invalida projeção com preço normalizado abaixo do custo caixa, é
+**contradição** e não regra: nenhum órgão precisa proibir, o modelo já não fecha.
+
+**Motivo de registrar isto agora.** O expurgo da D-067 foi executado corretamente e a razão dele
+não estava explícita: **ele cortou pelo eixo da NATUREZA, mantendo norma e aritmética e removendo
+julgamento, e não pelo eixo do ALCANCE.** Sem esse registro, quem ler que conteúdo setorial saiu
+conclui que a divisão é por alcance, e a conclusão é falsa.
+
+**A evidência de que os dois eixos são independentes.** Basileia ficou e "ROE inflado por
+reversão de PDD não é sustentável" saiu. As duas afirmações são **setoriais**, ou seja, têm o
+mesmo alcance. O que as separa é a natureza: a primeira é norma, a segunda é julgamento de
+analista. Um eixo só não explica esse par.
+
+**Consequência.** Toda decisão sobre onde um item de conhecimento mora precisa responder as duas
+perguntas, e não uma. Responder só o alcance coloca julgamento setorial dentro do playbook, que é
+exatamente o que o expurgo removeu.
+
+### D-095. Regra de consistência aritmética não é ingerível
+
+**Decisão.** Regra de consistência aritmética é **o único tipo de conhecimento do projeto que não
+pode ser proposto por nenhum caminho de ingestão**. A via de descoberta dela é escrever a engine.
+
+**Motivo.** Os outros tipos têm fonte. Norma vem de documento normativo, fato sobre empresa vem
+de documento da companhia, heurística vem de material de terceiro. **Aritmética não vem de lugar
+nenhum:** ela é derivada de o modelo fazer sentido, e quem a percebe é quem está modelando e vê a
+contradição aparecer.
+
+**Evidência retroativa, e ela é forte.** A sonda do `fcff_por_concessao` produziu **dezesseis
+premissas de interpretação, e nenhuma delas veio de documento**. Todas nasceram de escrever o
+loop e ver o que o loop era obrigado a assumir. A R-103 e a R-203 nasceram do mesmo jeito.
+
+**Consequência para a ordem de trabalho, e ela é uma justificativa retroativa.** Isto sustenta,
+por um motivo melhor, a decisão de escrever a engine antes de pesquisar. Na hora ela foi tomada
+porque pesquisa sem foco não sabe quais perguntas importam. O motivo mais forte é este: **parte do
+conhecimento necessário só existe depois de a engine existir, e nenhuma quantidade de pesquisa a
+produz.**
+
+**Consequência para a D-096.** Regra aritmética não tem tipo de fonte para declarar, então ela
+fica fora do roteamento **por construção, e não por lacuna**. Quem for implementar o roteamento
+não precisa abrir exceção para ela: ela nunca chega lá.
+
+### D-096. Proposta de ingestão é roteada por TIPO DE FONTE, não por conteúdo
+
+**Decisão.** Proposta de ingestão é roteada pelo **tipo da fonte que a sustenta**, e não por
+classificação automática do conteúdo. O destino candidato por tipo:
+
+| Tipo de fonte | Destino candidato |
+|---|---|
+| norma, resolução ou contrato | candidato a playbook |
+| documento da companhia sobre ela mesma | candidato a nota de ativo ou evento |
+| material de analista, sobre onde olhar | candidato a heurística de leitura |
+| material de analista, juízo de preço | **nunca entra** |
+
+**Motivo de rotear por fonte e não por conteúdo.** Classificar conteúdo automaticamente não
+funciona: o código não tem como saber que "todo banco precisa ver Basileia" é norma e não
+preferência de analista. **Quem sabe isso sabe que a Res. CMN 4.958/2021 existe**, e isso é
+conhecimento de domínio, não propriedade do texto.
+
+**A proibição cruzada, e ela NÃO é simétrica.** A primeira metade é direta: **material de
+analista nunca propõe entrada em playbook**, porque isso é julgamento entrando como norma.
+
+A recíproca, na forma "norma nunca propõe entrada em heurística", **está errada e proíbe coisa
+legítima**. O contraexemplo já está no repositório: a Res. CMN 4.958/2021, art. 9º §4º, sustenta
+a R-102 como regra dura, e ao mesmo tempo a consolidação de pesquisa registra que **a norma define
+pisos e travas enquanto o teto de payout é derivado e não normativo**. "Confira se o payout
+projetado cabe na folga de capital" é heurística de leitura cuja origem é norma, e é legítima.
+
+**A formulação que resiste:** norma nunca propõe entrada em heurística **cujo conteúdo a norma não
+afirma**. A restrição é sobre o que a fonte sustenta, não sobre o tipo dela.
+
+**Dependência declarada.** O discriminador do roteamento é o **tipo de fonte da procedência**, que
+está sendo formalizado na emenda do RF-304 e no RF-309, e que **ainda é proposta não gravada**:
+conferido nesta sessão, `RF-309` não existe no documento e a versão segue 2.4.4. Metade do
+mecanismo foi construída sem este uso em vista: a procedência passou a declarar o tipo por causa
+de vídeo e planilha, e **o tipo agora vira o discriminador do roteamento de ingestão**.
+
+**Lacuna de requisito, registrada e não resolvida.** O RF-120 enumera o que o agente propõe:
+heurísticas, notas, eventos, conflitos e lacunas. **Playbook não está na lista.** A primeira rota
+desta decisão cria um destino que o documento não enumera. Não é contradição, porque o RF-120 não
+diz "e nada mais", e porque o RF-121 continua exigindo revisão do curador, incremento de versão e
+commit para qualquer proposta. Mas é lacuna, e ela toca o artefato mais protegido do projeto, que
+é o que carrega regra dura e `modelos_habilitados`. **Fica registrada aqui em vez de virar
+requisito por conta própria**, no mesmo formato da D-087.
+
+**DECIDIDA E NÃO IMPLEMENTADA.** O gatilho é a emenda de procedência estar gravada.
+
+### D-097. Metodologia de terceiro pode virar quatro coisas, e nunca modelo novo
+
+**Decisão.** Método de valuation de terceiro pode virar **preset de premissas**, **heurística de
+leitura**, **variante de modelo que já existe**, ou **caso de referência da Fase 8**. **Nunca
+modelo novo.**
+
+**Motivo do limite.** O `modelos_habilitados` do playbook referencia engines que existem em
+código, com teste e mutation testing. Proposta que escreva método novo ali faz o playbook
+**referenciar modelo que não existe**, e a checagem cruzada do CLI não pega isso hoje: ela confere
+nota contra playbook, e **não playbook contra engines disponíveis**. Reforça o RF-206, que já
+proíbe o agente de propor modelo fora da lista habilitada.
+
+**A quarta saída, e ela é a mais valiosa quando existe.** Caso de referência da Fase 8 é
+exatamente o que a D-016 admite, e é o **único** uso que ela admite: caso construído a partir de
+cálculo público de terceiro só é válido quando **as premissas do autor são conhecidas e
+declaradas**. Ela é a mais fácil de confundir com "adotar a metodologia", e a diferença é que
+**caso de referência testa a engine contra número de terceiro, e adotar metodologia mudaria a
+engine**.
+
+**Constatação do caso concreto, que mostra por que a quarta saída é rara.** O material que motivou
+esta decisão diz que usa lucro líquido regulatório e que ajustou a taxa de desconto **sem dizer
+para quanto**, e fala de taxas de crescimento **sem declarar quais**. Dá heurística boa e **não dá
+método nem caso de referência**, porque premissa não declarada não permite reproduzir o número.
+
+### D-098. O app não exibe preço teto calculado por terceiro
+
+**Decisão.** O app **não exibe, não compara e não ordena** preço teto calculado por terceiro. O
+que existe é **campo de anotação livre**, onde o usuário digita o que quiser.
+
+**Isto é recuo de uma posição anterior**, e o registro existe para o debate não recomeçar.
+
+**Quatro razões, e a quarta é a que não depende de intenção nem de credenciamento.**
+
+**Primeira.** O disclaimer do autor terceiro se apoia em credenciamento que o autor deste projeto
+não tem. O mesmo texto neste app **não faz o mesmo trabalho**.
+
+**Segunda.** O que importa não é a legalidade do ato do terceiro, é **o que este app faz**. Exibir
+preço teto de terceiro ao lado do resultado do usuário é fornecer preço-alvo para ativo
+específico, o que é **pior que fornecer premissa, porque é o resultado**.
+
+**Terceira.** O número **não é reproduzível**, porque as premissas não foram declaradas, o que
+contradiz a D-016.
+
+**Quarta, e é a que fecha.** Preço teto de terceiro ao lado do resultado do usuário **cria
+comparação, e comparação de dois elementos é ranking**. O RP-002 proíbe ranking proprietário e
+ordenação por atratividade. Exibir dois preços lado a lado é o sistema informando que existe uma
+diferença, e **a diferença é a única informação que aquele par produz**.
+
+**O cuidado que vai na decisão, e não só no entendimento.** O campo de anotação livre **não pode
+ser indexado, comparado, ordenado, nem exibido junto ao resultado na listagem**. Se a anotação
+aparecer ao lado do preço teto, **a comparação voltou por outro caminho**. Usuário digita, pode;
+app fornece, exibe, compara ou ordena, não pode.
+
+**Precedente que sustenta a fronteira.** É a mesma lógica da D-033, onde o alerta de preço
+configurado pelo usuário é admissível porque o gatilho é dele e o sistema só compara número com
+número. E não colide com o RF-403: aquele requisito governa **preset de premissa**, que é entrada,
+enquanto isto é **resultado**.
+
+### D-099. Nenhuma decisão da v1 assume curador único de forma que impeça camada pessoal depois
+
+**Decisão.** Esta **não** é o requisito de N curadores. É a **restrição que o precede**: nenhuma
+decisão da v1 pode assumir curador único de forma que impeça uma camada pessoal de conhecimento
+depois.
+
+**Motivo.** O pipeline de ingestão foi desenhado assumindo **um** curador, com revisão e commit.
+Se o produto ganhar usuário final que também ingere e aprova, passam a existir **N curadores**, a
+base diverge entre eles, e **não há commit**, porque usuário de aplicação não faz commit. A forma
+que resolve tem precedente: base curada versionada, mais camada pessoal que **nunca escreve na
+base**, com contribuição voltando por **submissão revisada** em vez de escrita direta.
+
+**Por que restrição e não requisito agora.** O requisito depende de uma decisão que não foi
+tomada, que é **se o produto vai ter usuário final além do autor**. A v1 é local e single-user, e N
+curadores só existe se houver versão hospedada. **Migrar dado de usuário que não existe é grátis**,
+e hoje não existe usuário. A restrição custa nada, é verificável quando alguma decisão a violar, e
+não obriga a desenhar produto que não foi decidido.
+
+**O que o requisito exigiria, quando for a hora, registrado para não recomeçar do zero:** emenda
+em RF-101 e RP-008, porque a base passa a ter duas camadas; emenda em RF-802, porque o snapshot
+precisa registrar a versão da camada pessoal; e requisito novo para a contribuição por submissão
+revisada.
+
+**Por que isto não colide com RP-008 e RF-101 hoje.** A restrição não cria camada nenhuma. E na
+forma prevista ela continua compatível: a camada pessoal também seria **carregada e validada no
+boot** e **constante durante a sessão**, então o teste de decisão do RP-008, rodar o mesmo cálculo
+amanhã sem commit no meio e obter o mesmo número, continua valendo.
+
+**Precedente que já existe e que ajuda.** A arquitetura de duas camadas já está prevista para
+**preset**, não para conhecimento: o RF-403 diz que presets podem ser salvos e reaplicados, e que
+preset de terceiro é rotulado como externo, editável e nunca pré-selecionado. **Ele já resolveu a
+parte difícil**, que é rótulo de origem e proibição de pré-seleção. Conhecimento pessoal segue o
+mesmo desenho.
+
+**Consequência aceita, e não problema resolvido.** A camada pessoal cria um efeito que o preset
+não cria. Preset é premissa, e premissa entra no snapshot **como valor**. Conhecimento pessoal é
+heurística e nota, que aparecem **como alerta acionado** e vão para o snapshot por RF-802. Então
+dois usuários com camadas pessoais diferentes, mesmas premissas e mesmos fatos, **produzem
+snapshots diferentes**: o número é o mesmo, o registro do que foi visto ao decidir não é.
+
+**E o efeito mais forte.** A versão da camada pessoal é a **única entrada do snapshot que não é
+reproduzível por terceiro**. Todas as outras versões são de artefato versionado em git, então quem
+tem o repositório reconstrói. Camada pessoal mora na máquina do usuário, e **um snapshot que a
+referencia é auditável por ele e por mais ninguém**.
+
+Isso **tensiona o CR-006 sem quebrá-lo**: o número continua reproduzível, o contexto de decisão
+não. Fica registrado como consequência declarada, e fica registrado que **o snapshot precisa dizer
+isso na cara** em vez de referenciar a camada pessoal em silêncio. Não é motivo para não fazer.
