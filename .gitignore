@@ -93,3 +93,4 @@ __pycache__/
 # Saída do Stryker, gerada a cada rodada de mutation testing (D-049)
 .stryker-tmp
 reports
+deno.lock
