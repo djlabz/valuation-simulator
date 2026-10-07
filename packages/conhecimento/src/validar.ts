@@ -45,12 +45,24 @@ const IdentidadeDeNota = z.object({
  * Validação da pasta conhecimento/ (RF-101).
  *
  * A varredura usa lista branca de pastas, não lista negra. Só entram playbooks,
- * heuristicas, notas e eventos. Qualquer outra pasta dentro de conhecimento/ é
- * ignorada, e é assim que conhecimento/fixtures-invalidas/ fica de fora da
- * validação normal sem depender de ninguém lembrar de excluí-la.
+ * heuristicas, notas e eventos.
+ *
+ * Até a D-102, qualquer outra entrada dentro de conhecimento/ era ignorada em
+ * silêncio, e arquivo que não fosse YAML dentro de uma pasta de tipo também.
+ * Então conhecimento/ingest/legenda.txt, ou um annotations.json copiado para
+ * notas/, passava com exit 0. Agora as duas coisas reprovam. A única exceção é
+ * declarada, fixtures-invalidas, que fica fora da validação normal e é
+ * exercitada apontando o arquivo de propósito.
  */
 export const PASTAS_VALIDAS = ['playbooks', 'heuristicas', 'notas', 'eventos'] as const
 export type TipoItem = (typeof PASTAS_VALIDAS)[number]
+
+/** Entradas da raiz que existem e não são tipo de conhecimento, declaradas uma a uma. */
+export const EXCECOES_NA_RAIZ = ['fixtures-invalidas'] as const
+
+function ehYaml(nome: string): boolean {
+  return nome.endsWith('.yaml') || nome.endsWith('.yml')
+}
 
 const SCHEMA_POR_TIPO: Record<TipoItem, ZodType> = {
   playbooks: Playbook,
@@ -82,7 +94,21 @@ function listarYaml(pasta: string): string[] {
     return []
   }
   return entradas
-    .filter((nome) => nome.endsWith('.yaml') || nome.endsWith('.yml'))
+    .filter(ehYaml)
+    .map((nome) => join(pasta, nome))
+    .sort()
+}
+
+/** O que está dentro de uma pasta de tipo e não é YAML, arquivo ou subpasta. */
+function listarNaoYaml(pasta: string): string[] {
+  let entradas: string[]
+  try {
+    entradas = readdirSync(pasta)
+  } catch {
+    return []
+  }
+  return entradas
+    .filter((nome) => !ehYaml(nome))
     .map((nome) => join(pasta, nome))
     .sort()
 }
@@ -278,7 +304,7 @@ export function validarCamposRelacionados(
   return problemas
 }
 
-/** Valida a pasta inteira, só as pastas da lista branca. */
+/** Valida a pasta inteira: as pastas da lista branca, e reprova o que não é delas. */
 export function validarPasta(raiz: string): Resultado {
   const arquivosLidos: string[] = []
   const problemas: Problema[] = []
@@ -300,10 +326,29 @@ export function validarPasta(raiz: string): Resultado {
     }
   }
 
-  for (const entrada of entradas) {
+  for (const entrada of [...entradas].sort()) {
     const caminhoPasta = join(raiz, entrada)
-    if (!statSync(caminhoPasta).isDirectory()) continue
-    if (!ehTipoConhecido(entrada)) continue
+    if ((EXCECOES_NA_RAIZ as readonly string[]).includes(entrada)) continue
+    if (!ehTipoConhecido(entrada) || !statSync(caminhoPasta).isDirectory()) {
+      problemas.push({
+        arquivo: caminhoPasta,
+        campo: '(pasta)',
+        mensagem:
+          `RF-101: ${basename(raiz)}/${entrada} não é tipo de conhecimento; ` +
+          'material bruto fica em ingest/ (D-042, RNF-013)',
+      })
+      continue
+    }
+
+    for (const intruso of listarNaoYaml(caminhoPasta)) {
+      problemas.push({
+        arquivo: intruso,
+        campo: '(arquivo)',
+        mensagem:
+          `RF-101: ${basename(raiz)}/${entrada}/${basename(intruso)} não é YAML, e item de ` +
+          'conhecimento é arquivo .yaml; material bruto fica em ingest/ (D-042, RNF-013)',
+      })
+    }
 
     const doTipo: { caminho: string; documento: unknown }[] = []
     for (const arquivo of listarYaml(caminhoPasta)) {

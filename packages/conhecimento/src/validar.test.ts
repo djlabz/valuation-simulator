@@ -1,4 +1,5 @@
-import { readFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { describe, expect, it } from 'vitest'
@@ -7,6 +8,7 @@ import { Heuristica } from './heuristica'
 import { Playbook, PremissaDoUsuario } from './playbook'
 import { texto, textoInterno } from './comum'
 import {
+  EXCECOES_NA_RAIZ,
   PASTAS_VALIDAS,
   tipoPeloCaminho,
   validarArquivo,
@@ -42,6 +44,60 @@ describe('a varredura normal não enxerga a pasta de fixtures inválidas', () =>
     const alvo = join(FIXTURES, 'eventos', 'sem-validade-ate.yaml')
     expect(tipoPeloCaminho(alvo)).toBe('eventos')
     expect(validarArquivo(alvo, 'eventos').length).toBeGreaterThan(0)
+  })
+})
+
+/**
+ * Monta uma conhecimento/ descartável com um playbook real dentro, para a
+ * checagem cruzada ter substrato e o único problema possível ser o do caso.
+ */
+function conhecimentoDescartavel(): string {
+  const raiz = join(mkdtempSync(join(tmpdir(), 'conhecimento-d102-')), 'conhecimento')
+  mkdirSync(join(raiz, 'playbooks'), { recursive: true })
+  copyFileSync(
+    join(CONHECIMENTO, 'playbooks', 'bancos-b3.yaml'),
+    join(raiz, 'playbooks', 'bancos-b3.yaml'),
+  )
+  return raiz
+}
+
+describe('D-102, conhecimento/ reprova o que não é item de conhecimento', () => {
+  it('aprova a pasta só com tipo conhecido e a exceção declarada, mesmo com lixo dentro dela', () => {
+    const raiz = conhecimentoDescartavel()
+    mkdirSync(join(raiz, 'fixtures-invalidas', 'notas'), { recursive: true })
+    writeFileSync(join(raiz, 'fixtures-invalidas', 'notas', 'legenda.txt'), 'qualquer coisa\n')
+    expect([...EXCECOES_NA_RAIZ]).toEqual(['fixtures-invalidas'])
+    expect(validarPasta(raiz).problemas).toEqual([])
+  })
+
+  it('recusa pasta desconhecida na raiz, citando RF-101 e onde o material bruto mora', () => {
+    const raiz = conhecimentoDescartavel()
+    mkdirSync(join(raiz, 'ingest'))
+    writeFileSync(join(raiz, 'ingest', 'legenda.txt'), 'qualquer coisa\n')
+    const { problemas } = validarPasta(raiz)
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'RF-101: conhecimento/ingest não é tipo de conhecimento; ' +
+        'material bruto fica em ingest/ (D-042, RNF-013)',
+    ])
+  })
+
+  it('recusa também arquivo solto na raiz, que não é pasta de tipo', () => {
+    const raiz = conhecimentoDescartavel()
+    writeFileSync(join(raiz, 'annotations.json'), '{}\n')
+    const { problemas } = validarPasta(raiz)
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.mensagem).toContain('conhecimento/annotations.json não é tipo de conhecimento')
+  })
+
+  it('recusa arquivo que não é YAML dentro de uma pasta de tipo', () => {
+    const raiz = conhecimentoDescartavel()
+    mkdirSync(join(raiz, 'notas'))
+    writeFileSync(join(raiz, 'notas', 'normalized.txt'), 'qualquer coisa\n')
+    const { problemas } = validarPasta(raiz)
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'RF-101: conhecimento/notas/normalized.txt não é YAML, e item de conhecimento é ' +
+        'arquivo .yaml; material bruto fica em ingest/ (D-042, RNF-013)',
+    ])
   })
 })
 

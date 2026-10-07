@@ -1,3 +1,18 @@
+> # Nota de topo, D-102, 07/10/2026
+>
+> **A ferramenta mudou.** A partir da D-102, a ingestão de vídeo usa a biblioteca
+> transcript-normalizer, fixada em `v0.4.5` por `tools/ingest/pyproject.toml` e
+> `tools/ingest/uv.lock`. O `tools/baixar-legenda.py` e o `tools/.venv-ingest` saíram. A
+> biblioteca entra **só para obter o texto bruto** (subcomando `fetch`): a ingestão não roda
+> `normalize`, não há camada aprendida, e o `trecho_original` de qualquer afirmação sai sempre do
+> `legenda.txt`, nunca do `normalized.txt` (D-091 continua valendo como está).
+>
+> **O que segue valendo daqui.** As seções 1 a 3 continuam como registro do porquê: provedor de
+> IA não transcreve, o timestamp é a procedência, a detecção de atividade de voz é obrigatória.
+> As seções 3.2 a 3.7 descrevem e medem a ferramenta antiga e **não se reescrevem**: são
+> histórico de medição do script, não descrição da ferramenta atual. A seção 3.1 aponta para os
+> comandos novos.
+
 > # Ressalva de leitura, obrigatória antes de usar qualquer coisa daqui
 >
 > **O que este arquivo é.** Registro de **trabalho de ferramenta**: por que provedor de IA não
@@ -25,6 +40,13 @@
 >   nem a legenda nem o reconhecimento de fala são confiáveis em termo de domínio, e eles erram
 >   termos diferentes.
 > - **Generalidade.** Um vídeo, uma plataforma, um idioma.
+> - **Equivalência entre o script e a biblioteca, conferida só na contagem (D-102).** No vídeo de
+>   referência `FR9RRXVpg9I`, a biblioteca devolveu 810 linhas de conteúdo no `legenda.txt`, zero
+>   textos repetidos, e o `.vtt` bruto tem 810 linhas de texto distintas, o mesmo número do
+>   script na seção 3.7. **O texto linha a linha não foi comparado**, porque a saída do script não
+>   existe mais em disco. A faixa também mudou: a biblioteca escolheu `pt-orig` (automática
+>   original), e a seção 3.7 não registra qual faixa o script usou. Então "mesma contagem" está
+>   medido, e "mesmo texto" continua suposto.
 >
 > **Duas divergências internas de contagem, corrigidas na leitura e não no texto.** A seção 3.4
 > fala em "duas correções" da desduplicação e descreve **três** tentativas; a abertura da seção 4
@@ -98,9 +120,57 @@ Num projeto cuja regra é que explicação inferida sem verificação não entra
 
 ## 3. A ferramenta
 
-`tools/baixar-legenda.py`. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
+**Desde a D-102,** a biblioteca transcript-normalizer, fixada em `v0.4.5`, usada só no subcomando `fetch`. Até a D-102 era `tools/baixar-legenda.py`; o comportamento dele está preservado abaixo da seção 3.1, como histórico. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
 
 ### 3.1. Comportamento
+
+Instalação, uma vez por máquina, com o [uv](https://docs.astral.sh/uv/) instalado:
+
+```bash
+uv sync --locked --project tools/ingest
+```
+
+Ingestão de um vídeo, da raiz do repositório:
+
+```bash
+bun run ingest:video <url>
+```
+
+que roda exatamente:
+
+```bash
+cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw <url>
+```
+
+Listagem do que já foi ingerido, com id, data de publicação e título:
+
+```bash
+cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer list
+```
+
+**Por que o atalho entra em `ingest/` antes de rodar.** A biblioteca grava em `runs/<id-do-vídeo>/` **do diretório corrente**, e o `list` só lê esse `runs/`. O `--out DIR` existe, mas grava direto em `DIR`, sem criar a subpasta do id; `--out ingest` jogaria o `legenda.txt` solto em `ingest/` e o vídeo seguinte sobrescreveria. Rodando de dentro de `ingest/`, a pasta por vídeo fica `ingest/runs/<id-do-vídeo>/`, fora do versionamento (D-042), e o `list` funciona sem código novo.
+
+**O que fica em `ingest/runs/<id-do-vídeo>/`:**
+
+| Arquivo | O que é |
+|---|---|
+| `legenda.txt` | o texto, uma linha por fala com timestamp, e o cabeçalho de procedência. É daqui que sai o `trecho_original` |
+| `legenda.vtt` | a legenda bruta como a plataforma entregou. Só fica por causa do `--keep-raw`, que o atalho sempre passa, porque ela é parte da procedência |
+| `meta.yaml` | o que a plataforma diz do vídeo: id, título, canal, data, faixa escolhida |
+
+Se alguém rodar `normalize` por conta própria, aparecem também `normalized.txt`, `annotations.json`, `report.txt` e `needs-review/`. **Nenhum deles alimenta extração** (D-091, D-102).
+
+**Mudanças de comportamento em relação ao script, declaradas:**
+
+- **Faixa.** A biblioteca prefere `pt-orig` à manual, e a manual à automática. O script preferia manual. A mudança corrige o caso real em que a `pt` era tradução automática.
+- **Sem legenda, cai sozinha no reconhecimento de fala local.** O script exigia `--transcrever`. Para impedir a queda, passe `--caption-only` depois de `<url>`; para pular a legenda, `--whisper`. O modelo padrão é `medium`; `--model` escolhe outro.
+- **Um nome de arquivo só.** Legenda e fala gravam o mesmo `legenda.txt`, com a origem no cabeçalho (`# Etapa: 1, legenda da plataforma` ou `# Etapa: 2, ...`). O script gravava `.txt` com `.srt` ao lado.
+- **Idioma** é `--lang`, padrão `pt`. A regra de antes vale igual: um agente conversando em outro idioma passa `--lang` explicitamente.
+- **A contagem `lines:` que o `fetch` imprime inclui o cabeçalho.** No vídeo de referência ela diz 828, e as linhas de conteúdo são 810.
+
+Exit code 0 em sucesso, 1 quando não conseguiu texto nenhum, 2 em erro de uso (sem url, modelo desconhecido) ou com o extra `ingest` faltando. Lido no código da v0.4.5, não exercitado um a um.
+
+#### Comportamento do script antigo, até a D-102
 
 ```
 python3 tools/baixar-legenda.py <url>

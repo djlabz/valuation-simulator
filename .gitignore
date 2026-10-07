@@ -68,14 +68,23 @@ Thumbs.db
 /.claude/*
 !/.claude/skills/
 
-# Ambiente virtual da ferramenta de ingestão de vídeo (D-092).
+# Ambiente virtual da ferramenta de ingestão de vídeo (D-092, D-102).
 # Python é segundo runtime por exceção justificada: ele não passa por tsc nem
-# pela suíte, e o venv é resíduo de instalação, não fonte. O script recria.
-/tools/.venv-ingest/
+# pela suíte, e o venv é resíduo de instalação, não fonte. O uv recria a partir
+# de tools/ingest/pyproject.toml e uv.lock, que são versionados.
+/tools/ingest/.venv/
+
+# O que a biblioteca transcript-normalizer cria no diretório corrente quando
+# alguém a roda fora de ingest/ (D-102): runs/<id>/ com a legenda e os
+# derivados, e packs/ com a camada aprendida. O atalho ingest:video roda de
+# dentro de ingest/, então lá isto cai em ingest/runs/, já coberto acima. Estas
+# duas linhas pegam a execução da raiz, que é o git add -A distraído da D-050.
+/runs/
+/packs/
 
 # Bytecode do Python, mesma família do venv acima e do .stryker-tmp abaixo.
-# Rodar a ferramenta como script NÃO gera isto, verificado; só gera quem a
-# importa como módulo, que é o que um teste em Python faria. A regra entra antes
+# Rodar a ferramenta como script NÃO gera isto, verificado no script da D-092;
+# só gera quem a importa como módulo, que é o que um teste em Python faria. A regra entra antes
 # desse teste existir, porque depois ninguém lembra e o resíduo entra num
 # git add -A distraído, que é o caso concreto da D-050.
 __pycache__/

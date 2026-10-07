@@ -9,7 +9,8 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/conhecimento/tsconfig.json && tsc --noEmit -p packages/dominio/tsconfig.json && tsc --noEmit -p tools/tsconfig.json",
-    "validar-conhecimento": "bun tools/validar-conhecimento.ts"
+    "validar-conhecimento": "bun tools/validar-conhecimento.ts",
+    "ingest:video": "cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^10.0.0",

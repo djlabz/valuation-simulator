@@ -2099,3 +2099,112 @@ informações forem ditas juntas.
 **Onde a regra operante mora.** Seção 5 do `PROTOCOLO-ETAPA.md`, que é o fechamento de etapa, e
 não aqui. Quem fecha etapa lê o protocolo; ninguém abre o log de decisões para descobrir o que o
 relatório precisa dizer. Mesmo padrão da D-052 e da D-079.
+
+## Sessão de 07/10/2026
+
+### D-102. A ingestão de vídeo passa a usar a biblioteca transcript-normalizer, e `tools/baixar-legenda.py` sai
+
+**Decisão.** `tools/baixar-legenda.py` e o ambiente `tools/.venv-ingest` saem. A ingestão de
+vídeo passa a usar a biblioteca transcript-normalizer, licença MIT, mantida pelo autor deste
+projeto, fixada em `v0.4.5` por `tools/ingest/pyproject.toml` e `tools/ingest/uv.lock`, com o
+extra `[ingest]`. A saída continua sendo **material bruto de ingestão** em `ingest/`, fora do
+versionamento (D-042), e **nunca conhecimento autorado** (RNF-013). Os arquivos que a biblioteca
+grava, inclusive `normalized.txt` e `annotations.json` se alguém rodar `normalize`, têm o mesmo
+estatuto do `.srt` de antes: matéria-prima, não item de conhecimento.
+
+**Caminho A, e só ele.** A biblioteca entra **só para obter o texto bruto**, pelo subcomando
+`fetch`. A ingestão não roda `normalize`, não há camada aprendida, e o `trecho_original` de
+qualquer afirmação extraída de vídeo sai **sempre do `legenda.txt`**, nunca do `normalized.txt`.
+A D-091 fica como está, esperando os gatilhos dela.
+
+**O caminho B exige decisão própria que revise a D-091, dizendo isso.** O caminho B é a
+normalização de termo alimentando a extração, com o pacote externo e a camada pessoal tratados
+como lista de ferramenta aplicada a material bruto. Ele não se abre por uso, por conveniência ou
+por esta decisão. Os gatilhos que a decisão de revisão precisa ter cumprido:
+
+- **A procedência no documento de requisitos.** A emenda que define procedência de fonte em
+  vídeo, prevista como RF-309, tem que estar gravada. Conferido hoje: o RF-309 não existe e o
+  documento segue em 2.4.4.
+- **A autoria do pacote de termos.** O pacote `financas-ptbr` não nasceu vazio, e parte das
+  entradas foi escrita ou editada por agente, sob instrução do autor, na sessão da biblioteca. A
+  D-091 exige lista preenchida pelo curador. Então o pacote só vale como lista deste projeto
+  depois que o curador o **assumir após revisão entrada a entrada**. Gabarito conferido à mão não
+  é a mesma coisa: ele confere o resultado da normalização, não a autoria de cada entrada.
+
+O motivo de fundo: o `normalized.txt` não marca no próprio texto o que foi corrigido. Quem extrair
+dele cita um trecho que o áudio não diz, que é exatamente o caso que a D-091 quer impedir. O
+stand-off da biblioteca resolve o medo de alterar a fonte sem marca dentro dela, não fora.
+
+**Motivo, fonte única.** O script e a biblioteca faziam a mesma coisa em dois lugares, e a
+biblioteca já corrigiu coisas que o script não tem. Escolher a faixa original quando a `pt` é
+tradução automática (D-045 do transcript-normalizer). Rodar o yt-dlp no mesmo processo.
+Recomeçar do zero o download interrompido (D-059 de lá). Manter os dois é copiar cada correção à
+mão, e a cópia esquecida é a que vira procedência errada.
+
+**Motivo, a biblioteca é testada e o script não era.** A D-092 registrou que a ferramenta Python
+nunca passa por suíte. A biblioteca tem suíte própria, rodando em três sistemas operacionais a
+cada push, e um teste de regressão contra **quatro vídeos com gabarito conferido à mão**, mais um
+teste de silêncio fora do domínio. O alcance declarado: os quatro vídeos são de finanças, em
+pt-BR, de dois canais. A ferramenta continua fora do `tsc` e do Vitest deste repositório; a
+cobertura dela mora no repositório dela.
+
+**O que continua valendo.** D-089, sem LLM em ponto nenhum, e a biblioteca não tem nenhum. D-090,
+o `vad_filter` fixo no código da biblioteca, sem opção, com teste dela afirmando o valor, e
+reconferido aqui pelo controle negativo abaixo. A fronteira da D-092: o Python fica em `tools/`,
+não produz artefato em `packages/`, e grava em `ingest/`. A exceção da D-092 passa a cobrir a
+biblioteca no lugar do script, e **segue não abrindo precedente**.
+
+**A pasta por vídeo é `ingest/runs/<id-do-vídeo>/`.** Desfaz o nome por título do commit
+`bf68908`; o título volta pelo `transcript-normalizer list`. O autor aprovou `ingest/<id>/` na
+proposta, e a implementação mediu que a biblioteca não faz isso: o `--out DIR` grava **direto em
+`DIR`**, sem subpasta do id, e o `list` só lê `runs/` do diretório corrente, sem opção de outra
+raiz. Com `--out ingest`, o `legenda.txt` cairia solto em `ingest/` e o vídeo seguinte
+sobrescreveria. Foi levado de volta ao autor, que escolheu rodar de dentro de `ingest/` sem
+`--out`. O atalho é `bun run ingest:video <url>`, que roda
+`cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw <url>`.
+
+**O que muda de comportamento, declarado.**
+
+- A faixa `pt-orig` passa à frente da manual, e a manual à automática. O script preferia manual.
+- Sem legenda na plataforma, o `fetch` **cai sozinho** no reconhecimento de fala local. O script
+  exigia `--transcrever`. `--caption-only` impede a queda.
+- Fala e legenda gravam o mesmo `legenda.txt`, com a origem no cabeçalho.
+- A legenda bruta só fica com `--keep-raw`, que o atalho sempre passa, porque ela é parte da
+  procedência.
+- O `--locked` no atalho mantém a política do script, que não se atualizava sozinho para a mesma
+  url não passar por versões diferentes. Subir de versão é deliberado, por
+  `uv lock --upgrade-package transcript-normalizer` e commit.
+
+**O que a ferramenta cria, declarado junto com a regra de ignore** (questão aberta do
+`AGENTS.md`): `tools/ingest/.venv/`; e `runs/` e `packs/` no diretório corrente se alguém rodar
+fora de `ingest/`. As três entram no `.gitignore` nesta mesma troca. Rodando pelo atalho, tudo
+cai em `ingest/`, que já estava fora.
+
+**O validador passa a reprovar o que não é item de conhecimento.** Até aqui ele ignorava em
+silêncio: qualquer entrada da raiz de `conhecimento/` fora da lista branca, e qualquer arquivo
+não YAML dentro das pastas de tipo. Então `conhecimento/ingest/legenda.txt`, ou um
+`normalized.txt` copiado para `notas/`, passava com exit 0. Agora as duas coisas reprovam com
+RF-101, apontando que material bruto fica em `ingest/` (D-042, RNF-013). A exceção é declarada,
+uma só: `fixtures-invalidas`. É aumento de proteção, com teste de aprovação e de rejeição.
+
+**Descartado.** Manter o script e portar as correções: são dois lugares para a mesma regra.
+Copiar o código da biblioteca para dentro de `tools/`: é a mesma duplicação, sem a suíte.
+Instalar sem lock: é o que pareou versões incompatíveis no build da própria biblioteca (D-058 de
+lá). Um wrapper que extrai o id da url e passa `--out ingest/<id>`: código novo para manter uma
+convenção, e o `list` nativo não enxergaria essas pastas. `--out ingest/<id>` digitado à mão:
+id errado sobrescreve outro vídeo, e o `list` também não funciona.
+
+**Verificação, executada em 07/10/2026, saída literal no relatório da sessão.**
+
+- **Equivalência, só na contagem.** No vídeo de referência `FR9RRXVpg9I`, 810 linhas de conteúdo
+  no `legenda.txt`, zero textos repetidos, e 810 linhas de texto distintas no `.vtt` bruto. É o
+  mesmo 810 do script na seção 3.7 da INGESTAO. O texto linha a linha **não** foi comparado,
+  porque a saída do script não existe mais em disco, e a faixa agora é `pt-orig`. Continua no
+  bloco de pendências da INGESTAO.
+- **Controle negativo da D-090.** Tom puro de 440 Hz, 10 s, modelo `medium`: zero segmentos.
+  Só a metade com detecção de voz foi rodada; a metade sem ela não é exercitável pela CLI, que
+  não tem opção para desligar.
+- **Nada entra no git.** `git add -A --dry-run` depois da ingestão real não lista nada de
+  `ingest/`, `runs/` nem `packs/`, e `git check-ignore` confirma as quatro regras.
+- **Suíte, typecheck e validação** verdes no estado atual, e o CLI de validação reprovando com
+  exit 1 uma `conhecimento/ingest/` colocada de propósito e removida depois.
