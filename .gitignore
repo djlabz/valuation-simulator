@@ -93,4 +93,7 @@ __pycache__/
 # Saída do Stryker, gerada a cada rodada de mutation testing (D-049)
 .stryker-tmp
 reports
+
+# Lockfile que o runtime JavaScript do yt-dlp (deno) grava no diretório corrente ao
+# rodar a ingestão de vídeo (D-102); não é dependência deste repositório
 deno.lock
