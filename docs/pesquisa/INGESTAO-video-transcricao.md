@@ -1,7 +1,7 @@
 > # Nota de topo, D-102, 07/10/2026
 >
 > **A ferramenta mudou.** A partir da D-102, a ingestão de vídeo usa a biblioteca
-> transcript-normalizer, fixada em `v0.4.5` por `tools/ingest/pyproject.toml` e
+> transcript-normalizer, fixada em `v0.8.1` (D-103) por `tools/ingest/pyproject.toml` e
 > `tools/ingest/uv.lock`. O `tools/baixar-legenda.py` e o `tools/.venv-ingest` saíram. A
 > biblioteca entra **só para obter o texto bruto** (subcomando `fetch`): a ingestão não roda
 > `normalize`, não há camada aprendida, e o `trecho_original` de qualquer afirmação sai sempre do
@@ -120,7 +120,7 @@ Num projeto cuja regra é que explicação inferida sem verificação não entra
 
 ## 3. A ferramenta
 
-**Desde a D-102,** a biblioteca transcript-normalizer, fixada em `v0.4.5`, usada só no subcomando `fetch`. Até a D-102 era `tools/baixar-legenda.py`; o comportamento dele está preservado abaixo da seção 3.1, como histórico. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
+**Desde a D-102,** a biblioteca transcript-normalizer, fixada em `v0.8.1` (D-103), usada só no subcomando `fetch`. Até a D-102 era `tools/baixar-legenda.py`; o comportamento dele está preservado abaixo da seção 3.1, como histórico. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
 
 ### 3.1. Comportamento
 
@@ -139,7 +139,7 @@ bun run ingest:video <url>
 que roda exatamente:
 
 ```bash
-cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw <url>
+cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio <url>
 ```
 
 Listagem do que já foi ingerido, com id, data de publicação e título:
@@ -162,10 +162,10 @@ Se alguém rodar `normalize` por conta própria, aparecem também `normalized.tx
 
 **Mudanças de comportamento em relação ao script, declaradas:**
 
-- **Faixa.** A biblioteca prefere `pt-orig` à manual, e a manual à automática. O script preferia manual. A mudança corrige o caso real em que a `pt` era tradução automática.
+- **Faixa.** Desde a 0.6.5 (D-103), no idioma original do vídeo a legenda escrita pelo canal vem primeiro, depois a automática do áudio original, depois as do canal em outros idiomas, e por último dublagens e traduções automáticas. `--track` pega exatamente a faixa nomeada. Da 0.4.5 à 0.6.4 a biblioteca preferia `pt-orig` à manual; o script preferia manual. A troca corrige o caso real em que a `pt` era tradução automática.
 - **Sem legenda, cai sozinha no reconhecimento de fala local.** O script exigia `--transcrever`. Para impedir a queda, passe `--caption-only` depois de `<url>`; para pular a legenda, `--whisper`. O modelo padrão é `medium`; `--model` escolhe outro.
 - **Um nome de arquivo só.** Legenda e fala gravam o mesmo `legenda.txt`, com a origem no cabeçalho (`# Etapa: 1, legenda da plataforma` ou `# Etapa: 2, ...`). O script gravava `.txt` com `.srt` ao lado.
-- **Idioma** é `--lang`, padrão `pt`. A regra de antes vale igual: um agente conversando em outro idioma passa `--lang` explicitamente.
+- **Idioma.** Desde a 0.6.5 (D-103), sem `--lang` o `fetch` pega o idioma do vídeo como o site informa; quando o site não diz, a única faixa de áudio original, senão a única faixa manual, senão `pt`, com uma linha avisando que o idioma é desconhecido. `--lang` continua vencendo, e o atalho não o passa. Até a 0.6.4 o padrão era sempre `pt`.
 - **A contagem `lines:` que o `fetch` imprime inclui o cabeçalho.** No vídeo de referência ela diz 828, e as linhas de conteúdo são 810.
 
 Exit code 0 em sucesso, 1 quando não conseguiu texto nenhum, 2 em erro de uso (sem url, modelo desconhecido) ou com o extra `ingest` faltando. Lido no código da v0.4.5, não exercitado um a um.
