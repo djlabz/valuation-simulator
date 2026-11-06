@@ -2208,3 +2208,89 @@ id errado sobrescreve outro vídeo, e o `list` também não funciona.
   `ingest/`, `runs/` nem `packs/`, e `git check-ignore` confirma as quatro regras.
 - **Suíte, typecheck e validação** verdes no estado atual, e o CLI de validação reprovando com
   exit 1 uma `conhecimento/ingest/` colocada de propósito e removida depois.
+
+## Sessão de 06/11/2026
+
+### D-103. A ingestão de vídeo sobe para transcript-normalizer v0.8.1, com o áudio guardado
+
+**Decisão.** A biblioteca transcript-normalizer fica fixada em `v0.8.1` por
+`tools/ingest/pyproject.toml` e `tools/ingest/uv.lock`, com o extra `[ingest]`. O atalho
+`ingest:video` passa a levar `--keep-audio`. A subida segue o caminho que a D-102 prevê:
+`uv lock --upgrade-package transcript-normalizer` e commit.
+
+**Registro de fato, sem reescrever a D-102.** A D-102 fixou `v0.4.5`. A subida para `v0.6.4`,
+no commit `1248182` (assunto "Ingestao de video sobe para transcript-normalizer v0.6.4 (D-102)"),
+não teve decisão própria: o motivo ficou só na linha de `tools/` do `AGENTS.md`. Esta decisão é
+a primeira subida de versão registrada aqui.
+
+**O que muda de comportamento entre 0.6.5 e 0.8.1, conferido no CHANGELOG da biblioteca na tag
+`v0.8.1`, e o efeito em cada caso sobre a ingestão deste projeto:**
+
+- **Ordem das faixas, 0.6.5 (D-081 de lá, provisória, emendando a D-045 de lá).** No idioma
+  original do vídeo, a legenda escrita pelo canal passa à frente da automática do áudio original.
+  A ordem fica: a do canal no idioma original, a automática do áudio original, as do canal em
+  outros idiomas, e por último dublagens e traduções automáticas. **A D-102 descreve a ordem da
+  0.4.5 a 0.6.4, `pt-orig` antes da manual, e essa descrição deixa de valer a partir daqui.** Para
+  a procedência isso importa porque a linha "Origem da legenda" do cabeçalho do `legenda.txt` pode
+  mudar para o mesmo vídeo, e o `trecho_original` tem que citar a faixa que de fato foi baixada.
+  Vídeo sem faixa manual não muda.
+- **Idioma, 0.6.5 (D-080 de lá).** Sem `--lang`, o `fetch` pega o idioma do vídeo como o site
+  informa, e não mais sempre `pt`. O atalho não passa `--lang`. Efeito: vídeo em português segue
+  igual; vídeo em outro idioma passa a vir no idioma original em vez de cair numa tradução
+  automática para `pt`. Isso aproxima o texto da fonte, e por isso o atalho continua sem `--lang`.
+- **Áudio, 0.6.5.** O áudio baixado para reconhecimento de fala passa a ser apagado depois que a
+  transcrição é gravada, a menos que se passe `--keep-audio`, que o guarda na pasta do vídeo como
+  `<id-do-vídeo>.<ext>`. Até a 0.6.4 ele ficava como `audio.<ext>`. Só afeta vídeo sem legenda,
+  que cai no reconhecimento de fala.
+- **Login, 0.6.5 (D-078 de lá).** Site que pede login sai com código 3 e mensagem dizendo qual
+  site pediu. O atalho repassa o código. Efeito pequeno: muda a mensagem e o código de saída
+  quando a ingestão falha por login, não muda o que é gravado quando dá certo.
+- **0.7.0 e 0.8.0.** Mexem em pacote de termos, contexto de variante, `min_engine`, `match: exact`
+  e no `TRANSCRIPT_NORMALIZER_HOME` levando o `config.toml`. Nada disso é exercido pelo `fetch` do
+  atalho, que não usa pacote nem a variável.
+- **0.8.1.** Entra o `--version`. As correções de segurança de filelock e certifi valem, pelo
+  próprio CHANGELOG, para os executáveis que a biblioteca publica: "`pip install` resolves its own
+  versions". Então elas não chegam a este projeto pela troca de tag, e o que este lock resolveu
+  para os dois pacotes está na verificação abaixo.
+
+**Por que `--keep-audio` no atalho.** Para vídeo transcrito por reconhecimento de fala, o áudio é
+a única coisa contra a qual a transcrição pode ser conferida, e a D-089 se sustenta exatamente no
+erro de fala ser "conferível contra o áudio". A partir da 0.6.5 ele seria apagado antes de qualquer
+conferência. A INGESTAO, seção 3.7, diz que o áudio "pode ser apagado" **depois** da conferência
+da transcrição, então guardar por padrão é o que deixa essa ordem possível; apagar continua sendo
+gesto de quem conferiu. O áudio fica em `ingest/runs/<id-do-vídeo>/`, fora do versionamento
+(D-042), como o resto.
+
+**O que continua valendo.** Caminho A da D-102, e só ele: o atalho roda só `fetch`, sem
+`normalize`, sem `--pack`, sem camada aprendida, e o `trecho_original` sai do `legenda.txt`. A
+D-091 não é revista. D-089, D-090 e D-092 seguem intactas, e a exceção de runtime da D-092 segue
+sem abrir precedente.
+
+**Descartado.** Fixar `--lang pt` no atalho para manter o comportamento antigo: traria tradução
+automática para vídeo em outro idioma, que é texto que ninguém falou. Deixar o áudio ser apagado
+e baixar de novo quando precisar conferir: o vídeo pode sair do ar, e o áudio baixado de novo não
+é garantidamente o mesmo que gerou a transcrição.
+
+**Verificação, executada em 06/11/2026, saída literal no relatório da sessão.**
+
+- **Versão.** `uv run --locked --project tools/ingest transcript-normalizer --version` imprime
+  `0.8.1`, exit 0.
+- **O lock trocou um pacote só.** Comparando nome e versão de todos os pacotes do `uv.lock` antes
+  e depois, a única diferença é `transcript-normalizer: 0.6.4 → 0.8.1`, commit
+  `4e88cf67f4a5d970358ef9b76e5716b0f624192d`. `faster-whisper` 1.2.1 e `ctranslate2` 4.8.2 não
+  mudaram, então o controle negativo da D-090 não foi rodado de novo. O `--upgrade-package` da
+  biblioteca deixou `certifi` em `2026.7.22` e `filelock` em `4.0.12`, as versões que os alertas
+  apontam, e por isso entra o item seguinte.
+- **certifi e filelock sobem no lock da ingestão**, por `uv lock --upgrade-package certifi
+  --upgrade-package filelock`, porque são dependências só desta ferramenta e as versões fixadas
+  eram as dos alertas que motivaram a 0.8.1: `certifi: 2026.7.22 → 2026.10.23` e
+  `filelock: 4.0.12 → 4.2.9`, sem nenhum outro pacote mudando.
+- **Mesmo texto no vídeo de referência.** `fetch --keep-raw --keep-audio` de `FR9RRXVpg9I` numa
+  pasta temporária fora do repositório: faixa `pt-orig (automatica original)` nas duas versões,
+  810 linhas de conteúdo nas duas, `diff` do corpo sem diferença; no cabeçalho só muda a data de
+  download. O vídeo não tem faixa escrita pelo canal, então a ordem nova de faixas não foi
+  exercida por ele. O `fetch` não gravou `normalized.txt` nem nada além de `legenda.txt`,
+  `legenda.vtt` e `meta.yaml`. O `--keep-audio` também não foi exercido, porque o vídeo tem
+  legenda e não houve áudio baixado.
+- **Nada entra no git.** `git add -A --dry-run` não lista nada de `ingest/`, `runs/` nem `packs/`.
+- **Suíte, typecheck e validação** verdes, com 191 testes.
