@@ -2294,3 +2294,31 @@ e baixar de novo quando precisar conferir: o vídeo pode sair do ar, e o áudio 
   legenda e não houve áudio baixado.
 - **Nada entra no git.** `git add -A --dry-run` não lista nada de `ingest/`, `runs/` nem `packs/`.
 - **Suíte, typecheck e validação** verdes, com 191 testes.
+
+## Sessão de 07/11/2026
+
+### D-104. O Stryker ignora o venv da ingestão e `ingest/`, com padrão ancorado na raiz
+
+**Decisão.** O `stryker.config.json` ganha `"ignorePatterns": ["/tools/ingest/.venv", "/ingest"]`,
+os dois ancorados na raiz do repositório.
+
+**Motivo.** Antes de rodar, o Stryker copia o repositório para uma pasta temporária. O venv da
+ingestão (D-102) tem o atalho `lib64 -> lib`, e a cópia quebra nele com `EISDIR`, o que derruba a
+rodada inteira antes do primeiro mutante. `ingest/` é material bruto fora do git (D-042) e não tem
+código a mutar. A barra inicial ancora o padrão na raiz: sem ela, `ingest` casaria também
+`tools/ingest/` inteiro, inclusive o `pyproject.toml` e o `uv.lock`.
+
+**Verificação, executada em 07/11/2026, saída literal no relatório da sessão.** Os arquivos lidos
+pelo Stryker caem de 4996 para 81, os mutados continuam os mesmos 15, e a rodada vai até o fim com
+exit 0.
+
+**Onde a decisão foi tomada.** Na sessão do transcript-normalizer, e entrou aqui antes do merge da
+branch que a aplicou.
+
+**Relação com a questão aberta "ferramenta que cria pasta dentro do repositório declara o que
+cria".** A D-102 declarou o venv e a regra de ignore do git, mas não o efeito sobre ferramentas que
+copiam o repositório. É a mesma família, com um efeito novo, e esta decisão não resolve a questão:
+só registra que declarar para o git não basta.
+
+**Por que a configuração no disco difere da gravada na D-049.** O `DECISOES.md` é append only, e a
+D-049 não é editada. Esta decisão é o que explica a diferença.

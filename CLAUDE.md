@@ -321,7 +321,7 @@ Não decida sozinho, pergunte:
 
 ---
 
-## 6. Estado da verificação automática
+## 6. Estado da verificação
 
 Honestidade sobre o que existe agora, para ninguém confiar em proteção inexistente.
 
