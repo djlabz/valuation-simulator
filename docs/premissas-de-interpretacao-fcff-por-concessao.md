@@ -24,8 +24,11 @@
 > `docs/pesquisa/CONFERENCIA-taesa-2026-08.md`, que é a primeira vez que alguém abriu documento
 > primário de companhia neste projeto.
 >
-> **O que mudou de estado:** a escala da RAP (B2) e o mês base de reajuste (dentro de B5). Duas.
-> Todo o resto continua em CITADA E NÃO ABERTA, CONVENÇÃO ou ABERTA.
+> **O que está em CONFERIDA:** onze marcas neste arquivo, todas com alcance TAESA (2T26 e DCR
+> 2025), nenhuma setorial: a escala da RAP (B2), o mês base de reajuste, que é parte da B5 (a B5
+> em si segue ABERTA), e N18, N19, N22, N23, N25 (só quanto às datas), N26, N27, N30 e N31. Até
+> 07/11/2026 este bloco falava em duas, como a D-085; a contagem acima é a do disco em
+> 07/11/2026. As demais premissas estão em outros estados, cada um declarado na própria premissa.
 >
 > **O alcance do que foi conferido é uma companhia e um trimestre.** CONFERIDA aqui significa
 > "alguém abriu e leu um documento da TAESA", não "vale para o setor". Onde a distinção importa,
