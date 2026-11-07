@@ -328,10 +328,10 @@ Honestidade sobre o que existe agora, para ninguém confiar em proteção inexis
 | Proteção | Estado |
 |---|---|
 | Invariantes como texto decidível | Existe, este arquivo |
-| Inspeção adversarial por skill dedicada | Não existe. Nasce no Passo 2 (RNF-011, D-038) |
-| CLI validando `conhecimento/` com exit code | Não existe. Nasce no Passo 2 (RF-101, RF-110, RF-112) |
-| Lint dos gatilhos da seção 2 | Não existe. Candidato a regra ESLint quando houver código |
-| Mutation testing das engines | Não existe. Nasce na Fase 1 (RF-505) |
+| Inspeção adversarial por skill dedicada | Existe, `.claude/skills/inspecao-conformidade/` (RNF-011, D-038). É conduzida por agente quando alguém a chama no fechamento de etapa, não roda sozinha. A varredura de proteção sem exercício que ela inclui exige triagem manual da saída (D-074). Não substitui revisão humana: o inspetor é agente e herda pontos cegos de quem escreveu (D-079) |
+| CLI validando `conhecimento/` com exit code | Existe, `tools/validar-conhecimento.ts`, por `bun run validar-conhecimento` (RF-101, RF-110, RF-112). Roda quando alguém o chama: não há CI no repositório. Valida estrutura, filtros de texto e as checagens cruzadas que o schema declara; não valida se o conteúdo é verdadeiro |
+| Lint dos gatilhos da seção 2 | Não existe. O linter entra junto com o loader (D-053, D-056), e regra para os gatilhos ainda não foi escrita |
+| Mutation testing | Existe sobre `shared`, `conhecimento` e `dominio`, por `bun run mutation` (RF-505, D-049, D-077). Sem limiar: o valor vem de classificar cada sobrevivente à mão. Roda quando alguém o chama. Não cobre código fora dos três pacotes, nem a ferramenta Python de `tools/ingest/` (D-092) |
 
-Enquanto a linha diz "não existe", a verificação é humana e falível. Não escreva em nenhum
-documento que ela é automática.
+Nenhuma linha desta tabela roda sozinha. Onde a linha diz "não existe" ou "roda quando alguém o
+chama", a verificação é humana e falível. Não escreva em nenhum documento que ela é automática.

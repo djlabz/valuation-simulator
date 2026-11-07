@@ -10,10 +10,11 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 30/08/2026 (segunda sessão do dia)
+**Data:** 07/11/2026
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
-`percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa
+`percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa.
+Desde então, sem etapa nova: decisões D-085 a D-103 e a manutenção de governança de 07/11/2026.
 **Etapa seguinte:** aguardando pesquisa do curador, não aguardando código. Ver "o que
 bloqueia" abaixo
 
@@ -28,7 +29,8 @@ bloqueia" abaixo
 
 Fora dos pacotes: `conhecimento/playbooks/` com os três playbooks, só estrutura verificável
 depois do expurgo; `conhecimento/fixtures-invalidas/` com dezenove fixtures, cada uma
-quebrando exatamente uma regra; e `conhecimento/heuristicas`, `notas` e `eventos` vazias.
+quebrando exatamente uma regra. As pastas `conhecimento/heuristicas`, `notas` e `eventos` não
+existem: nascem quando tiverem conteúdo.
 
 ### Só existe uma engine, e as outras quatro não foram escritas de propósito
 
@@ -46,9 +48,11 @@ quatro engines herdarem as mesmas premissas.
 de companhia neste projeto. **Alcance de uma companhia e um trimestre**, TAESA no 2T26 mais o DCR
 de 2025.
 
-**Duas premissas chegaram ao estado CONFERIDA**, que estava vazio desde que a D-083 o criou: a
-escala da RAP e o mês base de reajuste. O bloco do arquivo de premissas que declarava o estado
-vazio foi reescrito, porque deixou de ser verdade.
+**Onze marcas de CONFERIDA no arquivo de premissas**, no estado que estava vazio desde que a
+D-083 o criou, todas com alcance TAESA (2T26 e DCR 2025) e nenhuma setorial: a escala da RAP
+(B2), o mês base de reajuste, que é parte da B5 (a B5 em si segue ABERTA), e N18, N19, N22, N23,
+N25 (só quanto às datas), N26, N27, N30 e N31. A D-085 fala em duas, e o bloco de topo do arquivo
+de premissas também falava até 07/11/2026; a contagem acima é a do disco em 07/11/2026.
 
 **Catorze premissas novas, N18 a N31**, nenhuma aplicada em código. As que mais mexem no desenho:
 a RAP tem quatro eixos e não um valor; existe concessão com cronograma de faixas e não degrau; o
@@ -78,9 +82,9 @@ itens que contradizem premissa do projeto, e a contradição da Lei 9.991/2000 s
 
 ### O segundo entregável da sonda, e o que bloqueia
 
-`docs/premissas-de-interpretacao-fcff-por-concessao.md` lista as **dezesseis premissas de
+`docs/premissas-de-interpretacao-fcff-por-concessao.md` lista as **quinze premissas de
 interpretação** que a engine foi obrigada a assumir sobre a natureza dos números: dez
-BLOQUEANTES, que se forem falsas mudam a engine, e seis de ROBUSTEZ, que se forem falsas
+BLOQUEANTES, que se forem falsas mudam a engine, e cinco de ROBUSTEZ, que se forem falsas
 produzem erro visível e não número errado silencioso. Cada uma diz o que a engine assume, onde
 no código isso está materializado, o que acontece se for falsa, e qual fonte primária
 responderia.
@@ -119,17 +123,32 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 - `docs/REQUISITOS-valuation-simulator-v2.4.md`, fonte de verdade. 113 requisitos funcionais,
   13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, verificado por teste (D-065)
-- `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as dezesseis premissas da sonda
+- `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as quinze premissas da sonda, dez
+  BLOQUEANTES e cinco de ROBUSTEZ
 - `docs/nao-autorado/EXPURGO-2026-08-27.md`, o conteúdo expurgado, com ressalva no topo
 - `docs/HANDOFF-planejamento-2026-08-24.md`, registro histórico de 24/08/2026, não é fonte de
   verdade, com as divergências no cabeçalho do próprio arquivo
+- `docs/pesquisa/consolidacao-valuation-b3.md`, a consolidação das quatro pesquisas, com
+  ressalva no topo (D-080)
+- `docs/pesquisa/CONFERENCIA-taesa-2026-08.md`, a conferência documental da TAESA, com ressalva
+  no topo (D-085, D-088)
+- `docs/pesquisa/INGESTAO-video-transcricao.md`, a ingestão de vídeo e por que IA não
+  transcreve, com nota de topo e ressalva (D-089 a D-092, D-102, D-103)
+- `docs/pesquisa/consolidacao-normalizacao-transcricao.md`, consolidação de três pesquisas
+  sobre normalização com dicionário de termos, 06/09/2026, **sem cabeçalho de ressalva**
+- `docs/DIFICULDADES-do-projeto.md`, registro dos problemas estruturais do projeto, matéria-prima
+  para explicá-lo, **sem cabeçalho de ressalva**
+- `README.md`, na raiz
 
 ### Verificação
 
-- suíte Vitest com **187 testes**, e `tsc --noEmit` sobre os três pacotes e `tools`
-- CLI de conhecimento saindo zero contra `conhecimento/`
-- Stryker sobre os **três** pacotes (D-077), sem limiar, com a regra de classificar cada
-  sobrevivente. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 75,38%,
+Nada desta lista roda sozinho: não há CI no repositório, e cada item roda quando alguém o chama.
+
+- suíte Vitest com **191 testes**, contados em 07/11/2026, por `bun run test`, e `tsc --noEmit`
+  sobre os três pacotes e `tools`, por `bun run typecheck`
+- CLI de conhecimento saindo zero contra `conhecimento/`, por `bun run validar-conhecimento`
+- Stryker sobre os **três** pacotes (D-077), por `bun run mutation`, sem limiar, com a regra de
+  classificar cada sobrevivente à mão. Scores medidos em 30/08/2026: `shared` 97,87%, `dominio` 75,38%,
   `conhecimento` 40,77%. O `dominio` saiu de 64,57% e subiu em três etapas: os testes de direção
   da D-078, a grade temporal da D-081 (`grades.ts` em 100%) e três lacunas reais que a
   classificação de sobreviventes achou nesta sessão
@@ -151,9 +170,8 @@ Estas foram classificadas e deliberadamente não fechadas. Não são pendência 
 
 Estrutura alvo. Existem hoje `packages/shared`, `packages/conhecimento`, `packages/dominio`,
 `tools/`, `conhecimento/` e os arquivos de configuração da raiz. Faltam `packages/core` e
-`packages/desktop`, e as pastas `heuristicas`, `notas` e `eventos` de `conhecimento/` existem
-vazias. Pacote nasce quando tem conteúdo, e o glob `packages/*` do workspace já aceita os que
-vierem.
+`packages/desktop`, e as pastas `heuristicas`, `notas` e `eventos` de `conhecimento/`. Pacote e
+pasta nascem quando têm conteúdo, e o glob `packages/*` do workspace já aceita os que vierem.
 
 ```
 valuation-simulator/
@@ -165,9 +183,9 @@ valuation-simulator/
 ├── docs/                        documento de requisitos e derivados
 ├── conhecimento/                YAML versionado, carregado no boot; outra entrada reprova (D-102)
 │   ├── playbooks/
-│   ├── heuristicas/
-│   ├── notas/
-│   └── eventos/
+│   ├── heuristicas/             não existe ainda, nasce com conteúdo
+│   ├── notas/                   não existe ainda, nasce com conteúdo
+│   └── eventos/                 não existe ainda, nasce com conteúdo
 ├── ingest/                      conteúdo bruto, fora do build e fora do git
 │   └── runs/<id-do-vídeo>/      legenda.txt, legenda.vtt e meta.yaml de cada vídeo (D-102)
 ├── packages/
@@ -246,7 +264,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 
 | Questão | Quando resolve |
 |---|---|
-| **BLOQUEIA.** Abrir documento primário. A consolidação está versionada e classificada, e **nenhuma das dezesseis premissas está no estado CONFERIDA** (D-083): classe A é fonte citada, não lida. A fila de nove perguntas em aberto está na consolidação, em ordem de risco, e a primeira é a escala da RAP no anexo da REH, com erro possível de 1000x. A parada segue dura para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código | Agora, com o anexo da REH na tela |
+| **BLOQUEIA.** Abrir documento primário. A consolidação está versionada e classificada, e **nenhuma das quinze premissas da sonda (B1 a B10, R1 a R5) está CONFERIDA com alcance setorial**. A B2 e o mês base da B5 foram conferidos só para a TAESA (ver seção 1). Classe A é fonte citada, não lida (D-083). A fila de nove perguntas em aberto está na consolidação, em ordem de risco, e a primeira é a escala da RAP no anexo da REH, com erro possível de 1000x. A parada segue dura para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código | Agora, com o anexo da REH na tela |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
@@ -259,7 +277,10 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
 | Playbook de Commodities é elaboração própria, sem base bibliográfica consolidada. Validar contra VALE3 | Fase 8 |
 | Beta em ativo de baixa liquidez pode produzir Ke sem significado. A composição CAPM é opcional justamente por isso, mas falta decidir se o app sinaliza número de observações insuficiente | Antes de `calcular_beta` |
-| RF-2007, citado no handoff de planejamento, não existe no documento v2.2. A proibição de transcrever material de terceiro no repositório distribuído não é requisito hoje. `/ingest` está fora do git de todo jeito, por RF-119 e D-015 | Quando houver decisão de distribuição |
+| RF-2007, citado no handoff de planejamento, não existe no documento de requisitos: nem na v2.2 que o handoff citava, nem na v2.4.4 atual, conferido em 07/11/2026. A proibição de transcrever material de terceiro no repositório distribuído não é requisito hoje. `/ingest` está fora do git de todo jeito, por RF-119 e D-015 | Quando houver decisão de distribuição |
+| **Onde a lista de termos mora.** A D-091 manda para `conhecimento/`, com schema próprio e preenchida pelo curador; a D-102 fala em pacote externo tratado como lista de ferramenta. É preciso escolher, e dizer o que acontece com a RNF-013 e a RP-008 em cada caso | Na decisão que revisar a D-091, depois dos dois gatilhos da D-102 |
+| **O tamanho da revisão do `financas-ptbr`.** A 0.4.0 tem 352 termos, dos quais 282 são empresas listadas, geradas por `tools/gerar_termos.py` do repositório Tatiwel/transcript-normalizer-packs a partir de `financas-ptbr/fontes/acoes.csv`, só as linhas com `status=conferido` e `usar_no_pack=sim`; a lista de tickers saiu do cadastro público de instrumentos da B3 de 20/10/2026, com nomes revisados à mão (`fontes/LEIAME.md`, commit `e3c2f39` daquele repositório), conferido pelo autor e não nesta sessão. Os 282 estão configurados para casar só pelo nome exato. Das 299 companhias do pacote, 17 não são de casamento exato. Contagens conferidas em 07/11/2026 no arquivo que a v0.8.1 inclui: `0.4.0 352 282`, os 282 com `class: companhia`. Revisar gerado e curado com critério diferente é decisão a tomar, não fato | Na decisão que revisar a D-091, depois dos dois gatilhos da D-102 |
+| **A camada aprendida.** É estado pessoal que muda com o uso. Na ingestão, ou fica vazia, ou é versionada de propósito | Na decisão que revisar a D-091, depois dos dois gatilhos da D-102 |
 
 ---
 
