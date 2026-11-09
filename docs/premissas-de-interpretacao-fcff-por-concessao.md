@@ -25,7 +25,8 @@
 > primário de companhia neste projeto.
 >
 > **O que está em CONFERIDA:** onze marcas neste arquivo, todas com alcance TAESA (2T26 e DCR
-> 2025), nenhuma setorial: a escala da RAP (B2), o mês base de reajuste, que é parte da B5 (a B5
+> 2025), nenhuma setorial (a B2 tem também, desde 09/11/2026, conferência no documento do
+> regulador, Anexo I da REH 3.348/2024, ciclo 2024-2025, só para a escala): a escala da RAP (B2), o mês base de reajuste, que é parte da B5 (a B5
 > em si segue ABERTA), e N18, N19, N22, N23, N25 (só quanto às datas), N26, N27, N30 e N31. Até
 > 07/11/2026 este bloco falava em duas, como a D-085; a contagem acima é a do disco em
 > 07/11/2026. As demais premissas estão em outros estados, cada um declarado na própria premissa.
@@ -65,8 +66,7 @@ pesquisas citam submódulos diferentes (9.8, 9.1, 2.4) para funções adjacentes
 
 ### B2. `rap_bruta_ciclo_atual` é valor anual, em reais correntes, do ciclo vigente
 
-**Estado:** **CONFERIDA** para a escala, contra documento da TAESA. A resposta é pior que as
-duas hipóteses que a premissa previa.
+**Estado:** **CONFERIDA** para a escala, em dois documentos: no da TAESA (seção 1.1 da conferência) e no do regulador, o Anexo I da REH 3.348/2024, ciclo 2024-2025.
 
 **Fonte:** `CONFERENCIA-taesa-2026-08.md`, seção 1.1. Não é mais a consolidação.
 
@@ -88,7 +88,9 @@ de schema descreve o que o documento diz, e o documento diz coisas diferentes em
 daquela companhia é bilionária. O playbook não tem nenhuma referência dessas hoje, e sem ela a
 verificação não roda sozinha.
 
-**O que continua aberto:** o anexo tabular da REH em si não foi aberto, e a consolidação registra
+**Conferência no documento do regulador, 09/11/2026.** Anexo I da Resolução Homologatória ANEEL nº 3.348/2024, arquivo `ANEXO I - 2024-2025.pdf` do pacote `areh20243348_2.zip`, fora do repositório (D-042). Título literal, lido na sessão de chat do projeto por extração de texto do arquivo enviado pelo autor: "Valores (em R$) consolidados das parcelas das receitas anuais permitidas das concessionárias de transmissão - Período de 07/2024 a 06/2025." Na página 45, vista pelo autor no PDF, concessão 095/2000, Interligação Norte - Sul II: "RAP: 471.471.720,38", decomposta em RBL 448.751.109,80, RBNI 22.027.997,74 e RMEL 692.612,84, que somam exatamente a RAP. A concessão 095/2000 é a da Novatrans Energia S.A.: a Carta TAESA nº 179/2020, contribuição à Consulta Pública MME nº 100/2020, lista "nº 095/2000 (Novatrans Energia S.A.)" na condição de "signatária dos Contratos de Concessão"; documento fora do repositório, baixado e conferido pelo agente em 09/11/2026, sha256 046770d4d4635b1513265074cedaf9244bf6c20edfe35ecc92e61d187597ca3d. A ordem de grandeza bate com os R$ 560,4 milhões da Novatrans no Excel da TAESA; os ciclos são diferentes, então os valores não se comparam um a um. **Alcance:** todas as concessões do Anexo I, um ciclo. **O que continua aberto:** se outros ciclos mantêm a unidade, e a escala da coluna de RAP da DCR, que é a fonte do input desde a D-085: a seção 1.1 mostra que a companhia pode publicar em escala diferente da que declara.
+
+**O que continua aberto:** o anexo tabular da REH foi aberto em 09/11/2026, ver acima, e a consolidação registra
 que as tabelas do PRORET aparecem em `R$ x 1000`. E isto é TAESA: outra companhia pode publicar
 em outra escala.
 
