@@ -68,6 +68,8 @@ pesquisas citam submódulos diferentes (9.8, 9.1, 2.4) para funções adjacentes
 
 **Estado:** **CONFERIDA** para a escala, em dois documentos: no da TAESA (seção 1.1 da conferência) e no do regulador, o Anexo I da REH 3.348/2024, ciclo 2024-2025.
 
+No documento da TAESA, a resposta é pior que as duas hipóteses que a premissa previa.
+
 **Fonte:** `CONFERENCIA-taesa-2026-08.md`, seção 1.1. Não é mais a consolidação.
 
 **A resposta, e ela não é "milhares" nem "reais".** Duas abas do mesmo Excel publicam o mesmo
