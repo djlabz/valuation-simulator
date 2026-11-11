@@ -26,7 +26,7 @@
 >
 > **O que está em CONFERIDA:** onze marcas neste arquivo, todas com alcance TAESA (2T26 e DCR
 > 2025), nenhuma setorial (a B2 tem também, desde 09/11/2026, conferência no documento do
-> regulador, Anexo I da REH 3.348/2024, ciclo 2024-2025, só para a escala): a escala da RAP (B2), o mês base de reajuste, que é parte da B5 (a B5
+> regulador, Anexo I da REH 3.348/2024, ciclo 2024-2025, só para a escala; a B6 tem, desde 11/11/2026, conferência da composição no corpo da mesma REH): a escala da RAP (B2), o mês base de reajuste, que é parte da B5 (a B5
 > em si segue ABERTA), e N18, N19, N22, N23, N25 (só quanto às datas), N26, N27, N30 e N31. Até
 > 07/11/2026 este bloco falava em duas, como a D-085; a contagem acima é a do disco em
 > 07/11/2026. As demais premissas estão em outros estados, cada um declarado na própria premissa.
@@ -157,16 +157,24 @@ foi adotada, justamente por isso.
 
 ### B6. `deducoes_sobre_rap` é fração da RAP bruta, igual para todas e constante no tempo
 
-**Estado:** CITADA E NÃO ABERTA para a **composição**. ABERTA para a **fração**.
+**Estado:** **CONFERIDA** para a **composição**, no corpo da REH 3.348/2024. ABERTA para a **fração**. E a premissa, como está escrita no título, é falsa nas três partes (ver abaixo).
 
 **Fonte:** consolidação, seção 6. Classe **A** para a existência e base legal de P&D
-(Lei 9.991/2000, art. 4º), TFSEE (Lei 9.427/1996) e RGR (Lei 5.655/1971). Classe **C** para as
+(Lei 9.991/2000, art. 3º; o art. 4º citado aqui até 11/11/2026 estava errado, ver abaixo), TFSEE (Lei 9.427/1996) e RGR (Lei 5.655/1971). Classe **C** para as
 alíquotas efetivas de PIS/COFINS.
 
 **O que ficou faltando:** qual regime tributário se aplica a qual concessão, que é justamente o
 que muda a alíquota de 3,65% para cerca de 9,25%. E se a RGR ainda incide. São os itens 5 e 6
 da lista de perguntas sem resposta. Ver também a premissa nova N15, que é uma contradição
 interna que nenhuma pesquisa resolveu.
+
+**Conferência no corpo da REH, 11/11/2026, feita pelo autor.** Resolução Homologatória ANEEL nº 3.348/2024, art. 1º, parágrafo único, e art. 3º, lidos pelo autor no PDF `Resolucao_Homologatoria_3_348_2024.pdf`, fora do repositório. Os valores dos anexos "incorporam todos os custos decorrentes da atividade de transmissão de energia elétrica, inclusive os relativos a", entre outros, nos incisos III a VI: "contribuições para PIS/Pasep e Cofins, exceto para as Concessionárias relacionadas no Anexo IX"; a TFSEE, "na alíquota de 0,4%"; a RGR, "para as concessionárias que estão obrigadas ao seu recolhimento, fixada em 2,6% (dois vírgula seis por cento) do investimento pro rata tempore, limitado a 3% (três por cento) da receita anual do concessionário", citando o art. 9º da Lei nº 8.631/1993; e os "recursos a serem aplicados em pesquisa e desenvolvimento do setor elétrico, fixados em 1% (um por cento) da Receita Operacional Líquida, nos termos do art. 3º da Lei nº 9.991". O art. 3º, § 1º, diz que as concessionárias informam à ANEEL e ao ONS "o seu regime de apuração do PIS/Pasep e da Cofins e respectivas alíquotas".
+
+**O que isso faz com a premissa.** "Igual para todas" é falso: o PIS/Cofins está dentro da RAP exceto para os contratos do Anexo IX, e a alíquota depende do regime de cada concessionária, que não está na REH. "Fração da RAP bruta" é falso para a RGR: a base é o investimento, com teto de 3% da receita, e só para as obrigadas. São fração fixa a TFSEE, 0,4%, e o P&D, 1% da receita operacional líquida.
+
+**Lacunas registradas.** O Anexo IX do mesmo pacote (`areh20243348_2.zip`) diz, por contrato, se recolhe RGR e a alíquota, mas só para os contratos listados nele; o pacote não traz essa informação para os demais. A REH cita a RGR pelo art. 9º da Lei nº 8.631/1993, e a fonte acima cita a Lei 5.655/1971; a relação entre as duas não foi conferida. CDE, PROINFA, ISS e ICMS, que a ponte da TAESA deduz (N20, N21), não aparecem na lista da REH; isso não resolve as duas premissas.
+
+**Correção do artigo do P&D.** A Lei 9.991/2000, copiada do Planalto pelo autor em 11/11/2026: o art. 3º diz que "As concessionárias de serviços públicos de transmissão de energia elétrica ficam obrigadas a aplicar, anualmente, o montante de, no mínimo, um por cento de sua receita operacional líquida em pesquisa e desenvolvimento do setor elétrico". O art. 4º não cria obrigação: distribui os recursos dos arts. 1º a 3º em 40% para o FNDCT, 40% para projetos regulados pela ANEEL e 20% para o MME.
 
 ### B7. `percentual_participacao` é fração da RAP
 
@@ -457,7 +465,7 @@ seção 1.4.
 > da circularidade. O que a ponte prova é **onde a TAESA apresenta** esses itens, não como a
 > obrigação legal se enquadra.
 
-A **Lei 9.991/2000, art. 4º** obriga a concessionária a **aplicar** no mínimo 1% da receita
+A **Lei 9.991/2000, art. 3º** obriga a concessionária a **aplicar** no mínimo 1% da receita
 operacional líquida em P&D, o que é obrigação de dispêndio. Duas pesquisas colocam o P&D dentro
 da ponte entre RAP bruta e RAP líquida, e a citação literal **não sustenta** esse enquadramento.
 Mesma dúvida para a TFSEE.
@@ -476,6 +484,8 @@ reconhecer a despesa no OPEX, conta duas vezes. Hoje não conta, porque a engine
 por causa da B1. Quando a B1 fechar e o OPEX entrar, isto precisa ser resolvido antes. **É a
 conclusão prática que sobrevive à circularidade**: qualquer que seja o enquadramento, esses
 itens não podem aparecer duas vezes.
+
+**Correção de 11/11/2026, e uma pergunta que ela abre.** Até esta data a N15 citava o art. 4º; o artigo da obrigação é o 3º (ver B6). O art. 4º distribui o 1%: 40% para o FNDCT e 20% para o MME são recolhidos, e 40% vão para projetos da própria empresa. **Pergunta, sem resposta em documento:** a "Quota para RGR, P&D, TFSEE, CDE e PROINFA" que a TAESA deduz na ponte pode corresponder só à parcela recolhida, com a parcela de projetos aparecendo como despesa. Se for isso, a circularidade descrita acima se desfaz; nada aberto até aqui confirma ou descarta.
 
 ### N16. Commodities: R/P por companhia e prazo de exaustão por ativo não são a mesma grandeza
 
