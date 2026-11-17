@@ -2322,3 +2322,81 @@ só registra que declarar para o git não basta.
 
 **Por que a configuração no disco difere da gravada na D-049.** O `DECISOES.md` é append only, e a
 D-049 não é editada. Esta decisão é o que explica a diferença.
+
+## Sessão de 17/11/2026
+
+### D-105. A parada dura sai para bancos, e o critério de pesquisa fica fixado antes de cada engine
+
+**Decisão.** A parada dura do Passo 3, registrada no `AGENTS.md` depois da sonda
+`fcff_por_concessao` (D-075), deixa de valer para as engines de bancos. O Passo 3 segue com
+`ddm` e depois `excess_return`. A pesquisa das premissas de transmissão fica encerrada por ora:
+B5, B8, B9 e N29 continuam ABERTAS e registradas, e o resultado da `fcff_por_concessao`
+continua não confiável enquanto estiverem.
+
+**Duas propriedades distintas, com nome próprio cada.** BLOQUEANTE mantém o sentido que já tem
+no arquivo de premissas: premissa que, se for falsa, muda a engine, e por isso deixa o
+resultado não confiável enquanto estiver aberta. IMPEDE A ENGINE SEGUINTE é outra propriedade:
+premissa cuja resposta a próxima engine teria que fixar para poder ser escrita. Uma premissa
+pode ser BLOQUEANTE sem impedir a engine seguinte. B5, B8 e B9 são BLOQUEANTES e não impedem a
+engine seguinte. A B1 é BLOQUEANTE e impede a `fcff_normalizado`.
+
+**O critério, válido para toda engine daqui em diante.** Engine nova entra com as premissas de
+interpretação declaradas no arquivo de premissas dela, e com o resultado marcado como não
+confiável enquanto houver premissa BLOQUEANTE aberta. A pesquisa contra documento primário
+acontece só para a premissa que impede a engine seguinte.
+
+**Teste de decisão do critério.** Uma premissa aberta impede a engine seguinte quando essa
+engine teria que fixar uma resposta para ela na estrutura de input ou na fórmula, e a resposta
+errada obriga a reescrever a engine. Quando a resposta errada só muda o valor, com a mesma
+estrutura, a premissa fica aberta e registrada, e a engine seguinte anda. Quando a dúvida de
+estrutura se resolve aceitando a forma mais geral na entrada, como uma premissa por período em
+vez de um valor único, ela se resolve pelo desenho e não pela pesquisa.
+
+**Motivo.** A parada existia por duas razões, e nenhuma vale para bancos. A primeira era
+evitar que mais engines herdassem as premissas da sonda antes de respondidas: `ddm` e
+`excess_return` não consomem RAP, concessão, ciclo tarifário nem deduções sobre a RAP. A
+segunda era não dividir o curador entre pesquisa e revisão de código: com a pesquisa de
+transmissão encerrada, sobra uma frente só. E sem critério fixado de antemão, a `ddm`
+produziria premissas abertas e uma parada igual à de transmissão, e o projeto andaria uma
+engine por vez com pesquisa no meio, sem chegar ao app funcionando.
+
+**O que continua travado.** `fcff_normalizado` não começa antes da B1, porque a B1 impede a
+engine seguinte: as duas engines respondem o que é fluxo livre, e a resposta fixa estrutura de
+input. A pesquisa da B1, no PRORET Submódulo 9.8, acontece quando a `fcff_normalizado` for a
+próxima engine.
+
+**Premissas transversais.** Nenhuma premissa é declarada transversal nesta decisão. Só o
+curador declara uma premissa como transversal, no arquivo de premissas da engine nova, citando
+a premissa de origem. Quem escreve a engine pode propor, e a proposta não vale até o curador
+declarar. A premissa herdada mantém o estado e o alcance que tem na origem: herdar não promove
+convenção a CONFERIDA, e CONFERIDA com alcance TAESA continua com alcance TAESA na engine nova.
+
+**Onde fica a marca de não confiável.** Hoje, no arquivo de premissas de cada engine. Quando o
+snapshot for escrito, ele carrega a lista de premissas abertas da engine que produziu o
+número, porque o RF-802 exige registrar tudo que influenciou o resultado. Isso é exigência para
+o passo do snapshot, não código agora.
+
+**Ordem da emenda de procedência.** A emenda do RF-304, com o RF-309, entra depois dos
+validadores e antes do snapshot. O RF-802 grava fatos com procedência no snapshot, e o RF-304
+manda o core rejeitar dado sem procedência; os dois fixam o formato. Os validadores de regra
+dura (RF-506, RF-507) operam sobre premissas e inputs e não carregam procedência. A emenda
+precisa cobrir, além de vídeo: arquivo dentro de pacote, como o anexo da REH dentro do zip da
+ANEEL; hash do arquivo, como o registrado para a Carta TAESA nº 179/2020; e localizador por
+tipo de fonte, porque o Anexo IX da REH 3.348/2024 só existe em planilha e não tem página.
+
+**Casos escolhidos para a conferência documental de bancos.** Banco do Brasil e Bradesco, no
+papel que a TAESA teve em transmissão. A conferência vem depois da `ddm` escrita como sonda,
+não antes. Dois pontos levantados pelo autor sem conferência em documento entram como
+hipóteses no arquivo de premissas da `ddm`, se a sonda tocar neles: o controle da União sobre
+a política de dividendos do Banco do Brasil, e a operação de seguros dentro do grupo Bradesco.
+Nenhum dos dois é fato.
+
+**Fora do escopo de bancos.** Itaúsa fica fora de bancos por ter participações em setores fora
+da v1. A avaliação de holdings tem desenho fora do repositório, a ser trazido e registrado em
+decisão própria.
+
+**Descartado, manter a parada até fechar as premissas de transmissão.** Custo alto sem ganho
+para bancos: nenhuma premissa aberta de transmissão muda uma linha da `ddm`.
+
+**Descartado, levantar a parada sem critério.** É a sonda de transmissão de novo, com a mesma
+parada na engine seguinte.

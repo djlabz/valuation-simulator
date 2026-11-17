@@ -10,13 +10,12 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 07/11/2026
+**Data:** 17/11/2026
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa.
-Desde então, sem etapa nova: decisões D-085 a D-103 e a manutenção de governança de 07/11/2026.
-**Etapa seguinte:** aguardando pesquisa do curador, não aguardando código. Ver "o que
-bloqueia" abaixo
+Desde então, sem etapa nova: decisões D-085 a D-105, a manutenção de governança de 07/11/2026 e as conferências da B2 e da B6 (09 e 11/11/2026).
+**Etapa seguinte:** Passo 3, com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos.
 
 ### O que existe, pacote por pacote
 
@@ -91,14 +90,9 @@ produzem erro visível e não número errado silencioso. Cada uma diz o que a en
 no código isso está materializado, o que acontece se for falsa, e qual fonte primária
 responderia.
 
-**Nada ali foi pesquisado.** O arquivo existe para a pesquisa do curador contra fonte primária
-ser focada, e resposta inferida por agente é o que a RNF-013 proíbe.
+**O que foi pesquisado até 17/11/2026.** A B2 (escala) e a B6 (composição) foram conferidas no documento do regulador, e onze marcas têm alcance TAESA (ver acima). O resto segue no estado declarado em cada premissa. Resposta inferida por agente continua sendo o que a RNF-013 proíbe.
 
-**O estado do projeto agora é: aguardando pesquisa do curador sobre as dez premissas
-BLOQUEANTES.** Não é aguardando aprovação de código. As três abaixo são as que travam trabalho
-novo; as outras sete não travam trabalho e continuam significando que o número que a engine
-devolve hoje não é confiável. A ordem de pesquisa começa pela B2, que é a mais barata e a de
-maior consequência.
+**A pesquisa de transmissão está encerrada por ora (D-105).** B5, B8, B9 e N29 seguem ABERTAS, e o número que a engine devolve hoje não é confiável. A tabela abaixo é o registro de 28/08/2026 de quais premissas travavam trabalho; pelo critério da D-105, hoje só a B1 impede a engine seguinte, a `fcff_normalizado`.
 
 | Premissa | O que a engine assume | Por que trava |
 |---|---|---|
@@ -107,7 +101,7 @@ maior consequência.
 | **B8** | a redução incide sobre a RAP já reajustada, e é um degrau só | **metade fechada por D-078**, que era ambiguidade de nome: o campo virou `percentual_reducao`, o que se corta. O que sobra é pergunta de contrato, original contra reajustada, e degrau único contra escalonado |
 
 **Correção de rota registrada em 28/08/2026.** O estado anterior tratava a fila como três
-premissas pendentes, e são dez. A pesquisa cobre as dez.
+premissas pendentes, e são dez. A pesquisa cobria as dez até a D-105.
 
 ### O que o expurgo tirou, para ninguém procurar o que não existe mais
 
@@ -216,7 +210,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 0 | Governança, git, documento em `docs/` | Concluído |
 | 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
 | 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Concluído |
-| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe, e o passo está em parada dura aguardando a pesquisa das dez premissas BLOQUEANTES |
+| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe. A parada dura saiu para bancos (D-105): a próxima engine é a `ddm`, escrita como sonda, e a `fcff_normalizado` espera a B1 |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
 Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos, com a **Etapa do
@@ -263,11 +257,11 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 
 ## 5. Questões abertas
 
-**A primeira linha bloqueia o resto do Passo 3.** As outras não bloqueiam.
+**Nenhuma linha bloqueia o Passo 3 desde a D-105.** A primeira registra a pesquisa de transmissão, encerrada por ora.
 
 | Questão | Quando resolve |
 |---|---|
-| **BLOQUEIA.** Abrir documento primário. A consolidação está versionada e classificada, e **das quinze premissas da sonda (B1 a B10, R1 a R5), só a B2 (escala) e a B6 (composição) estão CONFERIDAS no documento do regulador** (REH 3.348/2024: Anexo I para a B2, corpo da resolução para a B6). O mês base da B5 foi conferido só para a TAESA (ver seção 1). Classe A é fonte citada, não lida (D-083). A fila de nove perguntas em aberto está na consolidação, em ordem de risco, e a primeira era a escala da RAP no anexo da REH, respondida em 09/11/2026; a fila segue pelas demais. A parada segue dura para o Passo 3 inteiro: `ddm` e `excess_return` são de bancos e tecnicamente andariam, e ficam paradas assim mesmo, porque duas frentes abertas dividiriam o curador entre pesquisa e revisão de código | Agora, pela fila da consolidação |
+| **Pesquisa de transmissão, encerrada por ora (D-105).** Das quinze premissas da sonda (B1 a B10, R1 a R5), só a B2 (escala) e a B6 (composição) estão CONFERIDAS no documento do regulador (REH 3.348/2024: Anexo I para a B2, corpo da resolução para a B6). O mês base da B5 foi conferido só para a TAESA (ver seção 1). Classe A é fonte citada, não lida (D-083). B5, B8, B9 e N29 seguem ABERTAS, e o resultado da `fcff_por_concessao` não é confiável enquanto estiverem. A B1 impede a `fcff_normalizado` e é pesquisada quando ela for a próxima engine | Quando a engine seguinte depender delas, pelo teste da D-105 |
 | Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
@@ -286,6 +280,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | **A camada aprendida.** É estado pessoal que muda com o uso. Na ingestão, ou fica vazia, ou é versionada de propósito | Na decisão que revisar a D-091, depois dos dois gatilhos da D-102 |
 | O Stryker roda 181 testes na rodada inicial, e a suíte tem 191, medido em 07/11/2026. Causa não investigada. Se algum dos dez mata mutante, os scores contam sobreviventes falsos (D-052) | Antes da próxima classificação de sobreviventes |
 | **Como os documentos de RAP chegam ao app, e como garantir que venham de fonte regulatória e não do release.** A receita do release não é a RAP (N5). Ideia registrada em 09/11/2026, sem decisão: o app lista de início tudo o que vai pedir, com o motivo em uma linha; tenta obter por script o que é público e padronizado, como o anexo da REH; se houver agente conectado pelo MCP, o agente tenta o resto com as ferramentas dele; todo arquivo passa pela mesma validação, venha de onde vier (documento certo, ciclo certo, concessão presente, soma das parcelas igual à RAP); se falhar, mensagem simples com detalhe expansível e passo a passo manual. Três ressalvas: o app não pergunta se o usuário já sabe analisar, porque autodeclaração não mede isso e não dispensa validação; o app não supõe escala, ou confere por aritmética ou mostra o trecho e o usuário confirma, com registro no snapshot (RP-005); sem o documento de conferência o cálculo segue marcado como não conferido, e sem o documento-fonte bloqueia. O app não tem LLM embutido (D-003), então não executa agente: expõe pelo MCP o que falta. Material de apoio para a redação e o desenho: `docs/pesquisa/design-fluxo-de-documentos-2026-11.md` | Fase 2 para o provider, Fase 3 para a extração, Fase 7 para a tela |
+| **Emenda de procedência (RF-304 e RF-309).** Entra depois dos validadores e antes do snapshot (D-105). Precisa cobrir vídeo, arquivo dentro de pacote, hash do arquivo e localizador por tipo de fonte; o Anexo IX da REH 3.348/2024, só em planilha, é o caso que o modelo atual não comporta. Destrava também a D-091, a D-096 e o caminho B da D-102 | Depois dos validadores, antes do snapshot |
 
 ---
 
