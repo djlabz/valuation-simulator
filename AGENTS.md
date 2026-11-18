@@ -92,7 +92,7 @@ responderia.
 
 **O que foi pesquisado até 17/11/2026.** A B2 (escala) e a B6 (composição) foram conferidas no documento do regulador, e onze marcas têm alcance TAESA (ver acima). O resto segue no estado declarado em cada premissa. Resposta inferida por agente continua sendo o que a RNF-013 proíbe.
 
-**A pesquisa de transmissão está encerrada por ora (D-105).** B5, B8, B9 e N29 seguem ABERTAS, e o número que a engine devolve hoje não é confiável. A tabela abaixo é o registro de 28/08/2026 de quais premissas travavam trabalho; pelo critério da D-105, hoje só a B1 impede a engine seguinte, a `fcff_normalizado`.
+**A pesquisa de transmissão está encerrada por ora (D-105).** B5, B8, B9 e N29 seguem ABERTAS, e o número que a engine devolve hoje não é confiável. A tabela abaixo é o registro de 28/08/2026 de quais premissas travavam trabalho; pelo critério da D-105, hoje só a B1 impede uma engine, a `fcff_normalizado`, e é pesquisada quando essa engine for a próxima. A próxima engine é a `ddm`.
 
 | Premissa | O que a engine assume | Por que trava |
 |---|---|---|
