@@ -2386,7 +2386,7 @@ tipo de fonte, porque o Anexo IX da REH 3.348/2024 só existe em planilha e não
 
 **Casos escolhidos para a conferência documental de bancos.** Banco do Brasil e Bradesco, no
 papel que a TAESA teve em transmissão. A conferência vem depois da `ddm` escrita como sonda,
-não antes. Dois pontos levantados pelo autor sem conferência em documento entram como
+não antes, e segue o critério desta decisão: confere só as premissas declaradas pela sonda que impedem a engine seguinte, a `excess_return`. Se nenhuma impedir, a conferência não acontece agora, e as premissas ficam abertas e registradas. As duas hipóteses abaixo seguem a mesma regra. Dois pontos levantados pelo autor sem conferência em documento entram como
 hipóteses no arquivo de premissas da `ddm`, se a sonda tocar neles: o controle da União sobre
 a política de dividendos do Banco do Brasil, e a operação de seguros dentro do grupo Bradesco.
 Nenhum dos dois é fato.
