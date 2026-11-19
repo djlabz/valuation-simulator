@@ -11,7 +11,14 @@
     "typecheck": "tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/conhecimento/tsconfig.json && tsc --noEmit -p packages/dominio/tsconfig.json && tsc --noEmit -p tools/tsconfig.json",
     "validar-conhecimento": "bun tools/validar-conhecimento.ts",
     "mutation": "stryker run",
-    "ingest:video": "cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio"
+    "verificar": "bun run test && bun run typecheck && bun run validar-conhecimento",
+    "ingest:menu": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer",
+    "ingest:video": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio",
+    "ingest:info": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer fetch --list",
+    "ingest:lista": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer list",
+    "ingest:revisar": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer normalize --review",
+    "ingest:propor": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer pack propose --pack financas-ptbr",
+    "ingest:versao": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer --version"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^10.0.0",
