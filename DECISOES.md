@@ -2421,7 +2421,7 @@ em `conhecimento/`, ele ficaria preso a este projeto.
 dado extraído de vídeo sai sempre do `legenda.txt`, nunca do `normalized.txt`. O texto
 normalizado contém palavras que ninguém falou, e citá-lo aponta para um instante cujo áudio diz
 outra coisa (RP-005, RF-304). O `normalized.txt` é para leitura; a citação se confere no
-original, que a normalização nunca altera.
+original, que a normalização sobre o `legenda.txt` não altera.
 
 **Onde fica cada coisa.** A biblioteca roda com `TRANSCRIPT_NORMALIZER_HOME` apontando para
 `ingest/`, para que tudo o que ela cria fique ali, fora do git (D-042): `runs/`, `packs/`, a
@@ -2429,17 +2429,24 @@ camada aprendida e o `config.toml`. Sem a variável, o `config.toml` iria para a
 configurações do usuário e se misturaria com o uso pessoal da ferramenta. Sem `--pack`, a
 normalização usa `ingest/packs/financas-ptbr.yaml` quando ele existe (criado ao escolher o
 pacote no menu, por `pack install` ou `pack copy`, e substituído por `pack update`), e só sem
-ele usa o incluído na engine travada pela D-103. O resultado, portanto, não é fixo: depende da
-versão desse arquivo e da camada aprendida. É rastreável quanto ao pacote, porque cada anotação
-grava a versão dele (`pack_version`); o estado da camada aprendida não fica registrado na
-anotação. O `legenda.txt` não muda. A edição local em `ingest/packs/` é rascunho do autor; a
-publicação acontece no repositório de pacotes, pelo processo de lá.
+ele usa o incluído na engine travada pela D-103. O resultado, portanto, não é fixo: depende
+desse arquivo e da camada aprendida. Cada anotação grava `pack_version`, que vem do campo
+`version` do pacote: ele identifica um pacote publicado, mas não um rascunho local editado sem
+mudar a versão, e o estado da camada aprendida não fica registrado. O `legenda.txt` que vem do
+`fetch` não muda com a normalização. Quando o `normalize` recebe um `.srt` ou `.vtt`, ele
+regrava o `legenda.txt` daquele id; por isso a normalização roda sobre o `legenda.txt` do
+`fetch`. A edição local em `ingest/packs/` é rascunho do autor; a publicação acontece no
+repositório de pacotes, pelo processo de lá.
 
 **A camada aprendida tem backup.** `ingest/packs/financas-ptbr.learned.yaml` é o trabalho
 acumulado das revisões e não está no git. Ela entra no backup de `ingest/` feito por fora. De
 tempos em tempos, o autor propõe o que ela ensinou ao repositório de pacotes, por
 `pack propose --pack financas-ptbr`; a proposta é contribuição pública e não substitui o
 backup.
+
+**Depois da revisão.** As respostas da revisão vão para a camada aprendida e não regravam o
+`normalized.txt` daquela execução. Para ele refletir o que foi decidido, roda-se o `normalize`
+de novo sobre o mesmo `legenda.txt`.
 
 **O que continua esperando.** O caminho B da D-102, em que a normalização alimenta
 automaticamente a extração para o app, segue dependendo da emenda de procedência. Esta decisão
