@@ -2435,8 +2435,12 @@ desse arquivo e da camada aprendida. Cada anotação grava `pack_version`, que v
 mudar a versão, e o estado da camada aprendida não fica registrado. O `legenda.txt` que vem do
 `fetch` não muda com a normalização. Quando o `normalize` recebe um `.srt` ou `.vtt`, ele
 regrava o `legenda.txt` daquele id; por isso a normalização roda sobre o `legenda.txt` do
-`fetch`. A edição local em `ingest/packs/` é rascunho do autor; a publicação acontece no
-repositório de pacotes, pelo processo de lá.
+`fetch`. Os atalhos não barram `.srt` nem `.vtt`, e o risco de regravar um `legenda.txt`
+existente fica aceito: só acontece quando o arquivo tem o mesmo nome do id de um vídeo já
+baixado, e a legenda bruta guardada pelo `--keep-raw` continua na pasta. A proteção certa é a
+ferramenta recusar a regravação, e ela fica pedida no repositório do transcript-normalizer. A
+edição local em `ingest/packs/` é rascunho do autor; a publicação acontece no repositório de
+pacotes, pelo processo de lá.
 
 **A camada aprendida tem backup.** `ingest/packs/financas-ptbr.learned.yaml` é o trabalho
 acumulado das revisões e não está no git. Ela entra no backup de `ingest/` feito por fora. De
