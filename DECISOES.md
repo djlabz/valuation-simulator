@@ -2460,3 +2460,34 @@ libera a normalização para o trabalho do autor, não para o app consumir texto
 de pacotes, como ferramenta. "A camada aprendida": fica em `ingest/`, local, fora do git e com
 backup por fora. A questão "o tamanho da revisão do `financas-ptbr`" continua aberta, como
 gatilho do caminho B.
+
+### D-107. Correção da D-106: três caminhos regravam o `legenda.txt`, e o uso tem três regras até a engine recusar
+
+**Decisão.** Corrige a frase da D-106, seção "Onde fica cada coisa", que diz que a regravação
+do `legenda.txt` "só acontece quando o arquivo tem o mesmo nome do id de um vídeo já baixado"
+e que "a legenda bruta guardada pelo `--keep-raw` continua na pasta". Pela conferência feita
+na sessão do transcript-normalizer em 19/11/2026, na v0.8.1 travada pela D-103 três caminhos
+substituem um `legenda.txt` existente sem aviso: o `normalize` sobre `.srt` ou `.vtt`
+(`cli.py:472-486`); o `fetch` repetido da mesma url (`fetch.py:1257`), que desde a 0.6.5 pode
+trazer outra faixa; e o `fetch` de arquivo local (`fetch.py:893`). O `.vtt` guardado pelo
+`--keep-raw`, se normalizado, vai para `runs/legenda/`, e não para a pasta do vídeo. E a
+substituição deixa o `annotations.json` e o `normalized.txt` apontando para um texto que não
+existe mais.
+
+**Regras de uso até a engine recusar a regravação.** Não rodar `ingest:video` duas vezes na
+mesma url; para conferir um vídeo antes de baixar, usar `ingest:info`, que não grava nada. Não
+normalizar `.srt` nem `.vtt` pelo projeto. Manter o backup de `ingest/`.
+
+**A proteção.** A sessão do transcript-normalizer propôs, em 19/11/2026, que a 0.8.2 não
+substitua um `legenda.txt` existente sem pedido explícito: mesma origem e mesmo conteúdo,
+reaproveita; origem diferente, recusa com código de saída diferente de zero e oferece `--out`
+ou `--replace-caption`, que guarda o antigo e o que deriva dele numa subpasta datada. A frase
+da D-106 que diz que a proteção "fica pedida no repositório do transcript-normalizer" se refere
+a esse pedido, feito à sessão e não por issue. A subida para a versão que trouxer a proteção é
+decisão própria, como a D-103, e só ela encerra as regras acima.
+
+**Motivo.** A frase da D-106 foi escrita antes da resposta da sessão do transcript-normalizer
+e subestima o risco: o caso mais provável, o `fetch` repetido, não aparece nela. O
+`legenda.txt` é a fonte de procedência do projeto (RF-304, D-106), e regravá-lo em silêncio
+rompe a ligação entre a citação e o que foi dito. Como o `DECISOES.md` só recebe acréscimos, a
+correção vem como decisão nova.
