@@ -16,6 +16,7 @@
     "ingest:video": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio",
     "ingest:info": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer fetch --list",
     "ingest:lista": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer list",
+    "ingest:normalizar": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer normalize",
     "ingest:revisar": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer normalize --review",
     "ingest:propor": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer pack propose --pack financas-ptbr",
     "ingest:versao": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer --version"
