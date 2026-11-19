@@ -2400,3 +2400,52 @@ para bancos: nenhuma premissa aberta de transmissão muda uma linha da `ddm`.
 
 **Descartado, levantar a parada sem critério.** É a sonda de transmissão de novo, com a mesma
 parada na engine seguinte.
+
+## Sessão de 19/11/2026
+
+### D-106. A ingestão passa a normalizar, e a lista de termos é ferramenta, não conhecimento
+
+**Decisão.** Revoga a parte da D-102 que diz que a ingestão não roda `normalize`. Fica
+permitido rodar `normalize`, com revisão (`--review` e `--confirm`), sobre o material de
+`ingest/`. A lista de termos é o pacote `financas-ptbr` do repositório de pacotes, tratado
+como ferramenta, e não mora em `conhecimento/`: isto revoga a parte da D-091 que mandava a
+lista para `conhecimento/` com schema próprio.
+
+**Motivo.** Legenda automática e reconhecimento de fala erram termo de domínio, e ler o texto
+cru para estudar ou separar candidatos a heurística é lento e induz a erro. A revisão grava o
+que foi decidido na camada aprendida, e cada transcrição seguinte sai melhor. E o pacote
+evolui no repositório de pacotes, onde pode ser publicado e receber contribuição de terceiros;
+em `conhecimento/`, ele ficaria preso a este projeto.
+
+**A regra que não muda, e por que.** O `trecho_original` de qualquer anotação, heurística ou
+dado extraído de vídeo sai sempre do `legenda.txt`, nunca do `normalized.txt`. O texto
+normalizado contém palavras que ninguém falou, e citá-lo aponta para um instante cujo áudio diz
+outra coisa (RP-005, RF-304). O `normalized.txt` é para leitura; a citação se confere no
+original, que a normalização nunca altera.
+
+**Onde fica cada coisa.** A biblioteca roda com `TRANSCRIPT_NORMALIZER_HOME` apontando para
+`ingest/`, para que tudo o que ela cria fique ali, fora do git (D-042): `runs/`, `packs/`, a
+camada aprendida e o `config.toml`. Sem a variável, o `config.toml` iria para a pasta de
+configurações do usuário e se misturaria com o uso pessoal da ferramenta. Sem `--pack`, a
+normalização usa `ingest/packs/financas-ptbr.yaml` quando ele existe (criado ao escolher o
+pacote no menu, por `pack install` ou `pack copy`, e substituído por `pack update`), e só sem
+ele usa o incluído na engine travada pela D-103. O resultado, portanto, não é fixo: depende da
+versão desse arquivo e da camada aprendida. É rastreável quanto ao pacote, porque cada anotação
+grava a versão dele (`pack_version`); o estado da camada aprendida não fica registrado na
+anotação. O `legenda.txt` não muda. A edição local em `ingest/packs/` é rascunho do autor; a
+publicação acontece no repositório de pacotes, pelo processo de lá.
+
+**A camada aprendida tem backup.** `ingest/packs/financas-ptbr.learned.yaml` é o trabalho
+acumulado das revisões e não está no git. Ela entra no backup de `ingest/` feito por fora. De
+tempos em tempos, o autor propõe o que ela ensinou ao repositório de pacotes, por
+`pack propose --pack financas-ptbr`; a proposta é contribuição pública e não substitui o
+backup.
+
+**O que continua esperando.** O caminho B da D-102, em que a normalização alimenta
+automaticamente a extração para o app, segue dependendo da emenda de procedência. Esta decisão
+libera a normalização para o trabalho do autor, não para o app consumir texto normalizado.
+
+**Questões abertas que esta decisão responde.** "Onde a lista de termos mora": no repositório
+de pacotes, como ferramenta. "A camada aprendida": fica em `ingest/`, local, fora do git e com
+backup por fora. A questão "o tamanho da revisão do `financas-ptbr`" continua aberta, como
+gatilho do caminho B.
