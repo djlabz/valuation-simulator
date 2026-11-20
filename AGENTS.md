@@ -133,6 +133,8 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 - `docs/pesquisa/consolidacao-normalizacao-transcricao.md`, consolidação de três pesquisas
   sobre normalização com dicionário de termos, 06/09/2026, **sem cabeçalho de ressalva**
 - `docs/pesquisa/design-fluxo-de-documentos-2026-11.md`, pesquisa de design para o fluxo de pedido de documentos, com ressalva no topo (D-080)
+- `docs/ingestao-comandos.md`, manual dos comandos do normalizador de transcrição na 0.8.1,
+  gerado a partir do `--help` daquela versão, com as regras da D-106 e da D-107
 - `docs/DIFICULDADES-do-projeto.md`, registro dos problemas estruturais do projeto, matéria-prima
   para explicá-lo, **sem cabeçalho de ressalva**
 - `README.md`, na raiz
