@@ -2491,3 +2491,114 @@ e subestima o risco: o caso mais provável, o `fetch` repetido, não aparece nel
 `legenda.txt` é a fonte de procedência do projeto (RF-304, D-106), e regravá-lo em silêncio
 rompe a ligação entre a citação e o que foi dito. Como o `DECISOES.md` só recebe acréscimos, a
 correção vem como decisão nova.
+
+## Sessão de 22/11/2026
+
+### D-108. Conhecimento que vem de transcrição não carrega registro de origem
+
+**Decisão.** Conhecimento extraído de transcrição de vídeo, áudio ou aula escolhidos pelo curador
+entra na base sem registro de origem: sem url, instante, `trecho_original`, autor ou canal. A
+confiabilidade da fonte é julgamento do curador, feito na escolha do material. O campo `fonte` da
+heurística de leitura (RF-106) passa a opcional, e é preenchido quando a heurística se apoia em
+documento da companhia ou em norma.
+
+**O que muda em decisões anteriores.** Na D-105, a emenda de procedência deixa de cobrir vídeo. Na
+D-106, deixa de valer a regra de que o `trecho_original` sai do `legenda.txt`; o `legenda.txt`
+continua sendo o texto de trabalho da ingestão. Na D-096, o tipo de fonte deixa de ser critério de
+roteamento para material de transcrição.
+
+**O que não muda.** RF-304: dado da companhia (demonstrações, notas explicativas, releases,
+documentos regulatórios) continua carregando `documento`, `pagina` e `trecho_original`, e o
+snapshot continua registrando fatos com procedência (RF-802). RP-006 e RF-403: número de premissa
+que o usuário não digitou continua aparecendo como preset, aplicado por ação explícita e nunca
+pré-selecionado. A revisão do curador antes do commit (RF-121) continua.
+
+**Motivo.** O registro de origem de um item de conhecimento não diz se a fonte é confiável; isso é
+decidido pelo curador ao escolher o material. Manter url, instante e trecho em cada item exigia uma
+emenda de requisito e um tipo de procedência só para vídeo, sem proteger nada que a escolha do
+curador já não proteja. O registro continua onde ele protege o cálculo: no número da companhia que
+entra na engine.
+
+**Requisitos.** Versão 2.4.5: RF-106 com `fonte` opcional e aceite da Etapa do Conhecimento
+ajustado.
+
+### D-109. A ingestão segue a última tag publicada do transcript-normalizer, sempre fixada no lock
+
+**Decisão.** `tools/ingest/pyproject.toml` aponta para a última tag publicada do
+transcript-normalizer, com o extra `[ingest]`, e o `tools/ingest/uv.lock` fixa o commit exato
+dessa tag. O atalho `ingest:video` continua com `--locked`. Seguir a última tag é política, e não
+dependência solta: entre uma subida e outra, a versão usada é sempre a do lock.
+
+**Como se sobe.** `uv run --project tools/ingest tn update` mostra a versão instalada, a última
+publicada e o trecho do CHANGELOG entre as duas, sem alterar nada. `uv run --project tools/ingest
+tn upgrade` roda `uv add` com a tag nova, o que move o pin do `pyproject.toml` e o `uv.lock` de uma
+vez e mantém o `[ingest]`. Os atalhos `bun run ingest:update` e `bun run ingest:upgrade` fazem o
+mesmo, no molde dos outros atalhos de ingestão. Depois vem o commit. Subida de versão deixa de
+exigir decisão própria a cada tag; isto revisa o que a D-103 e a D-107 diziam sobre subida ser
+decisão própria.
+
+**A primeira subida é à mão.** A v0.8.1 fixada pela D-103 não tem o comando `tn`. A subida para a
+v0.8.7 é feita com `uv add --project tools/ingest "transcript-normalizer[ingest] @
+git+https://github.com/Tatiwel/transcript-normalizer@v0.8.7"`. As seguintes saem pelo
+`tn upgrade`. Até esta primeira subida, `bun run ingest:video` não roda nas aulas já transcritas,
+porque a v0.8.1 não tem a trava e regravaria o `legenda.txt`. Depois dela, o atalho roda uma vez
+sobre o arquivo de vídeo de uma das aulas, e o exit code colado tem que ser 0.
+
+**Verificação a cada subida, com exit code colado.** A versão impressa por `tn --version` é a tag
+nova. O vídeo de referência `FR9RRXVpg9I` é baixado numa pasta temporária fora do repositório e
+comparado com o texto da versão anterior: se o texto mudou, a mudança tem que estar explicada no
+CHANGELOG que o `tn update` mostrou, e diferença sem explicação no CHANGELOG para a subida. Suíte,
+typecheck e validação verdes.
+
+**A trava de regravação.** Antes de baixar ou transcrever, a biblioteca compara com o `legenda.txt`
+que já existe na pasta da run. Mesma origem, reaproveita e sai com 0; outra origem, para e sai com
+4. Mesma origem quer dizer: para link, mesmo vídeo, idioma e modo, com o mesmo modelo na transcrição
+local ou a mesma faixa na legenda da plataforma; para `.srt` ou `.vtt` convertido pelo `normalize`,
+as mesmas linhas; para arquivo local, mesmo nome de arquivo, mesmo sha256 e tamanho, gravados na
+linha "# Impressao digital" do cabeçalho, mais modelo e idioma. `--keep-raw` e `--keep-audio` não
+entram na comparação. Transcrição de arquivo local e link do mesmo vídeo são origens diferentes,
+porque o texto de arquivo local não tem URL. O código 4 quer dizer que já existe outro texto na
+pasta, e o atalho o repassa sem tratamento próprio. `--replace-caption` substitui e guarda o
+anterior em `replaced-<data e hora>/`; `--out` grava em outra pasta e mantém os dois.
+
+**O que encerra da D-107.** A trava cobre os três caminhos que a D-107 mapeou. Deixam de valer
+"não rodar `ingest:video` duas vezes na mesma url" e "não normalizar `.srt` nem `.vtt` pelo
+projeto", a partir da primeira subida. O backup de `ingest/` continua, porque protege contra perda
+da máquina.
+
+**Convenção do instante.** Na legenda da plataforma e no `.srt` ou `.vtt` convertido, o instante é
+o fim da fala; na transcrição local, é o início. Antes de 1 hora o formato é `m:ss` (44:29); de 1
+hora em diante, `h:mm:ss` (1:14:14), como o player mostra. Os leitores da biblioteca aceitam as
+duas formas. `tn restamp` reescreve só os instantes e a linha do cabeçalho que descreve o formato;
+nenhuma palavra da fala muda.
+
+**Aviso de trecho repetido.** Depois de uma transcrição local, a biblioteca marca trecho de 15
+palavras ou mais que repete o que foi dito até um minuto antes, e transcreve de novo o trecho em
+volta para `needs-review/repeats/`. O recorte é ajuda para ouvir, não substitui o texto, e perda
+que não gera repetição não é detectada.
+
+**As runs das aulas 1, 2 e 3 do Projeto Yield.** Transcritas na v0.8.4, a partir dos arquivos de
+vídeo locais, com modelo `medium` e idioma `pt`, registradas no `ingest/runs/run-all.log`, com os
+instantes reescritos pelo `restamp` da v0.8.6 e o texto anterior em `replaced-<data e hora>/`. As
+linhas de cabeçalho vindas de versões antigas são texto inerte. Os trechos marcados ou suspeitos
+foram ouvidos pelo curador: aula 1 em 44:55 e 44:58, aula 1 de 1:14:14 a 1:14:40 e aula 3 em 35:11,
+todos conferindo com o áudio. Sem `--out`, a pasta da run é `runs/<nome do arquivo sem extensão>`,
+então `aula1.mp4` cai em `runs/aula1`. O atalho reaproveita o texto com código 0 quando recebe o
+mesmo arquivo de vídeo, com o mesmo nome; sem `--lang` e sem `--model`, ele roda com `pt` e
+`medium`, iguais aos das runs. Com o link do vídeo no lugar do arquivo, ou com o arquivo renomeado,
+a origem é outra e sai 4.
+
+**O pacote de termos é separado da biblioteca.** Subir a biblioteca não atualiza
+`ingest/packs/financas-ptbr.yaml`. A versão se confere com `tn pack list`, e `tn pack update`
+atualiza pacote instalado e não editado; cópia editada se junta pelo `pack merge`, sempre a pedido.
+
+**Motivo.** A biblioteca é mantida pelo autor deste projeto e corrige defeitos que afetam
+diretamente a ingestão, como a regravação silenciosa da D-107 e a fala perdida em arquivo longo
+medida na aula 1. Uma decisão por versão custava uma rodada de conversa a cada tag sem proteger
+mais do que a verificação acima protege. O lock com `--locked` mantém a garantia da D-051: o mesmo
+comando usa a mesma versão até alguém subir de propósito.
+
+**Descartado.** Dependência sem tag, que instalaria o que estivesse publicado no dia e quebraria a
+D-051 e a D-103. Verificação de diferença zero no vídeo de referência, porque há versões que mudam
+o texto de propósito, como a v0.8.6 com o formato dos instantes. Script em volta do atalho para
+tratar o código 4, porque o bun já repassa o código e a mensagem.

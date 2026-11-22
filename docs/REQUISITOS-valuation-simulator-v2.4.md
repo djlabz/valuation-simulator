@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.4
-**Data:** 31 de agosto de 2026
+**Versão:** 2.4.5
+**Data:** 22 de novembro de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.4:** o campo `fonte` da heurística de leitura passa a opcional, e o aceite da Etapa do Conhecimento deixa de exigir procedência de item que vem de transcrição (D-108). Dado da companhia continua com procedência obrigatória (RF-304). Sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.3:** a ressalva do `onde_encontrar` de `concessoes`, em Transmissão, deixou de ser verdadeira e foi corrigida. Ela dizia que a tabela de projeção de RAP do DCR não tinha sido lida; a página foi lida em rodada posterior e a tabela **não reconcilia** com a tabela de RAP do mesmo documento (D-088). O motivo da ressalva muda de "não lida" para "lida e divergente", e a ressalva continua. `transmissao-energia-b3` vai para 0.9.0. Correção factual, sem alteração de estrutura de input nem de premissa.
 
@@ -181,7 +183,7 @@ O conhecimento vive em YAML versionado no repositório e é carregado no boot. O
 | RF-103 | Todo input obrigatório declara `onde_encontrar`, com instrução de localização na documentação da companhia |
 | RF-104 | Múltiplo bloqueado declara severidade (`bloqueio_total` ou `alerta`) e motivo exibível. Múltiplo bloqueado não é exibido; em seu lugar aparece o motivo |
 | RF-105 | Modo de granularidade reduzida exige aviso obrigatório exibido antes da seleção |
-| RF-106 | Heurística de leitura declara onde olhar, o que verificar, por que importa, severidade (`informativo` ou `bloqueia_ate_ciente`), confiança (`alta`, `media`, `baixa`) e fonte |
+| RF-106 | Heurística de leitura declara onde olhar, o que verificar, por que importa, severidade (`informativo` ou `bloqueia_ate_ciente`) e confiança (`alta`, `media`, `baixa`). `fonte` é opcional e é preenchida quando a heurística se apoia em documento da companhia ou em norma (D-108) |
 | RF-107 | Heurística pode vincular-se a uma premissa por `campo_relacionado`, e então o alerta aparece junto ao campo no momento do preenchimento |
 | RF-108 | Heurísticas com `divergencia: true` apresentam as visões conflitantes lado a lado, sem que o sistema escolha uma |
 | RF-109 | Nota de ativo registra característica estrutural de uma empresa. Pode restringir modelos habilitados e adicionar heurísticas. Não pode ampliar a lista de modelos, alterar regras duras ou múltiplos bloqueados |
@@ -502,7 +504,7 @@ O usuário não é certificado pela CVM. A proteção é arquitetural, não decl
 | 5. Cenários | Até cinco cenários nomeados, ponderação, atribuição de diferença | Evento gera cenário adicional; diferença atribuída à origem correta; nenhum cenário marcado como provável; ponderação identificada como do usuário |
 | 6. MCP | Servidor com as quinze ferramentas | Agente classifica, propõe modelo, consulta contexto, registra fato e dispara cálculo; RF-1003 verificado |
 | 7. Electron | Cinco telas, conferência, composição, alertas, cenários, vigia | Fluxo completo pela interface; nenhuma premissa com default; alerta bloqueante impede prosseguimento |
-| Etapa do Conhecimento (sem número de fase, D-070) | Pesquisa, transcrição de material próprio e autoria de heurísticas, faixas, modos e notas, com revisão do curador | Todo item de conhecimento tem procedência declarada e revisão registrada; nenhum item foi escrito por agente (RNF-013) |
+| Etapa do Conhecimento (sem número de fase, D-070) | Pesquisa, transcrição de material próprio e autoria de heurísticas, faixas, modos e notas, com revisão do curador | Todo item de conhecimento tem revisão registrada; item que se apoia em documento da companhia ou em norma declara a procedência; nenhum item foi escrito por agente (RNF-013) |
 | 8. Validação metodológica | Execução contra companhias reais e casos de referência | Resultados batem com cálculo manual independente dentro de tolerância |
 
 **Casos de referência.** Caso construído a partir de cálculo público de terceiro só é admitido quando as premissas do autor são conhecidas e declaradas. O teste executa a engine com essas premissas e compara o resultado. Divergência indica defeito na engine ou no playbook, e nunca motiva alteração de premissa. Resultado sem premissas declaradas não constitui caso válido, porque o mesmo valor pode ser alcançado por caminhos metodologicamente incorretos.

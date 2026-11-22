@@ -19,7 +19,11 @@
     "ingest:normalizar": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer normalize",
     "ingest:revisar": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer normalize --review",
     "ingest:propor": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer pack propose --pack financas-ptbr",
-    "ingest:versao": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer --version"
+    "ingest:versao": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest transcript-normalizer --version",
+    "ingest:update": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest tn update",
+    "ingest:upgrade": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest tn upgrade",
+    "ingest:pack-list": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest tn pack list",
+    "ingest:pack-update": "cd ingest && TRANSCRIPT_NORMALIZER_HOME=\"$PWD\" uv run --locked --project ../tools/ingest tn pack update"
   },
   "devDependencies": {
     "@stryker-mutator/core": "^10.0.0",

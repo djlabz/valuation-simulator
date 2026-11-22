@@ -1,3 +1,20 @@
+> # Nota de topo, D-108 e D-109, 22/11/2026
+>
+> **Versão em uso.** transcript-normalizer `v0.8.7`, com o extra `[ingest]`, fixada no
+> `tools/ingest/uv.lock`, e a ingestão segue a última tag publicada (D-109). A nota de 07/10/2026
+> abaixo registra a `v0.8.1` da D-103 e fica como histórico.
+>
+> **Procedência.** Conhecimento que vem de transcrição não carrega url, instante,
+> `trecho_original`, autor ou canal (D-108). O `legenda.txt` continua sendo o texto de trabalho
+> da ingestão, mas deixa de ser a origem do `trecho_original`. Onde este arquivo diz que o
+> timestamp é a procedência, ou que afirmação de vídeo carrega `{url, timestamp,
+> trecho_original}` (seções 3.3 e 4.2), é registro do que se pensava antes da D-108. Dado da
+> companhia continua com `documento`, `pagina` e `trecho_original` (RF-304).
+>
+> **Instante.** Fim da fala na legenda da plataforma e no `.srt` ou `.vtt` convertido; início
+> da fala na transcrição local. `m:ss` antes de 1 hora, `h:mm:ss` depois (D-109). Onde este
+> arquivo trata todo instante como fim do bloco (seção 4.2), vale só para legenda.
+
 > # Nota de topo, D-102, 07/10/2026
 >
 > **A ferramenta mudou.** A partir da D-102, a ingestão de vídeo usa a biblioteca
@@ -120,7 +137,7 @@ Num projeto cuja regra é que explicação inferida sem verificação não entra
 
 ## 3. A ferramenta
 
-**Desde a D-102,** a biblioteca transcript-normalizer, fixada em `v0.8.1` (D-103), usada só no subcomando `fetch`. Até a D-102 era `tools/baixar-legenda.py`; o comportamento dele está preservado abaixo da seção 3.1, como histórico. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
+**Desde a D-102,** a biblioteca transcript-normalizer, hoje fixada em `v0.8.7` (D-109; era `v0.8.1` pela D-103), usada só no subcomando `fetch`. Até a D-102 era `tools/baixar-legenda.py`; o comportamento dele está preservado abaixo da seção 3.1, como histórico. Baixa a legenda que a plataforma publica, sem IA em nenhum ponto do caminho.
 
 ### 3.1. Comportamento
 
@@ -154,8 +171,8 @@ cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer lis
 
 | Arquivo | O que é |
 |---|---|
-| `legenda.txt` | o texto, uma linha por fala com timestamp, e o cabeçalho de procedência. É daqui que sai o `trecho_original` |
-| `legenda.vtt` | a legenda bruta como a plataforma entregou. Só fica por causa do `--keep-raw`, que o atalho sempre passa, porque ela é parte da procedência |
+| `legenda.txt` | o texto, uma linha por fala com timestamp, e o cabeçalho. É o texto de trabalho da ingestão; conhecimento que sai dele não carrega `trecho_original` (D-108) |
+| `legenda.vtt` | a legenda bruta como a plataforma entregou. Só fica por causa do `--keep-raw`, que o atalho sempre passa |
 | `meta.yaml` | o que a plataforma diz do vídeo: id, título, canal, data, faixa escolhida |
 
 Se alguém rodar `normalize` por conta própria, aparecem também `normalized.txt`, `annotations.json`, `report.txt` e `needs-review/`. **Nenhum deles alimenta extração** (D-091, D-102).
