@@ -2519,7 +2519,8 @@ emenda de requisito e um tipo de procedência só para vídeo, sem proteger nada
 curador já não proteja. O registro continua onde ele protege o cálculo: no número da companhia que
 entra na engine.
 
-**Requisitos.** Versão 2.4.5: RF-106 com `fonte` opcional e aceite da Etapa do Conhecimento
+**Requisitos.** Versão 2.4.5: RF-106 com `fonte` opcional, RF-116 dizendo que a procedência do
+primeiro bloco do alerta é a do fato no documento da companhia, e aceite da Etapa do Conhecimento
 ajustado.
 
 ### D-109. A ingestão segue a última tag publicada do transcript-normalizer, sempre fixada no lock
@@ -2585,8 +2586,10 @@ foram ouvidos pelo curador: aula 1 em 44:55 e 44:58, aula 1 de 1:14:14 a 1:14:40
 todos conferindo com o áudio. Sem `--out`, a pasta da run é `runs/<nome do arquivo sem extensão>`,
 então `aula1.mp4` cai em `runs/aula1`. O atalho reaproveita o texto com código 0 quando recebe o
 mesmo arquivo de vídeo, com o mesmo nome; sem `--lang` e sem `--model`, ele roda com `pt` e
-`medium`, iguais aos das runs. Com o link do vídeo no lugar do arquivo, ou com o arquivo renomeado,
-a origem é outra e sai 4.
+`medium`, iguais aos das runs. Com o arquivo renomeado ou com o link do vídeo, a pasta da run é
+outra (`runs/<nome novo>/` ou `runs/<id do vídeo>/`), a trava não encontra texto para comparar e a
+transcrição começa do zero. O código 4 só aparece quando uma origem diferente tenta gravar na mesma
+pasta.
 
 **O pacote de termos é separado da biblioteca.** Subir a biblioteca não atualiza
 `ingest/packs/financas-ptbr.yaml`. A versão se confere com `tn pack list`, e `tn pack update`
