@@ -5,7 +5,7 @@
 **Data:** 22 de novembro de 2026
 **Status:** Escopo fechado para v1.
 
-**Alterações desde 2.4.4:** o campo `fonte` da heurística de leitura passa a opcional, e o aceite da Etapa do Conhecimento deixa de exigir procedência de item que vem de transcrição (D-108). Dado da companhia continua com procedência obrigatória (RF-304). Sem alteração de estrutura de input nem de premissa.
+**Alterações desde 2.4.4:** o campo `fonte` da heurística de leitura passa a opcional, e o aceite da Etapa do Conhecimento deixa de exigir procedência de item que vem de transcrição (D-108). Dado da companhia continua com procedência obrigatória (RF-304). Sem alteração de estrutura de input nem de premissa. A RF-116 passa a dizer que a procedência do primeiro bloco do alerta é a do fato identificado no documento da companhia, e não a fonte da heurística.
 
 **Alterações desde 2.4.3:** a ressalva do `onde_encontrar` de `concessoes`, em Transmissão, deixou de ser verdadeira e foi corrigida. Ela dizia que a tabela de projeção de RAP do DCR não tinha sido lida; a página foi lida em rodada posterior e a tabela **não reconcilia** com a tabela de RAP do mesmo documento (D-088). O motivo da ressalva muda de "não lida" para "lida e divergente", e a ressalva continua. `transmissao-energia-b3` vai para 0.9.0. Correção factual, sem alteração de estrutura de input nem de premissa.
 
@@ -206,7 +206,7 @@ Todo alerta gerado por heurística, nota ou evento segue quatro blocos. A estrut
 
 | ID | Requisito |
 |---|---|
-| RF-116 | O alerta contém, nesta ordem: o que foi identificado (com procedência completa, obrigatório); por que afeta o cálculo (mecanismo, obrigatório); contexto de escala (faixa, quando existir); ação disponível (oferta de cenário, quando aplicável) |
+| RF-116 | O alerta contém, nesta ordem: o que foi identificado (obrigatório; quando é fato de documento da companhia, com a procedência completa desse fato, RF-304); por que afeta o cálculo (mecanismo, obrigatório); contexto de escala (faixa, quando existir); ação disponível (oferta de cenário, quando aplicável). A `fonte` da heurística, quando preenchida, é exibida junto (D-108) |
 | RF-117 | Nenhum bloco contém valor numérico sugerido de premissa (RP-006) nem adjetivo valorativo (RP-004) |
 
 **Exemplo conforme:**
