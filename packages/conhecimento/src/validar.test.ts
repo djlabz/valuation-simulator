@@ -142,11 +142,38 @@ describe('RF-507, regra dura declara mensagem', () => {
 })
 
 describe('RF-106, heurística declara os campos que o requisito exige', () => {
-  it('recusa heurística sem fonte, citando RF-106', () => {
-    const erros = mensagens(join(FIXTURES, 'heuristicas', 'sem-fonte.yaml'), 'heuristicas')
-    expect(erros.length).toBe(1)
-    expect(erros[0]).toContain('RF-106')
-    expect(erros[0]).toContain('fonte')
+  // heurística completa sem fonte, escrita aqui e não em fixtures-invalidas/,
+  // porque desde a D-108 ela valida e arquivo válido em pasta de inválidos engana
+  const heuristicaSemFonte = () => ({
+    id: 'H-901',
+    aplica_em: ['release_resultados'],
+    onde_olhar: 'Secao qualquer do release',
+    o_que_verificar: 'Item qualquer',
+    por_que_importa: 'Altera o fluxo projetado',
+    acao_do_agente: 'sinalizar_ao_usuario',
+    severidade: 'informativo',
+    confianca: 'alta',
+  })
+
+  it('aceita heurística sem fonte, porque a fonte é opcional desde a D-108', () => {
+    const r = Heuristica.safeParse(heuristicaSemFonte())
+    expect(r.success ? [] : r.error.issues.map((i) => i.message)).toEqual([])
+  })
+
+  it('recusa fonte presente e vazia, citando RF-106', () => {
+    const r = Heuristica.safeParse({ ...heuristicaSemFonte(), fonte: '   ' })
+    expect(r.success).toBe(false)
+    const mensagensDoErro = r.success ? [] : r.error.issues.map((i) => i.message)
+    expect(mensagensDoErro.length).toBe(1)
+    expect(mensagensDoErro[0]).toContain('RF-106')
+    expect(mensagensDoErro[0]).toContain('fonte')
+  })
+
+  it('fonte presente continua passando pelo filtro de RP-004', () => {
+    const r = Heuristica.safeParse({ ...heuristicaSemFonte(), fonte: 'Release com preço barato' })
+    expect(r.success).toBe(false)
+    const mensagensDoErro = r.success ? [] : r.error.issues.map((i) => i.message)
+    expect(mensagensDoErro.some((m) => m.includes('fonte'))).toBe(true)
   })
 })
 

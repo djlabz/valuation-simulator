@@ -883,8 +883,8 @@ wheels = [
 
 [[package]]
 name = "transcript-normalizer"
-version = "0.8.1"
-source = { git = "https://github.com/Tatiwel/transcript-normalizer?rev=v0.8.1#4e88cf67f4a5d970358ef9b76e5716b0f624192d" }
+version = "0.8.7"
+source = { git = "https://github.com/Tatiwel/transcript-normalizer?rev=v0.8.7#cbb79051f83a57bc33d1ed654cfb9e8f32e31f1d" }
 dependencies = [
     { name = "platformdirs" },
     { name = "pyyaml" },
@@ -919,7 +919,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "transcript-normalizer", extras = ["ingest"], git = "https://github.com/Tatiwel/transcript-normalizer?rev=v0.8.1" }]
+requires-dist = [{ name = "transcript-normalizer", extras = ["ingest"], git = "https://github.com/Tatiwel/transcript-normalizer?rev=v0.8.7" }]
 
 [[package]]
 name = "wcwidth"

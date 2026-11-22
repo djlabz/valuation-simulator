@@ -4,8 +4,11 @@ version = "0.0.0"
 description = "Ingestao de video do valuation-simulator: so obtem o texto bruto (D-102)"
 requires-python = ">=3.11"
 dependencies = [
-    "transcript-normalizer[ingest] @ git+https://github.com/Tatiwel/transcript-normalizer@v0.8.1",
+    "transcript-normalizer[ingest]",
 ]
 
 [tool.uv]
 package = false
+
+[tool.uv.sources]
+transcript-normalizer = { git = "https://github.com/Tatiwel/transcript-normalizer", rev = "v0.8.7" }
