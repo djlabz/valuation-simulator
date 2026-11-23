@@ -5,7 +5,7 @@
 **Data:** 22 de novembro de 2026
 **Status:** Escopo fechado para v1.
 
-**Alterações desde 2.4.5:** a RF-116 passa a exigir a procedência do primeiro bloco do alerta também quando o que foi identificado é disposição de norma, e não só fato de documento da companhia (D-110). Sem alteração de estrutura de input nem de premissa.
+**Alterações desde 2.4.5:** a RF-116 passa a exigir a procedência do primeiro bloco do alerta também quando o que foi identificado é disposição de norma, e não só fato de documento da companhia (D-110). A RF-106 passa a registrar a regra da D-111: número em texto de heurística só entra com fonte. Sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.4:** o campo `fonte` da heurística de leitura passa a opcional, e o aceite da Etapa do Conhecimento deixa de exigir procedência de item que vem de transcrição (D-108). Dado da companhia continua com procedência obrigatória (RF-304). Sem alteração de estrutura de input nem de premissa. A RF-116 passa a dizer que a procedência do primeiro bloco do alerta é a do fato identificado no documento da companhia, e não a fonte da heurística.
 
@@ -185,7 +185,7 @@ O conhecimento vive em YAML versionado no repositório e é carregado no boot. O
 | RF-103 | Todo input obrigatório declara `onde_encontrar`, com instrução de localização na documentação da companhia |
 | RF-104 | Múltiplo bloqueado declara severidade (`bloqueio_total` ou `alerta`) e motivo exibível. Múltiplo bloqueado não é exibido; em seu lugar aparece o motivo |
 | RF-105 | Modo de granularidade reduzida exige aviso obrigatório exibido antes da seleção |
-| RF-106 | Heurística de leitura declara onde olhar, o que verificar, por que importa, severidade (`informativo` ou `bloqueia_ate_ciente`) e confiança (`alta`, `media`, `baixa`). `fonte` é opcional e é preenchida quando a heurística se apoia em documento da companhia ou em norma (D-108) |
+| RF-106 | Heurística de leitura declara onde olhar, o que verificar, por que importa, severidade (`informativo` ou `bloqueia_ate_ciente`) e confiança (`alta`, `media`, `baixa`). `fonte` é opcional e é preenchida quando a heurística se apoia em documento da companhia ou em norma (D-108). Percentual, número decimal e valor em reais em `o_que_verificar` e em `por_que_importa` só são aceitos quando a heurística tem `fonte`; em `onde_olhar`, percentual e valor em reais não são aceitos, e número decimal é (D-111) |
 | RF-107 | Heurística pode vincular-se a uma premissa por `campo_relacionado`, e então o alerta aparece junto ao campo no momento do preenchimento |
 | RF-108 | Heurísticas com `divergencia: true` apresentam as visões conflitantes lado a lado, sem que o sistema escolha uma |
 | RF-109 | Nota de ativo registra característica estrutural de uma empresa. Pode restringir modelos habilitados e adicionar heurísticas. Não pode ampliar a lista de modelos, alterar regras duras ou múltiplos bloqueados |
