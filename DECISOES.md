@@ -2605,3 +2605,77 @@ comando usa a mesma versão até alguém subir de propósito.
 D-051 e a D-103. Verificação de diferença zero no vídeo de referência, porque há versões que mudam
 o texto de propósito, como a v0.8.6 com o formato dos instantes. Script em volta do atalho para
 tratar o código 4, porque o bun já repassa o código e a mensagem.
+
+### D-110. Correções da D-109 e da RF-116, achadas na revisão da PR #11
+
+**Decisão.** Corrige três pontos da D-109 e a redação da RF-116, e registra a remoção do manual da
+PR #10. A D-109 continua valendo no resto.
+
+**1. O que a trava compara em arquivo local.** A D-109 diz que mesma origem, para arquivo local,
+é "mesmo nome de arquivo, mesmo sha256 e tamanho". Lido no código da v0.8.7
+(`caption_guard.py:206-211`): quando o `legenda.txt` existente e o arquivo novo têm impressão
+digital, decide o conteúdo (sha256 e tamanho), mais modelo e idioma, e o nome do arquivo não entra.
+O nome só é comparado quando o `legenda.txt` existente não tem a linha "# Impressao digital", o
+que acontece em texto gravado antes da v0.8.3. Consequência: uma cópia renomeada do mesmo vídeo,
+gravando na mesma pasta por `--out`, é a mesma origem e sai com 0. Este cenário foi lido no
+código e não executado. Sem `--out` nada muda no que a D-109 descreve: a pasta da run vem do nome
+do arquivo, então o arquivo renomeado cai em outra pasta e a transcrição começa do zero.
+
+**2. `--locked` nos comandos de subida.** Onde a D-109 escreve `uv run --project tools/ingest tn
+update` e `tn upgrade`, o comando é `uv run --locked --project tools/ingest tn update` e
+`tn upgrade`, como nos atalhos `ingest:update` e `ingest:upgrade`.
+
+**3. Ordem da verificação a cada subida.** A comparação do vídeo de referência precisa do texto
+gerado pela versão anterior, e depois do `upgrade` essa versão já foi trocada. A ordem é:
+`ingest:update` para ler o CHANGELOG; baixar o vídeo de referência numa pasta temporária fora do
+repositório, ainda na versão instalada; `ingest:upgrade`; baixar o vídeo de referência de novo
+em outra pasta temporária; comparar os dois textos contra o CHANGELOG; suíte, typecheck e
+validação; commit.
+
+**4. RF-116.** A redação da 2.4.5 exige a procedência do primeiro bloco do alerta só "quando é
+fato de documento da companhia". A RF-106 manda preencher a `fonte` da heurística também quando
+ela se apoia em norma, e a RF-116 não cobria esse caso. A redação passa a: "o que foi identificado
+(obrigatório; quando é fato de documento da companhia ou disposição de norma, com a procedência
+completa, RF-304)". O `fonte` de nota e de evento continua obrigatório no schema, e esta redação
+não autoriza afrouxá-lo. Requisitos vão a 2.4.6.
+
+**5. Manual de comandos.** A PR #10, com o manual dos comandos da ingestão escrito para a v0.8.1,
+entrou na main por engano em 22/11/2026, no commit `a8efba4`, e o arquivo
+`docs/ingestao-comandos.md` é removido junto com esta decisão. O projeto não mantém manual que
+traduz o `--help` de uma versão da biblioteca: a D-109 manda seguir a última tag, e um manual
+assim envelhece a cada subida. A referência dos comandos é `tn --help` e o README da biblioteca.
+O que é específico do projeto (atalhos, flags usadas e as regras da D-108 e da D-109) fica no
+`AGENTS.md` e no `INGESTAO-video-transcricao.md`.
+
+**Motivo.** A D-109 foi escrita a partir de descrições do comportamento da biblioteca, e uma
+revisão independente da PR #11, feita na main, leu o código e achou as diferenças. O ponto 3 é
+falha de procedimento: quem seguisse a D-109 ao pé da letra não teria o texto da versão anterior
+para comparar.
+
+**Descartado.** Editar a D-109, porque ela já está na main e o arquivo só recebe acréscimo.
+
+### D-111. Número em texto de heurística só entra com fonte
+
+**Decisão.** Nos campos `o_que_verificar` e `por_que_importa` da heurística de leitura,
+percentual, número decimal e valor em reais só são aceitos quando a heurística tem `fonte`
+preenchida. Sem `fonte`, o texto com esses números é reprovado citando RF-112. No campo
+`onde_olhar`, percentual e valor em reais são reprovados sempre, e número decimal é aceito, porque
+referência de seção de documento é o que o campo existe para carregar. Nota e evento não mudam:
+descrevem fato da companhia, têm `fonte` obrigatória, e o número faz parte do fato.
+
+**Motivo.** O RF-112 diz que nenhum item de conhecimento contém valor de premissa (RP-006). A
+revisão da PR #11 mediu, na main, que uma heurística com "Use taxa de desconto de 12%" passava no
+schema e no validador completo. A lacuna é anterior à PR #11 e não vazou, porque `conhecimento/`
+ainda não tem heurística. O filtro de valor de premissa que já existe não serve aqui como está:
+medido em 22/11/2026, ele barra "Nota 24.1 do ITR", "Basileia mínimo regulatório de 10,5%
+(Resolução CMN 4.958)" e "multa de R$ 2,3 bilhões reportada no ITR", que são texto legítimo. A
+regra separa pelo que a D-108 já separa: número com origem em documento da companhia ou em norma
+é fato; número sem origem é valor solto, e é esse que chegaria à tela como orientação do app.
+
+**O filtro é rede, não prova.** `fonte` preenchida não prova que o número veio dela, e o filtro
+não pega número inteiro nem número por extenso, como "5 anos" ou "doze por cento". A prova
+continua sendo a revisão do curador (RF-121), como na D-061.
+
+**Descartado.** Aplicar o filtro existente aos três campos: barra texto legítimo. Estender a
+regra a nota e evento: reprovaria fato da companhia com número. Filtro por vocabulário, como
+"use" ou "adote" seguido de nome de premissa: não pega paráfrase e exige manter lista.
