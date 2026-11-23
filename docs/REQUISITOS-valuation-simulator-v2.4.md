@@ -1,11 +1,13 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.6
-**Data:** 22 de novembro de 2026
+**Versão:** 2.4.7
+**Data:** 23 de novembro de 2026
 **Status:** Escopo fechado para v1.
 
-**Alterações desde 2.4.5:** a RF-116 passa a exigir a procedência do primeiro bloco do alerta também quando o que foi identificado é disposição de norma, e não só fato de documento da companhia (D-110). A RF-106 passa a registrar a regra da D-111: número em texto de heurística só entra com fonte. Sem alteração de estrutura de input nem de premissa.
+**Alterações desde 2.4.6:** a RNF-013 ganha exceção declarada: o agente propõe a redação de item de conhecimento a partir da fala de um autor escolhido pelo curador, com a fala de origem ao lado, e só entra o que o curador aprovar item por item (D-112). A Etapa do Conhecimento passa a ter duas metades, estudo e autoria desde já, e exercício no app depois da Fase 7 (D-112). A RF-113 passa a dizer o que é faixa agregada, como se contam as observações, em que unidade e em que termos, nominais ou reais, a faixa está; a RF-419 deixa de proibir faixa de referência para o horizonte de bancos (D-112, D-115). Sem alteração de estrutura de input nem de premissa.
+
+**Alterações desde 2.4.5:** a RF-116 passa a exigir a procedência do primeiro bloco do alerta também quando o que foi identificado é disposição de norma, e não só fato de documento da companhia (D-110). A RF-106 passa a registrar as restrições numéricas da D-111 para textos de heurística. Sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.4:** o campo `fonte` da heurística de leitura passa a opcional, e o aceite da Etapa do Conhecimento deixa de exigir procedência de item que vem de transcrição (D-108). Dado da companhia continua com procedência obrigatória (RF-304). Sem alteração de estrutura de input nem de premissa. A RF-116 passa a dizer que a procedência do primeiro bloco do alerta é a do fato identificado no documento da companhia, e não a fonte da heurística.
 
@@ -192,7 +194,7 @@ O conhecimento vive em YAML versionado no repositório e é carregado no boot. O
 | RF-110 | Evento registra circunstância temporária e exige `validade_ate` e `revisar_em`. Evento sem prazo é rejeitado na ingestão. Evento vencido é ocultado automaticamente |
 | RF-111 | Evento descreve fato e mecanismo. Não qualifica probabilidade de desfecho (RP-007) |
 | RF-112 | Nenhum item de conhecimento contém valor de premissa (RP-006) |
-| RF-113 | Faixa de referência declara mínimo, máximo, número de observações, base, confiança e data. É sempre setorial e agregada, nunca por ativo individual |
+| RF-113 | Faixa de referência declara mínimo e máximo, na unidade da premissa, número de observações, base, confiança e data, e, quando a premissa é taxa ou crescimento, se está em termos nominais ou reais. É sempre setorial e agregada, nunca por ativo individual, e entra no playbook do setor em que a fonte usou o valor. Agregada quer dizer observações de pelo menos duas fontes independentes; o número de observações conta uma por fonte, e a atribuição que uma fonte faz a terceiro não conta como fonte. A `base` descreve o tipo de fonte, sem nome de autor (D-108). Valor que a fonte calibrou dentro do próprio método não entra como observação (D-112, D-115) |
 | RF-114 | Faixa com data superior a 12 meses é exibida marcada como desatualizada |
 | RF-115 | Valor digitado fora da faixa gera indicação informativa e não impede o prosseguimento |
 
@@ -310,7 +312,7 @@ Ke resultante                       ?
 | RF-416 | O horizonte é derivado de fato sempre que o setor permitir, e não constitui premissa do usuário nesses casos |
 | RF-417 | Transmissão: horizonte de cada concessão é a respectiva data de vencimento contratual |
 | RF-418 | Commodities: horizonte é limitado pela vida útil de reserva declarada pela companhia |
-| RF-419 | Bancos: o horizonte não é derivado de fato, porque não há contrato nem reserva definindo prazo, e portanto é premissa do usuário (RF-416), obrigatória, sem default e sem faixa de referência |
+| RF-419 | Bancos: o horizonte não é derivado de fato, porque não há contrato nem reserva definindo prazo, e portanto é premissa do usuário (RF-416), obrigatória e sem default. Faixa de referência de horizonte, quando existir, segue a RF-113 e é exibida separada do campo, sem horizonte pré-selecionado (D-112) |
 | RF-420 | Horizonte que exceda o fato derivado é bloqueado por regra dura do playbook correspondente |
 | RF-421 | Flag booleana de premissa é proibida. A inclusão ou exclusão de um efeito é derivada da presença do valor correspondente informado pelo usuário |
 
@@ -470,7 +472,7 @@ Valor ponderado                 R$ 41,69
 | RNF-010 | **Justificativa obrigatória.** Toda implementação é acompanhada de explicação do que foi feito, do requisito que atende e das alternativas descartadas. Código entregue sem justificativa é entrega incompleta |
 | RNF-011 | **Inspeção adversarial de conformidade.** Ao fim de cada fase, código e textos de interface passam por revisão que simula leitura hostil, buscando ativamente a interpretação mais desfavorável de cada elemento. A revisão é conduzida por skill dedicada e produz relatório de brechas com severidade |
 | RNF-012 | **Autoridade de contestação.** O agente contesta instrução que viole invariante, lei aplicável ou boa prática de engenharia, em vez de executá-la. A contestação é obrigatória, não opcional, e precede qualquer implementação |
-| RNF-013 | **Conteúdo analítico não é escrito por agente.** Em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e pergunta ao curador. Teste de decisão: este texto afirma algo sobre o mundo que não se rastreia a documento da companhia, a norma vigente ou a operação aritmética? Exceção única: conteúdo sintético de fixture de teste, que não afirma sobre setor nem sobre empresa |
+| RNF-013 | **Conteúdo analítico não é escrito por agente.** Em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e pergunta ao curador. Teste de decisão: este texto afirma algo sobre o mundo que não se rastreia a documento da companhia, a norma vigente ou a operação aritmética? Duas exceções. Conteúdo sintético de fixture de teste, que não afirma sobre setor nem sobre empresa. E proposta de redação feita a partir da fala de um autor escolhido pelo curador (D-112): cada item proposto traz o trecho da fala de origem com a aula e o instante, não leva número de premissa nem forma imperativa e não existe sem fala de origem; só entra o que o curador aprovar ou editar, item por item, por commit (RF-121). Aula e instante ficam na proposta e não entram na base (D-108) |
 
 ---
 
@@ -506,7 +508,7 @@ O usuário não é certificado pela CVM. A proteção é arquitetural, não decl
 | 5. Cenários | Até cinco cenários nomeados, ponderação, atribuição de diferença | Evento gera cenário adicional; diferença atribuída à origem correta; nenhum cenário marcado como provável; ponderação identificada como do usuário |
 | 6. MCP | Servidor com as quinze ferramentas | Agente classifica, propõe modelo, consulta contexto, registra fato e dispara cálculo; RF-1003 verificado |
 | 7. Electron | Cinco telas, conferência, composição, alertas, cenários, vigia | Fluxo completo pela interface; nenhuma premissa com default; alerta bloqueante impede prosseguimento |
-| Etapa do Conhecimento (sem número de fase, D-070) | Pesquisa, transcrição de material próprio e autoria de heurísticas, faixas, modos e notas, com revisão do curador | Todo item de conhecimento tem revisão registrada; item que se apoia em documento da companhia ou em norma declara a procedência; nenhum item foi escrito por agente (RNF-013) |
+| Etapa do Conhecimento (sem número de fase, D-070, D-112) | Duas metades. Estudo e autoria, desde já e em paralelo às fases: estudo de material de autores escolhidos pelo curador, proposta de redação item por item e autoria de heurísticas, faixas, modos, notas, ajudas de campo e `onde_encontrar` conferido em documento da companhia, em YAML de `conhecimento/`, validado pelo CLI. Exercício no app, depois da Fase 7: o conhecimento autorado aparece nas telas e é revisado em uso | Todo item de conhecimento tem revisão registrada; item que se apoia em documento da companhia ou em norma declara a procedência; nenhum item entrou sem aprovação do curador item por item, e nenhuma proposta de agente existiu sem fala de origem (RNF-013) |
 | 8. Validação metodológica | Execução contra companhias reais e casos de referência | Resultados batem com cálculo manual independente dentro de tolerância |
 
 **Casos de referência.** Caso construído a partir de cálculo público de terceiro só é admitido quando as premissas do autor são conhecidas e declaradas. O teste executa a engine com essas premissas e compara o resultado. Divergência indica defeito na engine ou no playbook, e nunca motiva alteração de premissa. Resultado sem premissas declaradas não constitui caso válido, porque o mesmo valor pode ser alcançado por caminhos metodologicamente incorretos.
