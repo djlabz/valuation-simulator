@@ -186,7 +186,11 @@ arquivo local com impressão digital nos dois lados, decide o conteúdo (sha256 
 modelo e idioma, e o nome do arquivo não entra; o nome só é comparado quando o `legenda.txt`
 existente foi gravado antes da v0.8.3, sem a linha "# Impressao digital" (D-110, lido no código e
 não executado). `--replace-caption` substitui o texto existente e guarda o anterior em
-`replaced-<data e hora>/`; `--out` grava em outra pasta e mantém os dois.
+`replaced-<data e hora>/`; `--out` grava em outra pasta e mantém os dois. Consequência do caso
+antigo: se o `legenda.txt` existente é anterior à v0.8.3 e o arquivo de mesmo nome teve o
+conteúdo trocado, com mesmo modelo e idioma, a trava não vê diferença, reaproveita o texto
+antigo e sai com 0. Para transcrever o conteúdo novo, use `--replace-caption` ou `--out` (lido
+em `caption_guard.py`, função `file_mismatch`, e não executado).
 
 Se alguém rodar `normalize` por conta própria, aparecem também `normalized.txt`, `annotations.json`, `report.txt` e `needs-review/`. **Nenhum deles alimenta extração** (D-091, D-102).
 
