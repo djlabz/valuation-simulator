@@ -361,6 +361,131 @@ describe('RF-112 e RP-006, nenhum item de conhecimento contém valor de premissa
   })
 })
 
+describe('RF-112 e D-111, número em texto de heurística só entra com fonte', () => {
+  // heurística válida em todo o resto, para o refine do objeto rodar (D-073)
+  const base = (): Record<string, unknown> => ({
+    id: 'H-911',
+    aplica_em: ['release_resultados'],
+    onde_olhar: 'Secao qualquer do release',
+    o_que_verificar: 'Item qualquer',
+    por_que_importa: 'Altera o fluxo projetado',
+    acao_do_agente: 'sinalizar_ao_usuario',
+    severidade: 'informativo',
+    confianca: 'alta',
+  })
+  const FONTE = 'Fixture de teste'
+
+  function erros(objeto: Record<string, unknown>): string[] {
+    const r = Heuristica.safeParse(objeto)
+    return r.success ? [] : r.error.issues.map((i) => i.message)
+  }
+
+  // [texto, tem número que a regra olha em o_que_verificar e por_que_importa,
+  //  é barrado em onde_olhar]
+  const CASOS: [string, boolean, boolean][] = [
+    ['Use taxa de desconto de 12%', true, true],
+    ['taxa de 0,12', true, false],
+    ['inadimplência acima de 90 dias', false, false],
+    ['Notas Explicativas, item 24', false, false],
+    ['3 a 5 anos', false, false],
+    ['Basileia mínimo regulatório de 10,5% (Resolução CMN 4.958)', true, true],
+    ['multa de R$ 2,3 bilhões reportada no ITR', true, true],
+    ['Nota 24.1 do ITR', true, false],
+  ]
+
+  it('a base passa, com e sem fonte, então toda reprovação abaixo vem do campo trocado', () => {
+    expect(erros(base())).toEqual([])
+    expect(erros({ ...base(), fonte: FONTE })).toEqual([])
+  })
+
+  for (const campo of ['o_que_verificar', 'por_que_importa'] as const) {
+    for (const [frase, temNumero] of CASOS) {
+      if (temNumero) {
+        it(`${campo} sem fonte recusa "${frase}", citando RF-112 (prova A)`, () => {
+          const e = erros({ ...base(), [campo]: frase })
+          expect(e.length).toBe(1)
+          expect(e[0]).toContain('RF-112')
+          expect(e[0]).toContain('D-111')
+          expect(e[0]).toContain(campo)
+          expect(e[0]).toContain('heurística')
+          expect(e[0]).not.toContain('Texto de premissa')
+        })
+        it(`${campo} com fonte aceita "${frase}", corrigida a única violação (prova B)`, () => {
+          expect(erros({ ...base(), [campo]: frase, fonte: FONTE })).toEqual([])
+        })
+      } else {
+        it(`${campo} aceita "${frase}" sem fonte e com fonte`, () => {
+          expect(erros({ ...base(), [campo]: frase })).toEqual([])
+          expect(erros({ ...base(), [campo]: frase, fonte: FONTE })).toEqual([])
+        })
+      }
+    }
+  }
+
+  for (const [frase, , barradoEmOndeOlhar] of CASOS) {
+    if (barradoEmOndeOlhar) {
+      for (const comFonte of [false, true]) {
+        const rotulo = comFonte ? 'com fonte' : 'sem fonte'
+        it(`onde_olhar ${rotulo} recusa "${frase}", citando RF-112 (prova A)`, () => {
+          const objeto = { ...base(), onde_olhar: frase, ...(comFonte ? { fonte: FONTE } : {}) }
+          const e = erros(objeto)
+          expect(e.length).toBe(1)
+          expect(e[0]).toContain('RF-112')
+          expect(e[0]).toContain('D-111')
+          expect(e[0]).toContain('onde_olhar')
+          expect(e[0]).not.toContain('Texto de premissa')
+        })
+        it(`onde_olhar ${rotulo}: voltar o texto da base faz passar (prova B)`, () => {
+          const objeto = { ...base(), ...(comFonte ? { fonte: FONTE } : {}) }
+          expect(erros(objeto)).toEqual([])
+        })
+      }
+    } else {
+      it(`onde_olhar aceita "${frase}" sem fonte e com fonte`, () => {
+        expect(erros({ ...base(), onde_olhar: frase })).toEqual([])
+        expect(erros({ ...base(), onde_olhar: frase, fonte: FONTE })).toEqual([])
+      })
+    }
+  }
+
+  it('recusa pelo validador completo, citando RF-112 (prova A da fixture)', () => {
+    const e = mensagens(join(FIXTURES, 'heuristicas', 'valor-sem-fonte.yaml'), 'heuristicas')
+    expect(e.length).toBe(1)
+    expect(e[0]).toContain('RF-112')
+    expect(e[0]).toContain('o_que_verificar')
+  })
+
+  it('a fixture com fonte passa no validador completo (prova B da fixture)', () => {
+    const pasta = mkdtempSync(join(tmpdir(), 'd111-'))
+    const copia = join(pasta, 'valor-sem-fonte.yaml')
+    copyFileSync(join(FIXTURES, 'heuristicas', 'valor-sem-fonte.yaml'), copia)
+    writeFileSync(copia, `${readFileSync(copia, 'utf8')}fonte: "${FONTE}"\n`)
+    expect(mensagens(copia, 'heuristicas')).toEqual([])
+  })
+
+  it('o refine de fonte não roda com outro campo quebrado (D-073); onde_olhar roda', () => {
+    const objeto: Record<string, unknown> = {
+      ...base(),
+      o_que_verificar: 'taxa de 12%',
+      onde_olhar: 'R$ 5 no release',
+    }
+    delete objeto['confianca']
+    const e = erros(objeto)
+    expect(e.some((m) => m.includes('o_que_verificar'))).toBe(false)
+    expect(e.some((m) => m.includes('onde_olhar'))).toBe(true)
+    expect(e.some((m) => m.includes('confianca'))).toBe(true)
+  })
+
+  it('limite conhecido: inteiro e número por extenso passam sem fonte (D-111)', () => {
+    expect(erros({ ...base(), o_que_verificar: 'Use horizonte de 5 anos' })).toEqual([])
+    expect(erros({ ...base(), por_que_importa: 'Use doze por cento de desconto' })).toEqual([])
+  })
+
+  it('limite conhecido: decimal solto em onde_olhar passa, porque o campo aceita decimal', () => {
+    expect(erros({ ...base(), onde_olhar: 'taxa de 0,12' })).toEqual([])
+  })
+})
+
 describe('RF-421 e D-040, flag booleana de premissa é proibida', () => {
   it('recusa premissa declarada como booleano', () => {
     const erros = mensagens(join(FIXTURES, 'playbooks', 'premissa-booleana.yaml'), 'playbooks')

@@ -1,0 +1,9 @@
+# Quebra RF-112 pela D-111: percentual em o_que_verificar sem fonte. Valida em todo o resto.
+id: H-904
+aplica_em: [release_resultados]
+onde_olhar: "Secao qualquer do release"
+o_que_verificar: "Use taxa de desconto de 12%"
+por_que_importa: "Altera o fluxo projetado"
+acao_do_agente: sinalizar_ao_usuario
+severidade: informativo
+confianca: alta

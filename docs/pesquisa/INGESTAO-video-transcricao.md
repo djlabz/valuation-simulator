@@ -13,7 +13,8 @@
 >
 > **Instante.** Fim da fala na legenda da plataforma e no `.srt` ou `.vtt` convertido; início
 > da fala na transcrição local. `m:ss` antes de 1 hora, `h:mm:ss` depois (D-109). Onde este
-> arquivo trata todo instante como fim do bloco (seção 4.2), vale só para legenda.
+> arquivo trata todo instante como fim do bloco (seção 4.2), ou como um ponto único do vídeo
+> que se confere abrindo naquele instante (seção 3.3), vale só para legenda.
 
 > # Nota de topo, D-102, 07/10/2026
 >
@@ -156,7 +157,7 @@ bun run ingest:video <url>
 que roda exatamente:
 
 ```bash
-cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio <url>
+cd ingest && TRANSCRIPT_NORMALIZER_HOME="$PWD" uv run --locked --project ../tools/ingest transcript-normalizer fetch --keep-raw --keep-audio <url>
 ```
 
 Listagem do que já foi ingerido, com id, data de publicação e título:
@@ -175,6 +176,18 @@ cd ingest && uv run --locked --project ../tools/ingest transcript-normalizer lis
 | `legenda.vtt` | a legenda bruta como a plataforma entregou. Só fica por causa do `--keep-raw`, que o atalho sempre passa |
 | `meta.yaml` | o que a plataforma diz do vídeo: id, título, canal, data, faixa escolhida |
 
+**Trava de regravação, desde a v0.8.7 (D-109, D-110).** Antes de baixar ou transcrever, a
+biblioteca compara a origem pedida com o `legenda.txt` que já existe na pasta de destino. Mesma
+origem: reaproveita o texto e sai com **0**. Outra origem: para sem gravar e sai com **4**, e o
+atalho repassa o código sem tratamento próprio. O código 4 só aparece quando já existe texto de
+outra origem naquela pasta; pasta nova não tem com o que comparar e a transcrição começa do zero.
+Para link, mesma origem é mesmo vídeo, idioma e modo, com o mesmo modelo ou a mesma faixa. Para
+arquivo local com impressão digital nos dois lados, decide o conteúdo (sha256 e tamanho), mais
+modelo e idioma, e o nome do arquivo não entra; o nome só é comparado quando o `legenda.txt`
+existente foi gravado antes da v0.8.3, sem a linha "# Impressao digital" (D-110, lido no código e
+não executado). `--replace-caption` substitui o texto existente e guarda o anterior em
+`replaced-<data e hora>/`; `--out` grava em outra pasta e mantém os dois.
+
 Se alguém rodar `normalize` por conta própria, aparecem também `normalized.txt`, `annotations.json`, `report.txt` e `needs-review/`. **Nenhum deles alimenta extração** (D-091, D-102).
 
 **Mudanças de comportamento em relação ao script, declaradas:**
@@ -185,7 +198,7 @@ Se alguém rodar `normalize` por conta própria, aparecem também `normalized.tx
 - **Idioma.** Desde a 0.6.5 (D-103), sem `--lang` o `fetch` pega o idioma do vídeo como o site informa; quando o site não diz, a única faixa de áudio original, senão a única faixa manual, senão `pt`, com uma linha avisando que o idioma é desconhecido. `--lang` continua vencendo, e o atalho não o passa. Até a 0.6.4 o padrão era sempre `pt`.
 - **A contagem `lines:` que o `fetch` imprime inclui o cabeçalho.** No vídeo de referência ela diz 828, e as linhas de conteúdo são 810.
 
-Exit code 0 em sucesso, 1 quando não conseguiu texto nenhum, 2 em erro de uso (sem url, modelo desconhecido) ou com o extra `ingest` faltando. Lido no código da v0.4.5, não exercitado um a um.
+Exit code 0 em sucesso, 1 quando não conseguiu texto nenhum, 2 em erro de uso (sem url, modelo desconhecido) ou com o extra `ingest` faltando. Lido no código da v0.4.5, não exercitado um a um. Desde a v0.8.7, também 0 quando a trava reaproveita o texto de mesma origem, e 4 quando ela para por haver texto de outra origem na pasta de destino (D-109).
 
 #### Comportamento do script antigo, até a D-102
 

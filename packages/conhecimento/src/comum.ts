@@ -79,7 +79,27 @@ const PADROES_DE_VALOR = [
   { padrao: /\d+(?:[.,]\d+)?\s*%/, nome: 'percentual' },
   { padrao: /\d+[.,]\d+/, nome: 'número decimal' },
   { padrao: /R\$\s*\d/, nome: 'valor em reais' },
-]
+] as const
+
+export type TipoDeValor = (typeof PADROES_DE_VALOR)[number]['nome']
+
+/**
+ * Primeiro número com cara de valor de premissa no texto, olhando só os tipos
+ * pedidos e na ordem de PADROES_DE_VALOR. Exportado para a heurística (D-111),
+ * que aceita parte desses números conforme o campo e a presença de `fonte`, sem
+ * duplicar a lista de padrões.
+ */
+export function primeiroValor(
+  valor: string,
+  tipos: readonly TipoDeValor[] = PADROES_DE_VALOR.map((p) => p.nome),
+): { nome: TipoDeValor; trecho: string } | null {
+  for (const { padrao, nome } of PADROES_DE_VALOR) {
+    if (!tipos.includes(nome)) continue
+    const achado = padrao.exec(valor)
+    if (achado !== null) return { nome, trecho: achado[0] }
+  }
+  return null
+}
 
 function checarValorDePremissa(
   valor: string,
@@ -87,17 +107,14 @@ function checarValorDePremissa(
   campo: string,
   requisito: string,
 ): void {
-  for (const { padrao, nome } of PADROES_DE_VALOR) {
-    const achado = padrao.exec(valor)
-    if (achado !== null) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          `${requisito}, RP-006: ${campo} contém ${nome} ("${achado[0]}"). ` +
-          'Texto de premissa não carrega valor, nem como exemplo',
-      })
-      return
-    }
+  const achado = primeiroValor(valor)
+  if (achado !== null) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        `${requisito}, RP-006: ${campo} contém ${achado.nome} ("${achado.trecho}"). ` +
+        'Texto de premissa não carrega valor, nem como exemplo',
+    })
   }
 }
 
