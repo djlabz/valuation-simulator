@@ -2679,3 +2679,5 @@ continua sendo a revisão do curador (RF-121), como na D-061.
 **Descartado.** Aplicar o filtro existente aos três campos: barra texto legítimo. Estender a
 regra a nota e evento: reprovaria fato da companhia com número. Filtro por vocabulário, como
 "use" ou "adote" seguido de nome de premissa: não pega paráfrase e exige manter lista.
+
+**Requisitos.** Versão 2.4.6: a RF-106 passa a registrar esta regra.
