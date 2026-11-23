@@ -10,12 +10,12 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 22/11/2026
+**Data:** 23/11/2026
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa.
-Desde então, sem etapa nova: decisões D-085 a D-111, a manutenção de governança de 07/11/2026 e as conferências da B2 e da B6 (09 e 11/11/2026).
-**Etapa seguinte:** Passo 3, com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos.
+Desde então, sem etapa nova: decisões D-085 a D-116, a manutenção de governança de 07/11/2026 e as conferências da B2 e da B6 (09 e 11/11/2026).
+**Etapa seguinte:** Passo 3, com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos. A sonda já nasce com o modelo de retenção da D-114 e a projeção por ano da D-116, e é no mesmo commit dela que entram playbook `bancos-b3` 0.5.0, schema e o patch de requisitos dessas duas decisões. O arquivo de premissas da `ddm` nasce com ela, e estes pontos já estão levantados, sem texto: dividendo derivado negativo, que pediria aporte de capital; PL tratado como capital regulatório, sem as deduções; lucro do ano sobre o PL do início do ano, e não sobre o PL médio; lucro do primeiro ano da perpetuidade como ROE da perpetuidade vezes PL do fim do horizonte, com crescimento diferente do da perpetuidade na passagem; valor por unit como soma das classes, supondo o mesmo valor por ação em ON e PN; dividendo no fim do ano, e não no meio; ano 1 descontado inteiro ou só a fração entre a data-base e a data da cotação; e as hipóteses da D-105 sobre o Banco do Brasil e o Bradesco, se a sonda tocar nelas. Em paralelo, a metade de estudo e autoria da Etapa do Conhecimento (D-112).
 
 ### O que existe, pacote por pacote
 
@@ -126,7 +126,7 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Documentos
 
-- `docs/REQUISITOS-valuation-simulator-v2.4.md`, fonte de verdade, versão 2.4.6 (D-110). 113 requisitos funcionais,
+- `docs/REQUISITOS-valuation-simulator-v2.4.md`, fonte de verdade, versão 2.4.7 (D-112). 113 requisitos funcionais,
   13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, verificado por teste (D-065)
 - `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as quinze premissas da sonda, dez
@@ -143,6 +143,7 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 - `docs/pesquisa/consolidacao-normalizacao-transcricao.md`, consolidação de três pesquisas
   sobre normalização com dicionário de termos, 06/09/2026, **sem cabeçalho de ressalva**
 - `docs/pesquisa/design-fluxo-de-documentos-2026-11.md`, pesquisa de design para o fluxo de pedido de documentos, com ressalva no topo (D-080)
+- Caderno de estudo em `docs/pesquisa/`, decidido pela D-115 e **ainda não criado**: premissas que autores usaram e que dependem do método deles, observações que esperam a segunda fonte da RF-113 e atribuições a terceiro a conferir. Nada no app o carrega, tem ressalva de topo que não é dispensável (o texto está na D-115) e nenhum filtro roda sobre ele
 - `docs/DIFICULDADES-do-projeto.md`, registro dos problemas estruturais do projeto, matéria-prima
   para explicá-lo, **sem cabeçalho de ressalva**
 - `README.md`, na raiz
@@ -224,9 +225,11 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe. A parada dura saiu para bancos (D-105): a próxima engine é a `ddm`, escrita como sonda, e a `fcff_normalizado` espera a B1 |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
-Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos, com a **Etapa do
-Conhecimento** entre a Fase 7 e a Fase 8, sem número de fase (D-070). É nela que o curador
-autora o conteúdo que o expurgo tirou.
+Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos. A **Etapa do
+Conhecimento**, sem número de fase (D-070), tem duas metades desde a D-112: estudo e autoria
+começam agora, em paralelo às fases, com o agente propondo redação a partir da fala do autor e
+o curador aprovando item por item; o exercício do conhecimento no app fica entre a Fase 7 e a
+Fase 8. É nela que o curador autora o conteúdo que o expurgo tirou.
 
 
 **Por que o Passo 2 vem antes de extrair conteúdo:** se a extração começar antes do schema
@@ -240,7 +243,8 @@ snapshot. **`fcff_normalizado` não começa antes de B1 ser respondida**, porque
 engines fazem a mesma pergunta sobre o que é o fluxo livre.
 
 **A trilha B de conhecimento não existe mais no Passo 3.** Ela virou a Etapa do
-Conhecimento, sem número de fase, entre a Fase 7 e a Fase 8 (D-070). Os três playbooks já
+Conhecimento, sem número de fase (D-070), cuja metade de estudo e autoria começou em paralelo
+pela D-112. Os três playbooks já
 foram transcritos e depois expurgados do conteúdo analítico, e o que restou de conhecimento a
 autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 `.claude/skills/extrair-conhecimento/` nasce lá, não aqui.
@@ -273,7 +277,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | Questão | Quando resolve |
 |---|---|
 | **Pesquisa de transmissão, encerrada por ora (D-105).** Das quinze premissas da sonda (B1 a B10, R1 a R5), só a B2 (escala) e a B6 (composição) estão CONFERIDAS no documento do regulador (REH 3.348/2024: Anexo I para a B2, corpo da resolução para a B6). O mês base da B5 foi conferido só para a TAESA (ver seção 1). Classe A é fonte citada, não lida (D-083). B5, B8, B9 e N29 seguem ABERTAS, e o resultado da `fcff_por_concessao` não é confiável enquanto estiverem. A B1 impede a `fcff_normalizado` e é pesquisada quando ela for a próxima engine | Quando a engine seguinte depender delas, pelo teste da D-105 |
-| Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos | Etapa do Conhecimento |
+| Todo o conhecimento analítico dos playbooks está em `docs/nao-autorado/EXPURGO-2026-08-27.md` esperando autoria: heurísticas, faixa de referência, modos de granularidade e horizonte de bancos. Desde a D-112 a autoria recomeça do zero a partir de material de autor, e o horizonte de bancos ganha faixa só com duas fontes independentes (RF-113, RF-419); hoje há uma, a aula 3 do Projeto Yield | Etapa do Conhecimento, metade de estudo e autoria (D-112) |
 | As duas entradas de múltiplo marcadas como conteúdo imutável com severidade a definir, P/VPA em bancos e comparação entre pares em transmissão. O texto se sustenta, falta decidir se voltam como alerta, como bloqueio total ou como heurística (D-068) | Etapa do Conhecimento |
 | Como colapsar as vidas úteis de `ativos_produtivos` num horizonte único, e o `aviso_obrigatorio` que o modo agregado de commodities exigiria por RF-105 (D-072) | Etapa do Conhecimento |
 | **Ferramenta que cria pasta dentro do repositório declara o que cria, e a regra de ignore nasce junto.** Já são **três ocorrências da mesma família**, e nas três a pasta só apareceu quando alguém olhou o `git status`: o **worktree do git** em `.claude/worktrees/<nome>`, deixado por ferramenta no Passo 1, que originou a D-050; o **ambiente virtual** `tools/.venv-ingest`, da ferramenta de vídeo, com 10607 arquivos (D-092); e o **bytecode** `__pycache__` da mesma ferramenta, que aparece quando alguém a importa como módulo em vez de rodar como script. Nas três a regra de ignore nasceu **depois do acidente**. **O que fazer, com gatilho:** na próxima vez que o `.gitignore` for tocado, a regra passa a ser que ferramenta nova rodando dentro do repositório **declara o que cria**, e a regra de ignore entra junto com a ferramenta. **Por que questão aberta e não decisão:** o `DECISOES.md` é append only, então nota gravada lá **nunca pode ser marcada como resolvida**, e isto é coisa a fazer com gatilho, que é o que esta tabela modela. E localização: quem for mexer no `.gitignore` não vai abrir uma decisão sobre resíduo de ferramenta para descobrir que existe regra a aplicar  **Gatilho aplicado na D-102**, que tocou o `.gitignore`: a troca para a biblioteca transcript-normalizer declarou o que ela cria, `tools/ingest/.venv/` e `runs/` e `packs/` no diretório corrente quando rodada sem `--out`, e as três regras de ignore entraram no mesmo commit da ferramenta, antes de qualquer acidente. **Falta** a regra geral virar texto em lugar permanente, que é o que esta linha pede e a D-102 não fez | Na próxima ferramenta nova que rode dentro do repositório |
@@ -282,6 +286,17 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | **Candidata a provider, achada na conferência de 31/08/2026.** A Central de Informações Econômico-Financeira do Setor Elétrico, no site da ANEEL, tem demonstrações societárias e regulatórias de todas as concessionárias a partir de 2011, e regulatórias completas com notas e auditoria a partir de 2015. É fonte única setorial no site do regulador. Cobre transmissão e distribuição, **não cobre geração nem commodities**. Nada foi implementado: provider é Fase 2 e RF-708 exige interface | Fase 2 |
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
+| **Schema da RF-113 de 2.4.7.** A RF-113 passou a exigir unidade da premissa, termos nominais ou reais em taxa e crescimento, e duas fontes independentes, e o schema `FaixaReferencia` ainda não cobre nada disso: `minimo` e `maximo` só aceitam taxa, e `n_observacoes` aceita 1. **Nenhuma faixa entra em `conhecimento/` antes de o schema cobrir a RF-113** (D-112) | Antes da primeira faixa |
+| Guidance da companhia como fato de contexto ao lado do campo de ROE | Etapa do Conhecimento ou sonda da `ddm` |
+| Série histórica do PIB (IBGE, variação real e valor nominal, cada uma rotulada) como fato de contexto ao lado do crescimento da perpetuidade, sem média calculada pelo app, e o provider dela | Fase 2 |
+| A base, nominal ou real, do crescimento de 1 a 3% da aula 3, a conferir pelo curador contra a série do IBGE; sem base declarada a observação não entra (RF-113, D-113) | Antes de a observação virar faixa |
+| Teste de propriedade em que `ddm` e `excess_return` dão o mesmo valor com premissas coerentes (D-113) | Quando as duas existirem |
+| Selic como juro do dia ao lado do campo de taxa, no lugar do título de prazo compatível da RF-407 (D-115) | Antes da tela de premissas, Fase 7 |
+| R-104 (crescimento da perpetuidade menor que o custo de capital) também em commodities, que tem crescimento na perpetuidade e taxa de desconto (D-114) | Quando a `fcff_normalizado` for escrita |
+| Base única, nominal ou real, nas engines fora de bancos (D-114) | Quando cada engine for escrita ou tocada |
+| Projeção por ano em commodities, e a inflação por índice e por ano na `fcff_por_concessao`, aceita e não implementada (D-116) | `fcff_normalizado`; próxima vez que a `fcff_por_concessao` for tocada |
+| A RF-120 não lista faixa de referência nem proposta de entrada em playbook, e a D-112 abriu três exceções na D-096 (`onde_encontrar`, `ajuda`, `faixa_referencia`). O fluxo da D-112 é autoria em tempo de desenvolvimento e não passa pela RF-120 | Quando a ingestão do app for construída, Fase 3 |
+| Os 10 anos de horizonte que a aula 3 atribui a Buffett: atribuição, fora da faixa, a conferir em texto do próprio Buffett; se conferidos, viram segunda fonte independente (D-112, D-115) | Quando o caderno de estudo for criado |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
 | Playbook de Commodities é elaboração própria, sem base bibliográfica consolidada. Validar contra VALE3 | Fase 8 |
 | Beta em ativo de baixa liquidez pode produzir Ke sem significado. A composição CAPM é opcional justamente por isso, mas falta decidir se o app sinaliza número de observações insuficiente | Antes de `calcular_beta` |

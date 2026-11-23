@@ -263,7 +263,7 @@ Toda entrega diz o que foi feito, qual requisito atende e o que foi descartado n
 Vale para refatoração, escolha de biblioteca e estrutura de pasta, não só para feature.
 Código sem justificativa é entrega incompleta.
 
-### 5.2. Não escrever conhecimento analítico (RNF-013, D-069)
+### 5.2. Não escrever conhecimento analítico (RNF-013, D-069, D-112)
 
 Conteúdo de conhecimento analítico não é escrito por agente, em nenhuma circunstância, nem
 como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório
@@ -277,11 +277,30 @@ conhecimento analítico e não é meu para escrever.
 **Gatilho:** estar preenchendo campo obrigatório de schema com conteúdo que ninguém pediu.
 Foi assim que nasceram dois modos de granularidade no Passo 2, e eles saíram no expurgo.
 
-**Exceção única, fixture de teste.** Conteúdo sintético em `conhecimento/fixtures-invalidas/`
+São duas exceções, e nenhuma outra.
+
+**Exceção 1, fixture de teste.** Conteúdo sintético em `conhecimento/fixtures-invalidas/`
 é estímulo para exercitar validação, não afirmação sobre o mundo. O critério que separa os
 dois: se o texto da fixture fosse lido por um usuário do app, ele afirmaria algo sobre um
 setor ou uma empresa? Modo com `precisao: reduzida` e sem aviso é estímulo. Modo com label
 "Por concessão (maior precisão)" é afirmação.
+
+**Exceção 2, proposta de redação a partir da fala de um autor (D-112).** O agente pode propor
+a redação de um item de conhecimento a partir da fala de um autor escolhido pelo curador, com
+cinco condições, todas obrigatórias:
+
+1. a proposta traz, ao lado do texto, o trecho da fala de origem com a aula e o instante, para
+   o curador ouvir;
+2. o texto proposto de heurística, de `onde_encontrar` e de `ajuda` não leva número de
+   premissa nem forma imperativa;
+3. o agente não propõe item sem fala de origem, nem completa com o que sabe do assunto;
+4. só entra o que o curador aprovar ou editar, item por item, e o que ele recusar não entra,
+   sempre por commit, nunca direto (RF-121, RP-008);
+5. aula e instante ficam na proposta e não entram na base (D-108).
+
+Formato da proposta, um bloco por item: item; forma de saída; texto proposto; fala de origem,
+com aula e instante; o que ficou de fora da fala e por quê. Fora dessas condições a regra
+geral vale inteira: proposta sem fala de origem é o agente escrevendo do que sabe.
 
 ### 5.3. Contestar quando for o caso (RNF-012, D-039)
 

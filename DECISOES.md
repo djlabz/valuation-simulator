@@ -2681,3 +2681,376 @@ regra a nota e evento: reprovaria fato da companhia com número. Filtro por voca
 "use" ou "adote" seguido de nome de premissa: não pega paráfrase e exige manter lista.
 
 **Requisitos.** Versão 2.4.6: a RF-106 passa a registrar esta regra.
+
+## Sessão de 23/11/2026
+
+### D-112. Recomeço do conhecimento a partir de material de autor, e os quatro conflitos que ele abria
+
+**Decisão.** O conhecimento é refeito do zero a partir de material de autores escolhidos pelo
+curador, sem esperar o app ficar pronto. O agente estuda cada material, classifica a forma de
+saída de cada item e propõe a redação a partir da fala do autor. O curador aprova, edita ou recusa
+item por item, e o texto aprovado entra por commit, nunca direto (RF-121, RP-008). Os quatro
+conflitos que o handoff de 22/11/2026 registrou se resolvem assim.
+
+**Conflito 1, inventário contra seleção.** O inventário completo, em ordem, nos termos do autor e
+com instante, vale dentro do trecho que o curador indicar como de interesse, ou da transcrição
+inteira quando ele não indicar. Fora desse trecho, uma lista curta do que havia ali. O agente
+classifica cada item pela forma de saída e não seleciona o que entra.
+
+**Conflito 2, RNF-013 contra o agente propor redação.** O agente propõe a redação de cada item a
+partir da fala do autor, como exceção declarada da RNF-013, com cinco condições:
+
+1. a proposta traz, ao lado do texto, o trecho da fala de origem com a aula e o instante, para o
+   curador ouvir;
+2. o texto proposto de heurística, de `onde_encontrar` e de `ajuda` não leva número de premissa
+   nem forma imperativa;
+3. o agente não propõe item sem fala de origem, nem completa com o que sabe do assunto;
+4. só entra o que o curador aprovar ou editar, item por item, e o que ele recusar não entra;
+5. aula e instante ficam na proposta e não entram na base (D-108).
+
+Formato da proposta, um bloco por item: item; forma de saída; texto proposto; fala de origem, com
+aula e instante; o que ficou de fora da fala e por quê. A proposta não é conhecimento, não entra em
+`conhecimento/` e nada a carrega.
+
+**Conflito 3, D-070 contra não esperar o app.** A Etapa do Conhecimento passa a ter duas metades.
+Estudo e autoria começam agora, em YAML de `conhecimento/`, validados pelo CLI que já existe. O
+exercício do conhecimento no app continua depois da Fase 7, e a validação metodológica continua na
+Fase 8. A linha da Etapa na seção 8 dos requisitos ganha essa divisão, sem número de fase, como a
+D-070 manda. Heurística entra pelo filtro de número da D-111, que já está no schema. Faixa de
+referência só entra depois que o schema cobrir a RF-113 da 2.4.7.
+
+**Conflito 4, destino do material de autor.** Material que vem de transcrição roteia pela natureza
+de cada item (D-094), e não pelo tipo de fonte, que a D-108 já tirou desse material:
+
+- mecanismo vira heurística de leitura sem número;
+- instrução de localização vira `onde_encontrar` de input, só depois de o curador conferir no
+  documento da companhia;
+- explicação de campo vira `ajuda` de premissa, sem número, pelo filtro de texto que já existe;
+- coerência aritmética vira validador, que nasce ao escrever a engine (D-095), e o material só
+  aponta a pergunta;
+- valor de premissa que não depende do método do autor vira observação para faixa de referência
+  setorial (RF-113, RF-114, RF-115), pelo critério da D-115;
+- valor de premissa calibrado dentro do método do autor, preço teto e recomendação não entram.
+  Premissa calibrada vai, no máximo, para o caderno de estudo em `docs/pesquisa/` (D-115).
+
+**Observação para faixa.** A faixa aparece ao lado do campo com mínimo, máximo, número de fontes,
+base, termos nominais ou reais quando a premissa é taxa ou crescimento, confiança e data. O campo
+continua vazio. O mecanismo que explica o que empurra o valor para cada ponta entra como heurística
+sem número, ao lado, descrevendo o efeito no cálculo. O app não escolhe a ponta para a empresa:
+nenhuma heurística liga característica de empresa a uma ponta, e nenhum elemento marca ponto dentro
+da faixa. Continua proibido: número em texto de heurística, forma imperativa, faixa por ativo e
+valor pré-preenchido. A observação conta uma vez por fonte independente, e a atribuição que a fonte
+faz a terceiro não é fonte. Com menos de duas fontes, a faixa não entra em `conhecimento/`, e a
+observação espera no caderno de estudo (D-115).
+
+**Horizonte.** O horizonte de bancos continua escolha do usuário, obrigatória e sem default
+(RF-419). Ao lado do campo fica a faixa dos horizontes observados nos autores estudados, pelo
+critério acima, com o número de fontes à vista e nenhum pré-selecionado. Na aula 3 do Projeto
+Yield, 3 e 5 anos são observação do autor. Os 10 anos são atribuição que ele faz a Buffett: não
+contam como fonte, não entram na faixa e vão para o caderno de estudo como atribuição a conferir.
+Com uma fonte hoje, a faixa de horizonte ainda não entra.
+
+**Motivo.** O handoff de 22/11/2026 registrou o recomeço como direção do curador, sem decisão
+gravada e com quatro conflitos contra decisões e instruções em vigor. Enquanto eles ficarem
+abertos, cada sessão resolve do seu jeito, e o mesmo debate volta. A exceção da RNF-013 se sustenta
+porque o risco que ela cobre é texto de agente entrando como conhecimento sem origem e sem autor. A
+fala ao lado de cada proposta dá a origem, e a aprovação item por item, com commit, dá o autor. A
+proposta sem fala de origem continua proibida, porque é exatamente o agente escrevendo do que sabe.
+
+**Descartado.** Só classificar, sem propor redação (rascunho de 22/11/2026): deixa o curador
+escrevendo cada item do zero e não protege mais, porque a fala ao lado já fecha o risco que a
+RNF-013 cobre. Inventário completo de tudo, sempre: gasta a leitura do curador com trecho que ele
+já disse não interessar. Manter a D-070 e acumular o estudo só em `docs/pesquisa/`: adia a autoria
+sem ganho, porque o CLI já valida o YAML. Roteamento por tipo de fonte, com proibição total de
+entrada em playbook vinda de autor: barraria `onde_encontrar`, `ajuda` e faixa, e a faixa de
+referência é, desde a v2.2, observação de analista (seção 1.2 dos requisitos).
+
+**O que muda em decisões anteriores.** D-069 e RNF-013: ganham a exceção do conflito 2; o teste de
+decisão continua, e o agente continua sem escrever conteúdo analítico próprio. D-070: passa a ter
+as duas metades acima. D-096: deixa de rotear material de transcrição por tipo de fonte, o que a
+D-108 já tinha começado, e a proibição de material de analista propor entrada em playbook passa a
+ter três exceções: `onde_encontrar` conferido no documento da companhia, `ajuda` de premissa e
+`faixa_referencia`. Regra dura, modelo habilitado, múltiplo bloqueado, detecção e input continuam
+fora. D-097 e D-108: não mudam; a origem fica na proposta e no caderno. CLAUDE.md, seção 5.2: ganha
+a mesma exceção, com as mesmas cinco condições.
+
+**Requisitos.** Versão 2.4.7: RNF-013, linha da Etapa do Conhecimento na seção 8, RF-113 e RF-419.
+
+### D-113. O app ensina o raciocínio do autor, e não reproduz o método nem o preço teto de terceiro
+
+**Decisão.** Quando um material de autor ensina um método de valuation, o app absorve o
+raciocínio: onde achar o dado, como anualizar, de onde sai o crescimento, horizonte curto mais
+perpetuidade, e quais escolhas mandam no resultado. Absorve dentro das engines que já existem ou
+estão previstas. O app não reproduz o método do autor, não o oferece como modo, variante ou engine,
+e não exibe nem compara o preço teto calculado por ele. A D-097 fica como está.
+
+Ficam fora junto:
+
+- **A premissa implícita na cotação.** O app não calcula nem exibe o valor de premissa (por
+  exemplo, o ROE sustentável) que iguala o resultado à cotação. Esse número chega ao usuário já
+  associado a um ticker sem que ele o tenha digitado, que é o RP-006, e é o ponto preferencial que
+  o RF-414 proíbe marcar. A grade de sensibilidade sobre a mesma premissa continua permitida
+  (RF-413, RF-414).
+- **Número de terceiro como teste ou fixture.** Resultado calculado por autor não vira valor
+  esperado em teste nem fixture enquanto nenhuma engine do app implementar o mesmo método. Sem
+  isso, ele não é caso de referência no sentido da seção 8, porque não testa engine nenhuma. E
+  guardaria preço-alvo de terceiro por ticker no repositório distribuído, que é a segunda razão da
+  D-098.
+
+**Motivo.** A aula 3 do Projeto Yield, conferida no centavo contra a tela da ferramenta do autor,
+desconta o lucro inteiro como fluxo, enquanto o crescimento sai da parte retida desse mesmo lucro.
+Isso conta duas vezes o lucro retido. E a aula traz a perpetuidade a valor presente a 10% fixos,
+independentemente da taxa de desconto. São duas inflações. Corrigidas, os mesmos números caem
+22,8% na BR Partners e no Itaú, e 50,1% no BB a 14%. Em bancos, o método nem roda, porque o R-102
+bloqueia descontar o lucro sem a retenção exigida. Reproduzi-lo exigiria afrouxar regra dura
+(seção 5.6 do CLAUDE.md) e faria o app imprimir o preço teto do terceiro por outro caminho (D-098).
+Fica registrada uma hipótese, que não é fato: a base, nominal ou real, do crescimento de 3% que o
+autor usa na perpetuidade não foi declarada por ele nem conferida. Se for real, a conta dele
+mistura crescimento real com taxas nominais, o que é uma terceira inconsistência, de sinal
+contrário às duas medidas, e os percentuais acima não a corrigem.
+
+**Descartado.** Um modo da `ddm` que reproduz o método: exigiria revisar o R-102 ou o R-001, e a
+D-097. Uma engine nova de lucro descontado: mesmo alcance, mais uma engine para manter, sem setor
+onde rodar. Usar os números da tela como caso de referência fora do app: não testa engine nenhuma,
+e a prova de que o método foi entendido já existe na sessão de 22/11/2026, com exit 0.
+
+**O que muda em decisões anteriores.** Nenhuma é revogada. Esta decisão aplica a D-097 e a D-098 ao
+caso de método de autor. Fica como questão aberta, e não como decisão, o teste de propriedade em
+que `ddm` e `excess_return` dão o mesmo valor com premissas coerentes, para quando as duas
+existirem.
+
+### D-114. Modelo de retenção em bancos: payout derivado, ROE, RWA e Basileia por ano, base única, validadores de coerência e ações por unit
+
+**Decisão.** As engines de bancos (`ddm` e `excess_return`) passam a trabalhar com o modelo de
+retenção abaixo.
+
+**1. Payout derivado, sem campo livre.** A cada ano do horizonte:
+
+- lucro = ROE do ano × PL do início do ano;
+- capital exigido = Basileia alvo do ano × RWA do fim do ano;
+- retenção = capital exigido − PL do início do ano;
+- dividendo = lucro − retenção;
+- o payout é a consequência, dividendo / lucro, e sai na decomposição.
+
+Na perpetuidade, o lucro do primeiro ano depois do horizonte é o ROE da perpetuidade × PL do fim
+do horizonte. A retenção é o crescimento da perpetuidade × esse PL, e o dividendo cresce à taxa da
+perpetuidade. Com a Basileia no alvo, o payout que sai é 1 − crescimento / ROE, conferido em
+22/11/2026 em caso sintético com exit 0.
+
+**2. ROE por ano, a forma mais geral na entrada (D-105, D-116).** A engine recebe um ROE para cada
+ano do horizonte mais um ROE para a perpetuidade. ROE único, duas fases e convergência são formas
+de preencher essa lista. Os atalhos de preenchimento ficam para a tela, na Fase 7, e nenhum vem
+pré-selecionado. O ROE de partida da convergência é digitado pelo usuário, com o ROE histórico só
+exibido ao lado (RF-404). Nada do histórico entra no campo nem no caminho.
+
+Convenção do ano zero da convergência: o ROE de partida é o ano zero e não é aplicado a ano nenhum.
+Com partida P, ROE sustentável S e prazo N, o ROE do ano t, de 1 a N, é P + (S − P) × t / N. O
+primeiro ano projetado já anda um passo, e o ano N chega em S. No exemplo de 22/11/2026, com P de
+8%, S de 16% e N de 5, os anos ficam em 9,6%, 11,2%, 12,8%, 14,4% e 16%.
+
+**3. Crescimento dos RWA e Basileia alvo por ano.** `crescimento_rwa` e `basileia_alvo` viram
+listas, um valor por ano do horizonte, pelo critério da D-116. O atalho "um valor para todos os
+anos" fica na tela. Com a Basileia por ano, a forma como um banco fora do alvo chega a ele, de uma
+vez no ano 1 ou aos poucos, é escolha do usuário na entrada, e não convenção da engine.
+
+**4. Base única por cálculo.** O usuário escolhe uma vez, no começo, se o cálculo é em termos
+nominais ou reais, sem default. Todas as premissas de taxa e de crescimento seguem essa escolha, e
+nenhuma premissa declara base própria. Os fatos exibidos ao lado dos campos aparecem rotulados com
+a base de cada um, e o app não os converte, porque converter exige uma inflação, que é premissa. A
+escolha não é flag de inclusão de efeito (RF-421): é a unidade do cálculo, com dois valores e sem
+default. O alcance é o das engines de bancos; estender a base única às outras engines fica como
+questão aberta.
+
+**5. Validadores de coerência.**
+
+- R-104, novo, nas duas engines: o crescimento da perpetuidade tem que ser menor que o custo de
+  capital próprio. Se não for, bloqueia, porque a fórmula da perpetuidade não fecha.
+- R-103 passa a valer para as duas engines, e não só para a `excess_return`. Com a base única, ele
+  vale por construção e fica como guarda contra defeito da engine.
+- O R-102 continua, também como guarda: com o dividendo derivado, ele vale por construção.
+- Lista de ROE, de crescimento dos RWA ou de Basileia alvo com tamanho diferente do horizonte é
+  erro de estrutura de entrada, recusado pela engine. Não é regra dura.
+
+**6. Ações ex-tesouraria e composição da unit.** Input novo, sem o qual não existe valor por ação.
+Subcampos: quantidade total, quantidade em tesouraria e composição da unit (quantas ações de cada
+classe). O `onde_encontrar` é escrito pelo curador, depois de conferir em documento da companhia.
+
+**O que muda na seção 9, playbook `bancos-b3`:**
+
+- `inputs_obrigatorios`: entra `acoes_ex_tesouraria`, com os subcampos acima.
+- `premissas_do_usuario`: entram `base_nominal_ou_real` (obrigatória, sem default, nominal ou
+  real), `roe_projetado_por_ano` (lista, um valor por ano de `horizonte_anos`, obrigatória, sem
+  default) e `crescimento_perpetuidade` (obrigatória, sem default); `roe_sustentavel_projetado`
+  continua e passa a ser o ROE da perpetuidade; `crescimento_rwa` e `basileia_alvo` viram lista por
+  ano; `custo_capital_proprio_ke` e `horizonte_anos` continuam iguais.
+- `regras_duras`: entra o R-104, e o R-103 muda de alcance e de mensagem.
+- Na seção 5.5, a tabela de validadores ganha o R-104.
+- O RF-115 passa a gerar a indicação de fora da faixa só quando a faixa está nos mesmos termos,
+  nominais ou reais, do cálculo.
+- O schema de premissa em `packages/conhecimento` passa a aceitar premissa em forma de lista por
+  ano e premissa de escolha entre valores nomeados. É vocabulário novo, e a lista fechada de chaves
+  do RF-112 continua valendo.
+
+**Quando entra.** A decisão é gravada agora. A mudança de playbook, de requisitos e de schema entra
+junto com a sonda da `ddm`, como na D-086, tudo no mesmo commit, por causa do teste de equivalência
+da D-065. `bancos-b3` vai de 0.4.0 para 0.5.0. O documento de requisitos vai para o patch seguinte
+ao que estiver em vigor nesse momento, com o nome do arquivo mantido em v2.4 pela regra da D-078,
+porque é mudança de input, de premissa e de regra dura dentro do escopo, como na D-084. Se o
+curador entender que validador novo é alteração de escopo, a versão é 2.5.0 e o arquivo muda de
+nome.
+
+**Motivo.** O método da aula 3 calcula o crescimento por (1 − payout) × ROE com um payout escolhido
+à mão, e é aí que o leigo erra de forma incoerente. Em banco, quem determina quanto fica retido é o
+capital exigido para os RWA crescerem, e o playbook já tem `crescimento_rwa` e `basileia_alvo` como
+premissas. Derivar o payout desses dois tira do usuário a premissa que ele mais erra e faz o R-102
+valer por construção. A lista de ROE por ano resolve o caso de banco com resultado fraco hoje. No
+exemplo sintético, um ROE único obriga a escolher entre 39,22 e 120,26, e separar o ROE da
+perpetuidade explica a maior parte dessa distância. A base única faz a mistura de nominal com real
+ser impossível na entrada, em vez de ser pega depois pelo R-103.
+
+**Descartado.** Payout como campo livre: é a premissa incoerente que esta decisão tira. ROE único:
+o dilema "ruim para sempre ou bom desde já". Convergência com o ROE histórico como partida
+automática: o caminho nasceria de histórico do próprio ticker, o gatilho do RP-003. Uma engine
+auxiliar para a derivação: a derivação vive dentro da engine e sai desagregada (RF-504). Base
+declarada por premissa (rascunho de 22/11/2026): multiplica a escolha e deixa a mistura possível.
+`crescimento_rwa` e `basileia_alvo` escalares: se depois precisarem variar, a estrutura de entrada
+da engine muda, e a Basileia escalar obrigaria a engine a fixar como o banco fora do alvo chega a
+ele.
+
+**O que muda em decisões anteriores.** D-105: a ordem não muda; a `ddm` vem primeiro, já escrita com
+este modelo, e a `excess_return` é a mesma conta reescrita. RF-419: o horizonte continua premissa do
+usuário, sem default. R-103: muda de alcance, de uma engine para duas.
+
+### D-115. Premissa calibrada no método do autor não entra no app, o que fica ao lado do campo da taxa, e o caderno de estudo em docs/pesquisa/
+
+**Decisão.** Uma premissa que um autor usou entra no app como observação de faixa (D-112) só
+quando não depende do método dele. Não depende quando o valor tem o mesmo significado numa engine
+coerente, porque o autor o justifica por algo de fora do próprio cálculo: uma grandeza observável,
+como o crescimento do PIB, ou o limite do que dá para prever, no horizonte. É calibrada no método
+quando o significado do valor depende do que o método faz: a taxa que desconta o lucro inteiro, com
+o crescimento tirado da parte retida e a perpetuidade trazida a 10% fixos, acompanha essas escolhas
+e não se transporta. Premissa calibrada não entra como número: nem como observação datada, nem como
+faixa, nem como preset distribuído. Entra o mecanismo, como heurística sem número. Na aula 3, a
+taxa de desconto é calibrada e fica fora; horizonte e crescimento da perpetuidade não dependem do
+método e podem virar observação, pelo critério de fontes da RF-113.
+
+**Teste de decisão.** Levando este número para a engine do app, com o fluxo e a perpetuidade
+coerentes, ele quer dizer o mesmo que dizia na conta do autor? Se sim, pode ser observação. Se não,
+ou se não dá para saber, vai para o caderno.
+
+**O que fica ao lado do campo de taxa de desconto** (`custo_capital_proprio_ke` em bancos,
+`taxa_desconto` nos outros setores):
+
+1. o juro do dia como fato, com data, fonte e termos (nominal ou real), pelo instrumento que a
+   RF-407 define, enquanto a questão aberta sobre a Selic não for decidida;
+2. os fatos da companhia que respondem à pergunta que o autor faz sobre segurança (em banco, por
+   exemplo, retorno histórico e inadimplência), com procedência (RF-304), em lista fixa por setor,
+   definida no playbook pelo curador, igual para toda companhia do setor e sempre na mesma ordem.
+   Fato não localizado aparece como não localizado;
+3. o mecanismo, sem número, como heurística ligada ao campo: o juro do país como custo de
+   oportunidade mínimo; risco maior pede taxa maior; a taxa acompanha os juros do país. O texto é
+   do curador, pelo fluxo da D-112, e não cita os fatos do item 2;
+4. quando houver observações de autores com método coerente, a faixa do que eles cobraram acima do
+   juro, com o número de fontes, pela RF-113.
+
+O app nunca calcula nem exibe a taxa para a empresa, e não combina os fatos com o juro em número
+nenhum (spread, prêmio implícito, média). Esse passo é do usuário, direto ou pela composição por
+CAPM (RF-405 a RF-411). O usuário continua podendo digitar a taxa que quiser e salvá-la como preset
+dele (RF-403).
+
+**Caderno de estudo.** As premissas calibradas vão para um caderno de estudo em `docs/pesquisa/`,
+versionado desde o primeiro dia (D-080), que nada no app carrega. Cada linha tem: empresa, taxa,
+data, Selic da data, método usado, motivo dado pelo autor, aula e instante. Em seções próprias, o
+caderno guarda também as observações que não dependem do método e esperam a segunda fonte da
+RF-113, e as atribuições que um autor faz a terceiro, a conferir em texto do próprio terceiro, como
+os 10 anos de horizonte que a aula 3 atribui a Buffett. Observação que chega a duas fontes vira
+faixa pelo fluxo da D-112, a partir da fala de origem, e não por cópia do caderno.
+
+Cinco regras para o caderno:
+
+1. Não registra preço teto nem resultado de terceiro.
+2. A Selic da data vem da série do Banco Central, com a fonte, e não da fala do autor.
+3. Empresa, taxa, data e motivo são registro do que o autor disse.
+4. A linha "método usado" é análise e é confirmada pelo curador.
+5. O caderno mantém aula e instante. A D-108 tira a origem do conhecimento carregado pelo app. No
+   caderno, a origem só serve para ouvir de novo e não toca cálculo nenhum.
+
+Texto da ressalva de topo do caderno:
+
+> Ressalva de leitura. Este caderno registra, para estudo, premissas que autores usaram em aulas e
+> vídeos e que dependem do método de cada um, como a taxa de desconto, com a data, a Selic da data
+> tirada da série do Banco Central, o método que o autor usou e o motivo que ele deu. Registra
+> também, em seções próprias, observações que não dependem do método e esperam uma segunda fonte
+> para virar faixa de referência (RF-113), e atribuições que autores fazem a terceiros, ainda não
+> conferidas. Nada do que está aqui é carregado pelo app: o caderno não alimenta campo de premissa,
+> faixa de referência, heurística nem teste. Observação que chega a duas fontes vira faixa pelo
+> fluxo de proposta e aprovação (D-112), a partir da fala de origem, e não por cópia deste arquivo.
+> Cada taxa foi escolhida dentro do método do autor. Quando esse método é diferente das engines do
+> app, o mesmo número leva a outro resultado e não se transporta. Exemplo registrado: na aula 3 do
+> Projeto Yield, o fluxo descontado é o lucro inteiro e a perpetuidade é trazida a valor presente a
+> 10% fixos, e por isso a taxa de 20% usada para o Banco do Brasil não tem o mesmo efeito numa
+> engine coerente. Este caderno não guarda preço teto nem resultado de terceiro (D-098). Não é fonte
+> de verdade: a fonte é o documento de requisitos.
+
+**Motivo.** A taxa ensina como olhar, e é isso que o curador quer preservar. Mas o número foi
+calibrado num método com duas inflações e não se transporta. O mesmo 20% leva a 18,66 no modelo do
+autor e a 7,96 ou 8,11 numa engine coerente. Guardar o prêmio sobre a Selic em vez da taxa tem o
+mesmo defeito, porque o prêmio foi calibrado no mesmo método. Exibir a taxa ao lado do campo, mesmo
+datada e com o método declarado, é valor de premissa associado a um ticker (RP-006), e o rótulo de
+método não impede que o usuário leve o número para a engine coerente. O defeito de transporte é da
+premissa calibrada, e não da origem em autor; por isso horizonte e crescimento da perpetuidade, que
+não dependem do método, podem virar observação. O caderno guarda o resto num lugar que nenhuma
+proteção precisa vigiar, porque nada o lê.
+
+**Descartado.** Proibir toda faixa vinda de autor (rascunho de 22/11/2026): barra observação que
+não depende do método sem proteger nada a mais. Observação datada com método declarado ao lado do
+campo: requisito novo contra a RF-112 e a RF-113, com risco de RP-006 e benefício baixo. Série de
+prêmios sobre a Selic: mesmo defeito de transporte; só sobrevive para material com método coerente,
+que é o item 4 acima. Preset de terceiro distribuído pelo app: a premissa de um ticker vinda de
+terceiro, sem lugar fora de `conhecimento/`, e com o rótulo "externo" sem autor por causa da D-108.
+
+**O que muda em decisões anteriores.** D-080: passa a cobrir também o caderno. D-108: não muda para
+o conhecimento; esta decisão registra que a origem pode ficar no caderno, que não é conhecimento.
+D-097: a saída "preset de premissas" não se aplica a premissa calibrada no método do autor. Ideias
+1 e 2 da seção 3 do handoff de 22/11/2026: ficam superadas para material de método incoerente; a
+ideia 3 (o motivo entra como mecanismo, sem número) é esta decisão. AGENTS.md: o caderno entra na
+lista de documentos, com a nota de que não tem cabeçalho dispensável e nenhum filtro roda sobre
+ele.
+
+### D-116. Premissa de projeção entra por ano do horizonte, em toda engine
+
+**Decisão.** Toda premissa de projeção entra por período, um valor por ano do horizonte, e não como
+valor único. É a generalização do critério da D-105. Premissa de projeção é a que descreve um ano
+do caminho explícito: ROE, crescimento dos RWA, Basileia alvo, inflação por índice, e as que as
+engines seguintes declararem. Ficam escalares as que não descrevem um ano: horizonte, termos
+nominais ou reais, custo de capital próprio (a composição da RF-406 produz um número só, com Rf de
+prazo compatível), crescimento e ROE da perpetuidade. Valor único, duas fases e convergência são
+formas de preencher a lista, oferecidas como atalho na tela, aplicadas por ação explícita e nenhuma
+pré-selecionada.
+
+**Tela, na Fase 7.** Os anos passados aparecem como fato, com procedência, e os anos futuros como
+campos vazios. Editar um ano recalcula as linhas derivadas dos anos seguintes (PL, lucro, capital
+exigido, retenção, dividendo e payout), que são resultado da engine (RF-504), e nunca muda o valor
+de outro campo de premissa. O snapshot registra o atalho usado, quando houver.
+
+**Alcance.** Engines novas, a partir da `ddm`, já nascem assim. Na `fcff_por_concessao`,
+`inflacao_projetada_por_indice` passa a ser por índice e por ano quando a engine for tocada de
+novo: aceita e não implementada nela, como a D-086. Commodities decide a forma quando a
+`fcff_normalizado` for escrita, depois da B1.
+
+**Motivo.** Mudar a estrutura de entrada de uma engine custa mais que mudar um valor. A lista por
+ano contém o valor único como caso particular e cobre o que ele não cobre: empresa em recuperação,
+ano de investimento pesado, crescimento que muda no caminho. Na Basileia alvo, ela resolve pelo
+desenho a pergunta de como o banco fora do alvo chega a ele, que é o caso que a D-105 manda
+resolver pela forma mais geral.
+
+**Descartado.** Valor único com atalho de duas fases dentro da engine: fixa na engine uma forma que
+é escolha do usuário. Tudo por ano, inclusive custo de capital e perpetuidade: a perpetuidade é um
+valor por definição, e o custo de capital por ano exigiria Rf por ano, sem pedido nem caso que o
+justifique.
+
+**O que muda em decisões anteriores.** D-105: o critério da forma mais geral passa de teste a regra
+para premissa de projeção. D-114: ROE, crescimento dos RWA e Basileia alvo são os primeiros casos.
+D-084: a inflação por índice ganha a dimensão de ano, aceita e não implementada.
+
+**Requisitos.** O texto entra junto com a D-114, na sonda da `ddm`.
