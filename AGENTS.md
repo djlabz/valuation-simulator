@@ -143,7 +143,7 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 - `docs/pesquisa/consolidacao-normalizacao-transcricao.md`, consolidação de três pesquisas
   sobre normalização com dicionário de termos, 06/09/2026, **sem cabeçalho de ressalva**
 - `docs/pesquisa/design-fluxo-de-documentos-2026-11.md`, pesquisa de design para o fluxo de pedido de documentos, com ressalva no topo (D-080)
-- Caderno de estudo em `docs/pesquisa/`, decidido pela D-115 e **ainda não criado**: premissas que autores usaram e que dependem do método deles, observações que esperam a segunda fonte da RF-113 e atribuições a terceiro a conferir. Nada no app o carrega, tem ressalva de topo que não é dispensável (o texto está na D-115) e nenhum filtro roda sobre ele
+- Caderno de estudo em `docs/pesquisa/caderno-de-estudo-premissas-de-autor.md`, decidido pela D-115. Estado atual: só a aula 3 do Projeto Yield; as aulas 1 e 2 ainda não foram lidas para o caderno. Guarda premissas que autores usaram e que dependem do método deles, observações que esperam a segunda fonte da RF-113 e atribuições a terceiro a conferir. Nada no app o carrega, tem ressalva de topo que não é dispensável (o texto está na D-115) e nenhum filtro roda sobre ele
 - `docs/DIFICULDADES-do-projeto.md`, registro dos problemas estruturais do projeto, matéria-prima
   para explicá-lo, **sem cabeçalho de ressalva**
 - `README.md`, na raiz
@@ -296,7 +296,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | Base única, nominal ou real, nas engines fora de bancos (D-114) | Quando cada engine for escrita ou tocada |
 | Projeção por ano em commodities, e a inflação por índice e por ano na `fcff_por_concessao`, aceita e não implementada (D-116) | `fcff_normalizado`; próxima vez que a `fcff_por_concessao` for tocada |
 | A RF-120 não lista faixa de referência nem proposta de entrada em playbook, e a D-112 abriu três exceções na D-096 (`onde_encontrar`, `ajuda`, `faixa_referencia`). O fluxo da D-112 é autoria em tempo de desenvolvimento e não passa pela RF-120 | Quando a ingestão do app for construída, Fase 3 |
-| Os 10 anos de horizonte que a aula 3 atribui a Buffett: atribuição, fora da faixa, a conferir em texto do próprio Buffett; se conferidos, viram segunda fonte independente (D-112, D-115) | Quando o caderno de estudo for criado |
+| Os 10 anos de horizonte que a aula 3 atribui a Buffett: atribuição, fora da faixa, a conferir em texto do próprio Buffett; se conferidos, viram segunda fonte independente (D-112, D-115) | Quando o curador conferir em texto do próprio Buffett; registrada no caderno |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
 | Playbook de Commodities é elaboração própria, sem base bibliográfica consolidada. Validar contra VALE3 | Fase 8 |
 | Beta em ativo de baixa liquidez pode produzir Ke sem significado. A composição CAPM é opcional justamente por isso, mas falta decidir se o app sinaliza número de observações insuficiente | Antes de `calcular_beta` |
