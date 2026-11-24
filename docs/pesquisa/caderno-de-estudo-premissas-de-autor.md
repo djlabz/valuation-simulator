@@ -57,6 +57,12 @@ Nenhuma é o autor dizendo a data da gravação. Na série 432 do SGS, todos os 
 | Horizonte de projeção explícita | 3 ou 5 anos; 3 aplicados às três empresas da aula | Bancos (BR Partners, Itaú, Banco do Brasil) para os 3 anos; o critério de 5 anos é dado sem setor | Não se aplica, contagem de anos | Além de poucos anos a previsão fica muito difícil; 5 anos dão espaço para a empresa com mais perspectiva de crescimento crescer antes da perpetuidade | aula 3, 1:43:02; 1:07:46; 1:00:46 | Segunda fonte independente (RF-113), com faixa de horizonte pela RF-419 |
 | Crescimento na perpetuidade | 3% a.a., dentro de uma faixa de 1 a 3% que o autor diz | Bancos, na BR Partners (1:23:27); dito como regra para empresa brasileira em geral; para Itaú e Banco do Brasil a fala não diz | Não declarado pelo autor | Uma empresa não pode crescer para sempre mais que a economia do país, ou fica maior que ele; por isso o crescimento acompanha o PIB | aula 3, 1:10:48 a 1:12:11; 1:23:27 | Segunda fonte independente (RF-113); termos declarados; a questão aberta sobre a base de 1 a 3% |
 
+**Nota sobre a base do crescimento, sem conclusão.** Série do IBGE, SIDRA tabela 6784, consultada em
+24/11/2026. Variação em volume (real) do PIB, de 2013 a 2024: entre -3,5% e 4,8% ao ano, média
+geométrica de 0,97%. Variação dos valores correntes (nominal), de 2014 a 2024: entre 2,98% e 18,43%
+ao ano, média geométrica de 7,47%. A base do intervalo de 1 a 3% dito na aula continua não declarada
+pelo autor, e a leitura desta comparação é do curador.
+
 ## 3. Atribuições a terceiro, a conferir em texto do próprio terceiro
 
 | O que o autor atribui | A quem | Aula e instante | Onde conferir | Estado |
@@ -65,4 +71,4 @@ Nenhuma é o autor dizendo a data da gravação. Na série 432 do SGS, todos os 
 | Taxa fixa de 10% na perpetuidade | Warren Buffett | aula 3, 1:38:29 | | não conferido |
 | Usar o fluxo de caixa aos acionistas como o fluxo a descontar (1:01:35), que o livro mostrado na aula chama de lucro aos proprietários (29:24). A igualdade entre esse fluxo e o lucro líquido é afirmação do autor da aula (31:13, 34:46, 1:01:48), e não parte da atribuição | Warren Buffett | aula 3, 1:01:35; 29:24 | | não conferido |
 | Crescimento na perpetuidade pela média do PIB, um pouco abaixo | "todos os analistas" | aula 3, 1:11:19 | | não conferido |
-| 90% do resultado da empresa vem dos próximos cinco anos, então não precisa projetar mais. Conta a conferir no livro: na tabela citada na aula, 100 por ano a 10%, os cinco primeiros anos somam 379,08, e a perpetuidade soma 1.000 | Ricardo, autor do livro mostrado na aula; a fala não diz o sobrenome | aula 3, 1:06:23 | | não conferido |
+| 90% do resultado da empresa vem dos próximos cinco anos, então não precisa projetar mais. Conta a conferir no livro: na tabela citada na aula, 100 por ano a 10%, os cinco primeiros anos somam 379,08, e a perpetuidade soma 1.000 | Ricardo Goulart Serra, coautor com Michael Wickert de Valuation: guia fundamental e modelagem em Excel (São Paulo: Atlas, 2021, 1. ed.), mostrado na aula em 1:05:23 | aula 3, 1:06:23 | | não conferido |

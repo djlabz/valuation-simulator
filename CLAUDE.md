@@ -263,7 +263,7 @@ Toda entrega diz o que foi feito, qual requisito atende e o que foi descartado n
 Vale para refatoração, escolha de biblioteca e estrutura de pasta, não só para feature.
 Código sem justificativa é entrega incompleta.
 
-### 5.2. Não escrever conhecimento analítico (RNF-013, D-069, D-112)
+### 5.2. Não escrever conhecimento analítico (RNF-013, D-069, D-112, D-117)
 
 Conteúdo de conhecimento analítico não é escrito por agente, em nenhuma circunstância, nem
 como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório
@@ -301,6 +301,10 @@ cinco condições, todas obrigatórias:
 Formato da proposta, um bloco por item: item; forma de saída; texto proposto; fala de origem,
 com aula e instante; o que ficou de fora da fala e por quê. Fora dessas condições a regra
 geral vale inteira: proposta sem fala de origem é o agente escrevendo do que sabe.
+
+Antes da proposta, o agente aponta os candidatos num relatório separado do inventário, em
+`ingest/runs/<run>/relatorio-candidatos.md`, fora do versionamento, e só propõe a redação dos que
+o curador aprovar (D-117).
 
 ### 5.3. Contestar quando for o caso (RNF-012, D-039)
 
