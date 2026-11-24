@@ -3054,3 +3054,45 @@ para premissa de projeção. D-114: ROE, crescimento dos RWA e Basileia alvo sã
 D-084: a inflação por índice ganha a dimensão de ano, aceita e não implementada.
 
 **Requisitos.** O texto entra junto com a D-114, na sonda da `ddm`.
+
+## Sessão de 24/11/2026
+
+### D-117. O agente aponta candidatos em relatório separado, depois do inventário, e varre o resto do material por dicas justificáveis
+
+**Decisão.** Revisa o conflito 1 da D-112 em dois pontos.
+
+1. **Inventário.** Continua completo dentro do trecho que o curador indicar, em ordem, nos termos do
+   autor e com instante (D-112). Fora do trecho, em vez da lista curta, o agente lista só os itens
+   justificáveis, com instante. Entra: mecanismo; definição ou cálculo explicado; onde achar um
+   dado; regra de bolso com o porquê dito. Não entra: propaganda, venda e recado; opinião sobre
+   empresa específica; número solto, sem explicação; preço, cotação e recomendação. Sem trecho
+   indicado, o material inteiro é o trecho e não há varredura.
+
+2. **Candidatos.** Depois do inventário e da classificação pela forma de saída, o agente aponta os
+   candidatos, os itens que ele acha que deveriam virar conhecimento, num relatório separado do
+   inventário. Cada candidato traz a forma de saída, o motivo, a fala de origem e o instante.
+   Candidato é sugestão: o inventário continua completo, o curador pode escolher item que não foi
+   apontado, e quem decide é ele. A proposta de redação vem só depois de o curador aprovar os
+   candidatos, com as cinco condições da D-112.
+
+3. **Onde fica.** O relatório fica em `ingest/runs/<run>/relatorio-candidatos.md`, junto da
+   transcrição, fora do versionamento (RF-119, D-042), porque traz fala literal e o repositório é
+   público. A proposta de redação pode ir no mesmo arquivo. O formato fica aberto: o primeiro uso,
+   na aula 3, serve de teste, e ajuste de formato não pede decisão nova.
+
+**Motivo.** O curador quer que o agente diga o que acha que vale, para não avaliar cada item do
+zero. O que levou à recusa de 20/11/2026 foi a seleção no lugar do inventário. Com o inventário
+completo antes e os candidatos num relatório à parte, o curador continua vendo tudo. A varredura
+fora do trecho existe porque material com ênfase num tema ensina mecanismos úteis em outros pontos,
+e a lista curta os perderia.
+
+**Descartado.** Candidatos no lugar do inventário: é a seleção enviesada recusada em 20/11/2026.
+Relatório em `docs/`: versiona fala literal de terceiro em repositório público; sem a fala, o
+curador teria que abrir a transcrição a cada item. Manter a lista curta fora do trecho: perde dica
+justificável espalhada no material.
+
+**O que muda em decisões anteriores.** D-112, conflito 1: "o agente não seleciona o que entra" passa
+a "o agente aponta candidatos e não decide o que entra"; a lista curta fora do trecho dá lugar à
+varredura do item 1. As cinco condições da D-112 e a RNF-013 não mudam: apontar candidato é
+classificação, não redação. `CLAUDE.md`, seção 5.2: a exceção 2 passa a citar o relatório de
+candidatos como passo anterior à proposta. Instruções do projeto: itens (a) e (c).
