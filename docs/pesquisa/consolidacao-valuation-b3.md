@@ -21,7 +21,7 @@
 > texto abaixo e **não têm peso**.
 >
 > **Este arquivo não é fonte de verdade.** A fonte de verdade do projeto é
-> `docs/REQUISITOS-valuation-simulator-v2.4.md`. Nada daqui autoriza copiar conteúdo para
+> `docs/REQUISITOS-valuation-simulator-v2.5.md`. Nada daqui autoriza copiar conteúdo para
 > `conhecimento/`: conteúdo analítico não é escrito por agente nem transcrito de pesquisa de
 > agente (RNF-013, D-069). O caminho para conhecimento continua sendo a Etapa do Conhecimento,
 > com autoria e revisão do curador.

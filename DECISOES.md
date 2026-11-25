@@ -3096,3 +3096,59 @@ a "o agente aponta candidatos e não decide o que entra"; a lista curta fora do 
 varredura do item 1. As cinco condições da D-112 e a RNF-013 não mudam: apontar candidato é
 classificação, não redação. `CLAUDE.md`, seção 5.2: a exceção 2 passa a citar o relatório de
 candidatos como passo anterior à proposta. Instruções do projeto: itens (a) e (c).
+
+## Sessão de 25/11/2026
+
+### D-118. O projeto tem três modos de uso, e o primeiro é o repositório clonado operado pelo agente do usuário
+
+**Decisão.**
+
+1. **Modos.** Repositório clonado: quem clona recebe engines, playbooks e conhecimento, e opera
+   com o agente que já usa (Claude Code, Codex, Copilot ou equivalente), seguindo o guia do agente
+   operador. É o primeiro modo a existir. App com servidor MCP (Fase 6, seção 5.10): o mesmo uso,
+   sem clonar o repositório. Site: futuro e fora da v1 (seção 2.2); quando entrar, vira decisão
+   própria, junto com a D-099.
+
+2. **Papéis, iguais nos três modos.** A engine calcula. O agente lê o playbook e o conhecimento,
+   lista o que falta, pede documentos ao usuário, extrai fato com procedência, pesquisa fato
+   externo com fonte e data, explica mecanismo e chama o cálculo. O usuário escolhe toda premissa.
+   As restrições RP-001 a RP-008 valem inteiras no modo repositório.
+
+3. **Guia do agente operador.** Arquivo próprio, separado do `CLAUDE.md` e do `AGENTS.md`, que são
+   do agente que desenvolve. Diz o fluxo, o que o agente pode e o que não pode fazer. No topo do
+   `CLAUDE.md` e do `AGENTS.md` entra um aviso de porta de entrada: se a tarefa é calcular um
+   valuation, e não desenvolver o projeto, o guia é o outro arquivo.
+
+4. **Onde o agente operador escreve.** Só numa pasta de análise fora do versionamento. Não edita
+   `packages/`, `conhecimento/`, `docs/`, `DECISOES.md` nem outro arquivo rastreado.
+
+5. **Cálculo só pelo comando.** O agente chama um comando do projeto, que passa pelos validadores
+   e roda a engine. Não calcula de cabeça, não escreve script próprio e não importa a engine
+   direto.
+
+6. **Denúncia de modificação.** O comando confere se há arquivo de `packages/` ou de
+   `conhecimento/` alterado em relação ao commit. Se houver, o resultado sai marcado como
+   calculado com código ou conhecimento modificado, com o hash do commit. O guia pede; a marcação
+   denuncia.
+
+**Quando entra.** A decisão é gravada agora. O guia, a porta de entrada, a pasta de análise, o
+comando e a marcação entram junto com a sonda da ddm, porque antes dela não há engine de bancos
+para calcular.
+
+**Motivo.** O curador quer que o projeto seja usado para calcular antes do MCP e da tela, por quem
+clonar o repositório. Sem guia, um agente que abre o repositório pela primeira vez só encontra a
+constituição do agente que desenvolve, e pode mexer em engine, playbook ou conhecimento achando
+que ajuda. O modo repositório não tem a trava estrutural do MCP (RF-1001): o guia é declaratório,
+e a marcação de modificação devolve parte da proteção à estrutura, porque o resultado não consegue
+esconder que o código mudou.
+
+**Descartado.** Esperar a Fase 6 para usar: adia o uso sem ganho de proteção para quem já tem o
+código. Só o guia, sem marcação: proteção só declaratória. Bloquear o cálculo quando houver
+modificação: impediria o desenvolvimento e quem quer adaptar a própria cópia; marcar basta, porque
+a cópia modificada é ferramenta de quem modificou, e não o produto.
+
+**O que muda em decisões anteriores e nos requisitos.** Requisitos: seção 1.5, que passa a ter os
+três modos; seção 3, linha do agente externo; RF-1001, que passa a dizer o canal de escrita do
+modo repositório; RNF-007, que ganha o guia do agente operador. Nenhuma restrição permanente muda.
+A D-003 não muda: o app continua sem LLM embutido. Nenhuma decisão anterior é revogada; esta
+acrescenta o modo repositório ao que a seção 1.5 previa.
