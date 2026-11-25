@@ -451,7 +451,7 @@ Valor ponderado                 R$ 41,69
 
 | ID | Requisito |
 |---|---|
-| RF-1001 | Ferramentas MCP são o único canal de escrita disponível ao agente no modo app. No modo repositório, o agente escreve só na pasta de análise fora do versionamento, e o cálculo passa pelo comando do projeto, que marca o resultado quando há arquivo de `packages/` ou `conhecimento/` modificado em relação ao commit (D-118) |
+| RF-1001 | Ferramentas MCP são o único canal de escrita disponível ao agente no modo app. No modo repositório, o agente escreve só na pasta de análise fora do versionamento, e o cálculo passa pelo comando do projeto, que marca o resultado, com o hash do commit, quando há arquivo de `packages/` ou `conhecimento/` modificado em relação ao commit (D-118) |
 | RF-1002 | Nenhuma ferramenta aceita valor calculado pelo agente. Apenas fatos com procedência |
 | RF-1003 | Nenhuma ferramenta permite gravar premissa em nome do usuário (RP-006), nem criar ou alterar playbook, heurística, nota, evento ou faixa (RP-008) |
 | RF-1004 | Alterações de estado via MCP refletem no Electron sem recarga manual |
