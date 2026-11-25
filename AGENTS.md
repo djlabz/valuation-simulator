@@ -3,7 +3,7 @@
 Continuidade entre sessões e entre agentes. Contém o que muda: estado, ordem de trabalho,
 questões abertas. Regra permanente está em `CLAUDE.md` e não se repete aqui.
 
-**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.4.md`,
+**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.5.md`,
 depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ---
@@ -14,8 +14,8 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 **Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa.
-Desde então, sem etapa nova: decisões D-085 a D-117, a manutenção de governança de 07/11/2026 e as conferências da B2 e da B6 (09 e 11/11/2026).
-**Etapa seguinte:** Passo 3, com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos. A sonda já nasce com o modelo de retenção da D-114 e a projeção por ano da D-116, e é no mesmo commit dela que entram playbook `bancos-b3` 0.5.0, schema e o patch de requisitos dessas duas decisões. O arquivo de premissas da `ddm` nasce com ela, e estes pontos já estão levantados, sem texto: dividendo derivado negativo, que pediria aporte de capital; lucro do ano zero ou negativo, em que o payout derivado (dividendo / lucro) não tem valor ou troca de sinal; PL tratado como capital regulatório, sem as deduções; lucro do ano sobre o PL do início do ano, e não sobre o PL médio; lucro do primeiro ano da perpetuidade como ROE da perpetuidade vezes PL do fim do horizonte, com crescimento diferente do da perpetuidade na passagem; valor por unit como soma das classes, supondo o mesmo valor por ação em ON e PN; dividendo no fim do ano, e não no meio; ano 1 descontado inteiro ou só a fração entre a data-base e a data da cotação; e as hipóteses da D-105 sobre o Banco do Brasil e o Bradesco, se a sonda tocar nelas. Em paralelo, a metade de estudo e autoria da Etapa do Conhecimento (D-112).
+Desde então, sem etapa nova: decisões D-085 a D-118, a manutenção de governança de 07/11/2026 e as conferências da B2 e da B6 (09 e 11/11/2026).
+**Etapa seguinte:** Passo 3, com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos. A sonda já nasce com o modelo de retenção da D-114 e a projeção por ano da D-116, e é no mesmo commit dela que entram playbook `bancos-b3` 0.5.0, schema e o patch de requisitos dessas duas decisões. O arquivo de premissas da `ddm` nasce com ela, e estes pontos já estão levantados, sem texto: dividendo derivado negativo, que pediria aporte de capital; lucro do ano zero ou negativo, em que o payout derivado (dividendo / lucro) não tem valor ou troca de sinal; PL tratado como capital regulatório, sem as deduções; lucro do ano sobre o PL do início do ano, e não sobre o PL médio; lucro do primeiro ano da perpetuidade como ROE da perpetuidade vezes PL do fim do horizonte, com crescimento diferente do da perpetuidade na passagem; valor por unit como soma das classes, supondo o mesmo valor por ação em ON e PN; dividendo no fim do ano, e não no meio; ano 1 descontado inteiro ou só a fração entre a data-base e a data da cotação; e as hipóteses da D-105 sobre o Banco do Brasil e o Bradesco, se a sonda tocar nelas. Em paralelo, a metade de estudo e autoria da Etapa do Conhecimento (D-112). Entra também o modo repositório (D-118): guia do agente operador, porta de entrada no topo do CLAUDE.md e do AGENTS.md, pasta de análise fora do versionamento, comando de cálculo e marcação de código ou conhecimento modificado.
 
 ### O que existe, pacote por pacote
 
@@ -126,7 +126,7 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Documentos
 
-- `docs/REQUISITOS-valuation-simulator-v2.4.md`, fonte de verdade, versão 2.4.7 (D-112). 113 requisitos funcionais,
+- `docs/REQUISITOS-valuation-simulator-v2.5.md`, fonte de verdade, versão 2.5.0 (D-118). 113 requisitos funcionais,
   13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, verificado por teste (D-065)
 - `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as quinze premissas da sonda, dez

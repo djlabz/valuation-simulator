@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.4.7
-**Data:** 23 de novembro de 2026
+**Versão:** 2.5.0
+**Data:** 25 de novembro de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.4.7:** o modo repositório entra como primeiro dos três modos de uso (seção 1.5), o agente externo passa a operar também o repositório clonado (seção 3), o RF-1001 passa a dizer o canal de escrita do modo repositório, e o RNF-007 ganha o guia do agente operador (D-118). Minor porque acrescenta modo de uso à v1, o que é alteração de escopo pela D-078. Sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.6:** a RNF-013 ganha exceção declarada: o agente propõe a redação de item de conhecimento a partir da fala de um autor escolhido pelo curador, com a fala de origem ao lado, e só entra o que o curador aprovar item por item (D-112). A Etapa do Conhecimento passa a ter duas metades, estudo e autoria desde já, e exercício no app depois da Fase 7 (D-112). A RF-113 passa a dizer o que é faixa agregada, como se contam as observações, em que unidade e em que termos, nominais ou reais, a faixa está; a RF-419 deixa de proibir faixa de referência para o horizonte de bancos (D-112, D-115). Sem alteração de estrutura de input nem de premissa.
 
@@ -92,7 +94,7 @@ Camada mais específica restringe a mais geral. Nenhuma contraria regras duras.
 
 ### 1.5. Modelo de distribuição
 
-Aplicação Electron rodando localmente. Não embute LLM e não solicita chave de API. Expõe um servidor MCP ao qual o usuário conecta o agente que já possui (Claude Code, Codex, Antigravity ou equivalente). Público da v1: desenvolvedor. Endpoint de LLM configurável fica para v2, com core idêntico.
+Três modos de uso, com o mesmo core e as mesmas restrições (D-118). Modo repositório: quem clona o repositório recebe engines, playbooks e conhecimento e opera com o agente que já usa, seguindo o guia do agente operador; o cálculo é feito por um comando do projeto, e o agente escreve só numa pasta de análise fora do versionamento. Modo app: aplicação Electron rodando localmente, sem LLM embutido e sem chave de API, com servidor MCP ao qual o usuário conecta o agente que já possui (Claude Code, Codex, Antigravity ou equivalente). Modo site: futuro, fora do escopo da v1. Público da v1: desenvolvedor. Endpoint de LLM configurável fica para v2, com core idêntico.
 
 ---
 
@@ -128,7 +130,7 @@ Estas restrições são referenciadas ao longo do documento em vez de repetidas.
 | Ator | Papel |
 |---|---|
 | Usuário | Opera o app e fornece todas as premissas |
-| Agente externo | LLM do usuário via MCP. Classifica, propõe modelo, extrai, contextualiza |
+| Agente externo | LLM do usuário, via MCP ou operando o repositório clonado (D-118). Classifica, propõe modelo, extrai, contextualiza |
 | Curador | O usuário em papel distinto: revisa e aprova conhecimento ingerido |
 | Core | Processo Bun, dono exclusivo do SQLite. Executa engines e valida regras |
 | Providers | brapi (cotação, proventos, série histórica), BCB (PTAX), Tesouro (curva de juros), CVM/RAD (documentos) |
@@ -449,7 +451,7 @@ Valor ponderado                 R$ 41,69
 
 | ID | Requisito |
 |---|---|
-| RF-1001 | Ferramentas MCP são o único canal de escrita disponível ao agente |
+| RF-1001 | Ferramentas MCP são o único canal de escrita disponível ao agente no modo app. No modo repositório, o agente escreve só na pasta de análise fora do versionamento, e o cálculo passa pelo comando do projeto, que marca o resultado quando há arquivo de `packages/` ou `conhecimento/` modificado em relação ao commit (D-118) |
 | RF-1002 | Nenhuma ferramenta aceita valor calculado pelo agente. Apenas fatos com procedência |
 | RF-1003 | Nenhuma ferramenta permite gravar premissa em nome do usuário (RP-006), nem criar ou alterar playbook, heurística, nota, evento ou faixa (RP-008) |
 | RF-1004 | Alterações de estado via MCP refletem no Electron sem recarga manual |
@@ -466,7 +468,7 @@ Valor ponderado                 R$ 41,69
 | RNF-004 | **Instalação.** Empacotamento Electron sem dependência de serviço externo |
 | RNF-005 | **Verificação.** Suíte de testes executada com exit code verbatim, sem interpretação de saída |
 | RNF-006 | **Rate limiting.** Consumo de providers respeita limites publicados e não dispara requisição por ativo fora de interesse |
-| RNF-007 | **Governança.** `CLAUDE.md` e `AGENTS.md` como constituição do agente de desenvolvimento, `DECISOES.md` como log numerado |
+| RNF-007 | **Governança.** `CLAUDE.md` e `AGENTS.md` como constituição do agente de desenvolvimento, `DECISOES.md` como log numerado; e o guia do agente operador para quem opera o cálculo no modo repositório (D-118) |
 | RNF-008 | **Imutabilidade em runtime.** Conhecimento carregado no boot permanece constante durante a sessão |
 | RNF-009 | **Manutenção do conhecimento.** Notas e eventos crescem com a carteira acompanhada. A v1 limita cobertura aos ativos monitorados, e `revisar_em` funciona como fila de trabalho |
 | RNF-010 | **Justificativa obrigatória.** Toda implementação é acompanhada de explicação do que foi feito, do requisito que atende e das alternativas descartadas. Código entregue sem justificativa é entrega incompleta |
