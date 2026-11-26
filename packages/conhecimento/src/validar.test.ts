@@ -612,6 +612,21 @@ describe('D-061, texto exibido ao usuário passa por filtro de RP-004', () => {
     expect(r.success).toBe(false)
   })
 
+  it('olha toda ocorrência: a colocação metodológica na primeira não libera a segunda', () => {
+    // revisão da PR #17: o filtro parava na primeira ocorrência de cada gatilho
+    for (const frase of [
+      'fluxo descontado, com pagamento anual e projecao de longo prazo, ativo descontado',
+      'custo de oportunidade e depois uma oportunidade de compra',
+    ]) {
+      const r = texto('motivo', 'RF-104').safeParse(frase)
+      expect(r.success, frase).toBe(false)
+      expect(r.error?.issues[0]?.message).toContain('RP-004')
+    }
+    expect(
+      texto('motivo', 'RF-104').safeParse('fluxo descontado e valor descontado').success,
+    ).toBe(true)
+  })
+
   it('o filtro não substitui revisão: paráfrase passa limpo, e isso é declarado na D-061', () => {
     const parafrase = 'o desenlace positivo para o emissor é o cenário natural'
     expect(texto('motivo', 'RF-104').safeParse(parafrase).success).toBe(true)
@@ -980,4 +995,25 @@ describe('RF-125 e D-120, mecanismo de cálculo', () => {
     const { problemas } = validarPasta(raiz)
     expect(problemas.some((p) => p.mensagem.includes('RP-004'))).toBe(true)
   })
+
+  // Prova B da D-073: corrigir a única violação de cada fixture faz ela passar no
+  // schema e na checagem cruzada. Sem isto, a reprovação podia vir de outro defeito
+  // na mesma fixture (revisão da PR #17)
+  const CORRECOES: [string, Record<string, unknown>][] = [
+    ['com-numero.yaml', { texto: 'Texto sintetico de fixture, sem afirmacao sobre setor' }],
+    ['texto-valorativo.yaml', { texto: 'Texto sintetico de fixture, sem afirmacao sobre setor' }],
+    ['campo-relacionado-inexistente.yaml', { campo_relacionado: 'taxa_desconto' }],
+    ['modelo-fora-da-lista.yaml', { modelo: 'ddm' }],
+    ['playbook-inexistente.yaml', { playbooks: ['transmissao-energia-b3'] }],
+  ]
+  for (const [arquivo, correcao] of CORRECOES) {
+    it(`${arquivo} passa, corrigida a única violação (prova B)`, () => {
+      const corrigido = {
+        ...(carregar(join(FIXTURES, 'mecanismos', arquivo)) as Record<string, unknown>),
+        ...correcao,
+      }
+      expect(Mecanismo.safeParse(corrigido).success).toBe(true)
+      expect(cruzar(corrigido)).toEqual([])
+    })
+  }
 })

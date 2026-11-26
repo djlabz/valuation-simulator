@@ -29,6 +29,20 @@ const PASTA_PLAYBOOKS = join(RAIZ, 'conhecimento', 'playbooks')
  */
 const NOME_DO_DOCUMENTO = 'REQUISITOS-valuation-simulator.md'
 
+/**
+ * Toda outra entrada de docs/ cujo nome contém o do documento, em qualquer caixa.
+ * É a compensação da D-119: com nome fixo, uma cópia antiga ao lado seria a
+ * desatualizada, e o teste da seção 9 leria só a de nome fixo sem ninguém notar a
+ * outra. Contém, e não começa com, porque "Cópia de ..." também é cópia (revisão
+ * da PR #17).
+ */
+function copiasDoDocumento(nomes: string[]): string[] {
+  const radical = 'requisitos-valuation-simulator'
+  return nomes.filter(
+    (nome) => nome !== NOME_DO_DOCUMENTO && nome.toLowerCase().includes(radical),
+  )
+}
+
 function caminhoDoDocumento(): string {
   return join(RAIZ, 'docs', NOME_DO_DOCUMENTO)
 }
@@ -39,14 +53,20 @@ describe('D-119, o documento de requisitos tem nome fixo', () => {
   })
 
   it('não coexiste com outra cópia, de nome versionado ou não', () => {
-    // a compensação da D-119: com nome fixo, uma cópia antiga ao lado seria a
-    // desatualizada, e o teste da seção 9 leria só a de nome fixo sem ninguém
-    // notar a outra. Olha qualquer variação do nome, e não só -v*, porque
-    // "-2.6.md" ou " (1).md" também são cópia
-    const copias = readdirSync(join(RAIZ, 'docs')).filter(
-      (nome) => nome.startsWith('REQUISITOS-valuation-simulator') && nome !== NOME_DO_DOCUMENTO,
-    )
-    expect(copias).toEqual([])
+    expect(copiasDoDocumento(readdirSync(join(RAIZ, 'docs')))).toEqual([])
+  })
+
+  it('reconhece como cópia qualquer variação do nome, com prefixo, sufixo ou caixa diferente', () => {
+    const nomes = [
+      NOME_DO_DOCUMENTO,
+      'REQUISITOS-valuation-simulator-v2.5.md',
+      'REQUISITOS-valuation-simulator-2.6.md',
+      'REQUISITOS-valuation-simulator (1).md',
+      'Cópia de REQUISITOS-valuation-simulator.md',
+      'requisitos-valuation-simulator.md',
+      'premissas-de-interpretacao-fcff-por-concessao.md',
+    ]
+    expect(copiasDoDocumento(nomes)).toEqual(nomes.slice(1, 6))
   })
 })
 

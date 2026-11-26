@@ -208,14 +208,16 @@ function checarValorativo(
   requisito: string,
 ): void {
   for (const gatilho of GATILHOS_VALORATIVOS) {
-    const achado = gatilho.padrao.exec(valor)
-    if (achado === null) continue
-    if (
-      gatilho.antecedentesPermitidos !== undefined &&
-      antecedenteLibera(valor, achado.index, gatilho.antecedentesPermitidos)
-    ) {
-      continue
-    }
+    // Toda ocorrência, e não só a primeira: com exec, "fluxo descontado ... ativo
+    // descontado" parava na primeira, liberada pelo antecedente, e a segunda
+    // passava sem ser olhada (revisão da PR #17)
+    const global = new RegExp(gatilho.padrao.source, `${gatilho.padrao.flags}g`)
+    const achado = [...valor.matchAll(global)].find(
+      (ocorrencia) =>
+        gatilho.antecedentesPermitidos === undefined ||
+        !antecedenteLibera(valor, ocorrencia.index, gatilho.antecedentesPermitidos),
+    )
+    if (achado === undefined) continue
     ctx.addIssue({
       code: 'custom',
       message:
