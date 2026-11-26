@@ -201,6 +201,18 @@ function antecedenteLibera(texto: string, indice: number, permitidos: string[]):
   return permitidos.some((termo) => antes.includes(termo))
 }
 
+/**
+ * A mesma expressão com a flag g, para percorrer toda ocorrência. Acrescenta o g
+ * só quando falta: repetir a flag faz o construtor de RegExp lançar, e um gatilho
+ * futuro escrito já com /g quebraria a validação inteira. Devolve sempre uma
+ * expressão nova, para o lastIndex de um gatilho /g compartilhado não fazer a
+ * busca começar no meio do texto. Exportada para o teste.
+ */
+export function paraBuscaGlobal(padrao: RegExp): RegExp {
+  const flags = padrao.flags.includes('g') ? padrao.flags : `${padrao.flags}g`
+  return new RegExp(padrao.source, flags)
+}
+
 function checarValorativo(
   valor: string,
   ctx: RefinementCtx,
@@ -211,8 +223,7 @@ function checarValorativo(
     // Toda ocorrência, e não só a primeira: com exec, "fluxo descontado ... ativo
     // descontado" parava na primeira, liberada pelo antecedente, e a segunda
     // passava sem ser olhada (revisão da PR #17)
-    const global = new RegExp(gatilho.padrao.source, `${gatilho.padrao.flags}g`)
-    const achado = [...valor.matchAll(global)].find(
+    const achado = [...valor.matchAll(paraBuscaGlobal(gatilho.padrao))].find(
       (ocorrencia) =>
         gatilho.antecedentesPermitidos === undefined ||
         !antecedenteLibera(valor, ocorrencia.index, gatilho.antecedentesPermitidos),

@@ -7,7 +7,7 @@ import { Evento } from './evento'
 import { Heuristica } from './heuristica'
 import { Mecanismo } from './mecanismo'
 import { Playbook, PremissaDoUsuario } from './playbook'
-import { texto, textoInterno } from './comum'
+import { paraBuscaGlobal, texto, textoInterno } from './comum'
 import {
   EXCECOES_NA_RAIZ,
   PASTAS_VALIDAS,
@@ -625,6 +625,16 @@ describe('D-061, texto exibido ao usuário passa por filtro de RP-004', () => {
     expect(
       texto('motivo', 'RF-104').safeParse('fluxo descontado e valor descontado').success,
     ).toBe(true)
+  })
+
+  it('gatilho escrito já com flag g não quebra a construção nem perde ocorrência', () => {
+    const gatilho = /\bbarat[oa]s?\b/gi
+    gatilho.lastIndex = 5
+    const busca = paraBuscaGlobal(gatilho)
+    expect(busca.flags).toBe('gi')
+    expect(busca).not.toBe(gatilho)
+    expect([...'barato e barata'.matchAll(busca)].map((m) => m.index)).toEqual([0, 9])
+    expect(paraBuscaGlobal(/x/i).flags).toBe('gi')
   })
 
   it('o filtro não substitui revisão: paráfrase passa limpo, e isso é declarado na D-061', () => {
