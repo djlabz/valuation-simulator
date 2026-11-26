@@ -23,14 +23,31 @@ import { describe, expect, it } from 'vitest'
 const RAIZ = resolve(import.meta.dirname, '../../..')
 const PASTA_PLAYBOOKS = join(RAIZ, 'conhecimento', 'playbooks')
 
-/** Achado por glob, para o teste não quebrar quando o documento mudar de versão. */
+/**
+ * Nome fixo, sem versão (D-119). A versão mora só no cabeçalho, e nem patch nem
+ * minor renomeiam o arquivo.
+ */
+const NOME_DO_DOCUMENTO = 'REQUISITOS-valuation-simulator.md'
+
 function caminhoDoDocumento(): string {
-  const docs = readdirSync(join(RAIZ, 'docs')).filter(
-    (nome) => /^REQUISITOS-valuation-simulator-v.+\.md$/.test(nome),
-  )
-  expect(docs).toHaveLength(1)
-  return join(RAIZ, 'docs', docs[0] as string)
+  return join(RAIZ, 'docs', NOME_DO_DOCUMENTO)
 }
+
+describe('D-119, o documento de requisitos tem nome fixo', () => {
+  it('existe em docs/ com o nome fixo', () => {
+    expect(readdirSync(join(RAIZ, 'docs'))).toContain(NOME_DO_DOCUMENTO)
+  })
+
+  it('não coexiste com cópia de nome versionado', () => {
+    // a compensação da D-119: com nome fixo, uma cópia antiga com versão no nome
+    // seria a desatualizada, e o teste da seção 9 leria só a de nome fixo sem
+    // ninguém notar a outra
+    const versionadas = readdirSync(join(RAIZ, 'docs')).filter((nome) =>
+      /^REQUISITOS-valuation-simulator-v.*\.md$/.test(nome),
+    )
+    expect(versionadas).toEqual([])
+  })
+})
 
 interface BlocoDeDocumento {
   id: string

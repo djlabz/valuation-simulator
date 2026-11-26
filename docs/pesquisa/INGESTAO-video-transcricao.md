@@ -71,7 +71,7 @@
 > diz "quatro itens" e lista **cinco**, 4.1 a 4.5.
 >
 > **Este arquivo não é fonte de verdade.** A fonte de verdade é
-> `docs/REQUISITOS-valuation-simulator-v2.5.md`. Nada daqui autoriza copiar conteúdo para
+> `docs/REQUISITOS-valuation-simulator.md`. Nada daqui autoriza copiar conteúdo para
 > `conhecimento/`, e o material bruto que a ferramenta grava fica em `ingest/`, fora do
 > versionamento (RNF-013, D-042).
 
