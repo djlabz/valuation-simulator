@@ -3,7 +3,7 @@
 Continuidade entre sessões e entre agentes. Contém o que muda: estado, ordem de trabalho,
 questões abertas. Regra permanente está em `CLAUDE.md` e não se repete aqui.
 
-**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator-v2.5.md`,
+**Leia nesta ordem:** `CLAUDE.md`, depois `docs/REQUISITOS-valuation-simulator.md`,
 depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ---
@@ -126,7 +126,7 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Documentos
 
-- `docs/REQUISITOS-valuation-simulator-v2.5.md`, fonte de verdade, versão 2.5.0 (D-118). 113 requisitos funcionais,
+- `docs/REQUISITOS-valuation-simulator.md`, fonte de verdade, versão 2.5.0 (D-118). 113 requisitos funcionais,
   13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, verificado por teste (D-065)
 - `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as quinze premissas da sonda, dez

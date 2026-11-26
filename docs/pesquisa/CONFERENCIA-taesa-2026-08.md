@@ -33,7 +33,7 @@
 > for explicada.
 >
 > **Este arquivo não é fonte de verdade.** A fonte de verdade é
-> `docs/REQUISITOS-valuation-simulator-v2.5.md`. Nada daqui autoriza copiar conteúdo para
+> `docs/REQUISITOS-valuation-simulator.md`. Nada daqui autoriza copiar conteúdo para
 > `conhecimento/`: dado de companhia vira nota de ativo por autoria e revisão do curador, na Etapa
 > do Conhecimento, não por cópia (RNF-013, D-069).
 

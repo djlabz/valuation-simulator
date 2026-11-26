@@ -3152,3 +3152,78 @@ três modos; seção 3, linha do agente externo; RF-1001, que passa a dizer o ca
 modo repositório; RNF-007, que ganha o guia do agente operador. Nenhuma restrição permanente muda.
 A D-003 não muda: o app continua sem LLM embutido. Nenhuma decisão anterior é revogada; esta
 acrescenta o modo repositório ao que a seção 1.5 previa.
+
+## Sessão de 26/11/2026
+
+### D-119. O arquivo de requisitos tem nome fixo, sem versão
+
+**Decisão.** O documento de requisitos passa a se chamar `docs/REQUISITOS-valuation-simulator.md`,
+sem versão no nome. A versão fica só no cabeçalho. A regra da D-078 que liga o nome do arquivo à
+linha minor deixa de valer, e a D-101 passa a exigir só a versão no relatório, porque o caminho não
+muda mais. Patch e minor continuam se distinguindo pelo critério da D-078 (correção dentro do
+escopo é patch, alteração de escopo é minor), só que nenhuma das duas renomeia o arquivo.
+
+**Motivo.** Cada minor custava renomear o arquivo, trocar os ponteiros no repositório, trocar o
+arquivo no conhecimento do projeto e editar as instruções do projeto. Na 2.5.0 foram oito
+ponteiros. Com o nome fixo, subir uma versão é só atualizar o arquivo.
+
+**Descartado.** Manter a versão no nome: o custo acima a cada minor. Nome fixo sem compensação:
+uma cópia desatualizada fica com o mesmo nome da atual; a compensação é conferir a versão do
+cabeçalho contra a do `AGENTS.md`.
+
+**O que muda.** D-078: a parte do nome do arquivo. D-101: o relatório diz a versão, e o caminho só
+quando mudar. O teste de equivalência (D-065) passa a localizar o arquivo pelo nome fixo. Os
+ponteiros de `v2.5.md` passam ao nome fixo. A versão do documento continua 2.5.0, porque a mudança
+é de nome e não de conteúdo.
+
+### D-120. Mecanismo de cálculo vira tipo próprio de conhecimento, separado da heurística de leitura
+
+**Decisão.** A base ganha o tipo mecanismo de cálculo: texto que explica o efeito de uma premissa,
+ou de uma parte do modelo, no resultado, sem número e sem forma imperativa. Campos:
+
+- `id`;
+- `playbooks`, lista com pelo menos um id de playbook, e cada um tem que existir;
+- `modelo`, opcional, que precisa estar em `modelos_habilitados` de todos os playbooks da lista;
+- `campo_relacionado`, opcional, que precisa ser premissa do usuário em todos os playbooks da
+  lista;
+- `texto`.
+
+Vários mecanismos podem apontar o mesmo campo, e um mecanismo pode não apontar campo nenhum, quando
+explica parte do modelo. Todos os campos de texto passam pelo filtro de linguagem valorativa
+(D-061, D-062) e pelo de valor de premissa (percentual, número decimal e valor em reais), sem
+exceção por `fonte`, porque o mecanismo não tem `fonte`.
+
+**O que ele não é.** Não é heurística de leitura: não aponta documento, não tem severidade nem
+confiança, não gera alerta e não entra no formato de quatro blocos (RF-106, RF-116). Não é `ajuda`:
+a ajuda é um texto por campo e diz o que o campo é; o mecanismo diz o que o valor faz na conta, e
+pode haver vários. Nenhum mecanismo liga característica de empresa a uma ponta de faixa, nem marca
+ponto dentro dela (D-112).
+
+**Onde mora.** Em `conhecimento/mecanismos/<id>.yaml`, um arquivo por item, validado pelo CLI. Fica
+fora do playbook e, por isso, fora da seção 9 dos requisitos e do teste de equivalência (D-065).
+
+**Motivo.** Na Q-01 do relatório de candidatos da aula 3, 14 textos de mecanismo não cabem em
+nenhum tipo existente. A heurística exige `aplica_em`, `onde_olhar` e `o_que_verificar`, e mecanismo
+não aponta documento: preencher esses campos para caber seria escrever conteúdo que ninguém pediu
+(RNF-013). A `ajuda` é um texto só por campo, e parte dos textos não tem campo. A lista de
+playbooks, em vez de um só, porque o mesmo mecanismo pode valer para mais de um setor, e uma cópia
+por playbook divergiria com o tempo.
+
+**Descartado.** Heurística com `aplica_em` e `onde_olhar` opcionais: enfraquece a heurística
+inteira para acomodar outra coisa. Mecanismo dentro da `ajuda`: perde os textos sem campo e junta
+vários num só. Mecanismo embutido no playbook: cada texto novo passaria pela seção 9, byte a byte,
+com versão nova do playbook e do documento de requisitos a cada leva, e o documento viraria depósito
+de conteúdo analítico. Um playbook só por mecanismo: obriga a copiar o texto para cada setor.
+
+**O filtro é rede, não prova.** Não pega inteiro sem unidade, número por extenso nem forma
+imperativa. A prova continua sendo a revisão do curador (RF-121), como na D-061 e na D-111.
+
+**O que muda em decisões anteriores.** D-112, conflito 4: "mecanismo vira heurística de leitura sem
+número" passa a "mecanismo vira mecanismo de cálculo"; na observação para faixa, o mecanismo ao
+lado da faixa passa a ser deste tipo. D-115, item 3 do que fica ao lado do campo de taxa: o
+mecanismo ligado ao campo passa a ser deste tipo. RNF-013 e `CLAUDE.md`, seção 5.2, condição 2 da
+exceção 2: o texto proposto de mecanismo entra na lista dos que não levam número de premissa nem
+forma imperativa.
+
+**Requisitos.** Versão 2.6.0, minor porque a base ganha um tipo de item, o que altera a seção 2.1
+e é alteração de escopo pelo critério da D-078: RF-125 novo, seção 2.1 e RNF-013.

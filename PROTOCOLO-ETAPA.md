@@ -128,10 +128,11 @@ Nesta ordem:
 2. `AGENTS.md` atualizado: estado atual, etapa concluída, etapa seguinte, questões abertas
 3. `CLAUDE.md` atualizado, só se surgiu caso de fronteira novo ou gatilho novo
 4. Relatório de inspeção adversarial anexado à etapa
-5. **Se a etapa alterou o documento de requisitos**, o relatório diz a **versão corrente** e o
-   **caminho exato** do arquivo depois da alteração (D-101). Os dois juntos, porque o nome do
-   arquivo acompanha a linha minor por D-078, então versão nova com nome antigo é estado
-   inconsistente que só aparece se as duas informações forem ditas lado a lado
+5. **Se a etapa alterou o documento de requisitos**, o relatório diz a **versão corrente** do
+   arquivo depois da alteração (D-101), e o caminho só se ele mudou. O nome é fixo,
+   `docs/REQUISITOS-valuation-simulator.md`, e nem patch nem minor o renomeiam (D-119). A versão
+   do cabeçalho é conferida contra a do `AGENTS.md`, porque cópia desatualizada tem o mesmo nome
+   da atual
 6. Commit com referência aos requisitos atendidos
 7. Parar. A etapa seguinte precisa de pedido explícito
 
