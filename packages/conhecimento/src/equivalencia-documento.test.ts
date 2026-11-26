@@ -38,14 +38,15 @@ describe('D-119, o documento de requisitos tem nome fixo', () => {
     expect(readdirSync(join(RAIZ, 'docs'))).toContain(NOME_DO_DOCUMENTO)
   })
 
-  it('não coexiste com cópia de nome versionado', () => {
-    // a compensação da D-119: com nome fixo, uma cópia antiga com versão no nome
-    // seria a desatualizada, e o teste da seção 9 leria só a de nome fixo sem
-    // ninguém notar a outra
-    const versionadas = readdirSync(join(RAIZ, 'docs')).filter((nome) =>
-      /^REQUISITOS-valuation-simulator-v.*\.md$/.test(nome),
+  it('não coexiste com outra cópia, de nome versionado ou não', () => {
+    // a compensação da D-119: com nome fixo, uma cópia antiga ao lado seria a
+    // desatualizada, e o teste da seção 9 leria só a de nome fixo sem ninguém
+    // notar a outra. Olha qualquer variação do nome, e não só -v*, porque
+    // "-2.6.md" ou " (1).md" também são cópia
+    const copias = readdirSync(join(RAIZ, 'docs')).filter(
+      (nome) => nome.startsWith('REQUISITOS-valuation-simulator') && nome !== NOME_DO_DOCUMENTO,
     )
-    expect(versionadas).toEqual([])
+    expect(copias).toEqual([])
   })
 })
 

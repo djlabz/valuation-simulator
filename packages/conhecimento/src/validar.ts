@@ -4,6 +4,7 @@ import { parse as parseYaml } from 'yaml'
 import { z, type ZodType } from 'zod'
 import { Evento } from './evento'
 import { Heuristica } from './heuristica'
+import { Mecanismo } from './mecanismo'
 import { Nota } from './nota'
 import { Playbook } from './playbook'
 
@@ -36,6 +37,25 @@ const IdentidadeDeVinculo = z.object({
   campo_relacionado: z.string().optional(),
 })
 
+/**
+ * Leituras mínimas para a checagem de RF-125. O playbook entra em duas leituras
+ * separadas de propósito: a do id diz se ele existe, e a dos dois campos diz se dá
+ * para conferir o mecanismo contra ele. Juntar as duas faria playbook com defeito
+ * em outro lugar aparecer como inexistente, que é diagnóstico errado.
+ */
+const IdDePlaybook = z.object({ id: z.string() })
+
+const AlvosDeMecanismo = z.object({
+  modelos_habilitados: z.array(z.string()),
+  premissas_do_usuario: z.array(z.object({ campo: z.string() })),
+})
+
+const IdentidadeDeMecanismo = z.object({
+  playbooks: z.array(z.string()),
+  modelo: z.string().optional(),
+  campo_relacionado: z.string().optional(),
+})
+
 const IdentidadeDeNota = z.object({
   playbook: z.string().optional(),
   sobreescreve: z.object({ modelos_habilitados: z.array(z.string()).optional() }).optional(),
@@ -45,7 +65,7 @@ const IdentidadeDeNota = z.object({
  * Validação da pasta conhecimento/ (RF-101).
  *
  * A varredura usa lista branca de pastas, não lista negra. Só entram playbooks,
- * heuristicas, notas e eventos.
+ * heuristicas, notas, eventos e mecanismos (RF-125, D-120).
  *
  * Até a D-102, qualquer outra entrada dentro de conhecimento/ era ignorada em
  * silêncio, e arquivo que não fosse YAML dentro de uma pasta de tipo também.
@@ -54,7 +74,13 @@ const IdentidadeDeNota = z.object({
  * declarada, fixtures-invalidas, que fica fora da validação normal e é
  * exercitada apontando o arquivo de propósito.
  */
-export const PASTAS_VALIDAS = ['playbooks', 'heuristicas', 'notas', 'eventos'] as const
+export const PASTAS_VALIDAS = [
+  'playbooks',
+  'heuristicas',
+  'notas',
+  'eventos',
+  'mecanismos',
+] as const
 export type TipoItem = (typeof PASTAS_VALIDAS)[number]
 
 /** Entradas da raiz que existem e não são tipo de conhecimento, declaradas uma a uma. */
@@ -69,6 +95,7 @@ const SCHEMA_POR_TIPO: Record<TipoItem, ZodType> = {
   heuristicas: Heuristica,
   notas: Nota,
   eventos: Evento,
+  mecanismos: Mecanismo,
 }
 
 export interface Problema {
@@ -304,6 +331,92 @@ export function validarCamposRelacionados(
   return problemas
 }
 
+/**
+ * RF-125 e D-120, a metade que o schema não faz sozinho.
+ *
+ * O mecanismo declara a lista de playbooks a que se aplica. Cada um tem que
+ * existir; `modelo`, quando declarado, tem que estar em `modelos_habilitados` de
+ * todos; `campo_relacionado`, quando declarado, tem que ser premissa do usuário em
+ * todos. "Todos" e não "algum", porque o texto é um só e aparece em cada setor da
+ * lista: num setor onde o modelo não roda ou o campo não existe, ele não tem onde
+ * aparecer, e é a mesma falha do RF-107.
+ *
+ * Diferente da heurística em arquivo próprio, aqui a checagem é forte, contra os
+ * playbooks nomeados, e não contra a união de todos. Foi para isso que o campo
+ * `playbooks` nasceu obrigatório.
+ *
+ * Playbook que não existe é relatado uma vez, e modelo e campo são conferidos só
+ * contra os que existem, para a fixture que quebra uma regra não acusar três.
+ */
+export function validarMecanismosContraPlaybooks(
+  mecanismos: { caminho: string; documento: unknown }[],
+  playbooks: { caminho: string; documento: unknown }[],
+): Problema[] {
+  const problemas: Problema[] = []
+  const alvosPorPlaybook = new Map<string, z.infer<typeof AlvosDeMecanismo> | null>()
+
+  for (const { documento } of playbooks) {
+    const id = IdDePlaybook.safeParse(documento)
+    if (!id.success) continue
+    const alvos = AlvosDeMecanismo.safeParse(documento)
+    alvosPorPlaybook.set(id.data.id, alvos.success ? alvos.data : null)
+  }
+
+  for (const { caminho, documento } of mecanismos) {
+    const analisado = IdentidadeDeMecanismo.safeParse(documento)
+    if (!analisado.success) continue
+    const { playbooks: ids, modelo, campo_relacionado: campo } = analisado.data
+
+    for (const id of ids) {
+      if (!alvosPorPlaybook.has(id)) {
+        problemas.push({
+          arquivo: caminho,
+          campo: 'playbooks',
+          mensagem: `RF-125: mecanismo aponta para o playbook ${id}, que não existe`,
+        })
+        continue
+      }
+      const alvos = alvosPorPlaybook.get(id)
+      if (!alvos) {
+        // proteção que se cala no playbook com defeito é o pior momento possível
+        // para ficar em silêncio, mesma disciplina da checagem de RF-109
+        problemas.push({
+          arquivo: caminho,
+          campo: 'playbooks',
+          mensagem:
+            `RF-125: o playbook ${id} não tem modelos_habilitados ou premissas_do_usuario ` +
+            'legíveis. Sem essas listas não há como conferir o mecanismo contra ele',
+        })
+        continue
+      }
+      if (modelo !== undefined && !alvos.modelos_habilitados.includes(modelo)) {
+        problemas.push({
+          arquivo: caminho,
+          campo: 'modelo',
+          mensagem:
+            `RF-125: modelo ${modelo} não está em modelos_habilitados do playbook ${id}. ` +
+            'O mecanismo vale para todos os playbooks da lista, e nesse o modelo não roda',
+        })
+      }
+      if (
+        campo !== undefined &&
+        campo.trim() !== '' &&
+        !alvos.premissas_do_usuario.some((p) => p.campo === campo)
+      ) {
+        problemas.push({
+          arquivo: caminho,
+          campo: 'campo_relacionado',
+          mensagem:
+            `RF-125: campo_relacionado aponta para ${campo}, que não é premissa do usuário ` +
+            `do playbook ${id}. O mecanismo vale para todos os playbooks da lista, e nesse ` +
+            'o campo não existe',
+        })
+      }
+    }
+  }
+  return problemas
+}
+
 /** Valida a pasta inteira: as pastas da lista branca, e reprova o que não é delas. */
 export function validarPasta(raiz: string): Resultado {
   const arquivosLidos: string[] = []
@@ -371,6 +484,7 @@ export function validarPasta(raiz: string): Resultado {
       playbooks,
     ),
   )
+  problemas.push(...validarMecanismosContraPlaybooks(porTipo.get('mecanismos') ?? [], playbooks))
 
   return { arquivosLidos, problemas }
 }

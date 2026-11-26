@@ -291,8 +291,8 @@ cinco condições, todas obrigatórias:
 
 1. a proposta traz, ao lado do texto, o trecho da fala de origem com a aula e o instante, para
    o curador ouvir;
-2. o texto proposto de heurística, de `onde_encontrar` e de `ajuda` não leva número de
-   premissa nem forma imperativa;
+2. o texto proposto de heurística, de mecanismo de cálculo (D-120), de `onde_encontrar` e de
+   `ajuda` não leva número de premissa nem forma imperativa;
 3. o agente não propõe item sem fala de origem, nem completa com o que sabe do assunto;
 4. só entra o que o curador aprovar ou editar, item por item, e o que ele recusar não entra,
    sempre por commit, nunca direto (RF-121, RP-008);

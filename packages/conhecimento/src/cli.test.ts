@@ -46,6 +46,15 @@ describe('o CLI sai com exit code, que é o contrato da etapa', () => {
     expect(saida).toContain('não habilita')
   })
 
+  it('checa mecanismo contra os playbooks da lista no modo arquivo, sem falso verde', () => {
+    const { saida, codigo } = rodar([
+      join('conhecimento', 'fixtures-invalidas', 'mecanismos', 'playbook-inexistente.yaml'),
+    ])
+    expect(codigo).toBe(1)
+    expect(saida).toContain('RF-125')
+    expect(saida).toContain('playbook-que-nao-existe')
+  })
+
   it('recusa arquivo cuja pasta não diz o tipo do item', () => {
     const { saida, codigo } = rodar([join('package.json')])
     expect(codigo).toBe(1)

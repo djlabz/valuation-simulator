@@ -1,0 +1,5 @@
+# Quebra RP-004 e RF-125: o texto usa vocabulário valorativo. Valida em todo o resto.
+# Texto sintético, não afirma sobre setor nem empresa.
+id: M-902
+playbooks: [transmissao-energia-b3]
+texto: "Texto sintetico de fixture que diz barato para exercitar o filtro de RP-004"

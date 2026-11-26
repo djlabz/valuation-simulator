@@ -16,12 +16,14 @@ import {
   tipoPeloCaminho,
   validarArquivo,
   validarCamposRelacionados,
+  validarMecanismosContraPlaybooks,
   validarNotasContraPlaybooks,
   validarPasta,
 } from '@valuation/conhecimento'
 
 /**
- * Carrega os playbooks do repositório para a checagem cruzada de RF-109.
+ * Carrega os playbooks do repositório para as checagens cruzadas de RF-109,
+ * RF-107 e RF-125.
  *
  * No modo arquivo, sem isto, uma nota que amplia a lista de modelos passaria com
  * "nenhum problema encontrado", porque a comparação precisa da lista do playbook.
@@ -67,17 +69,19 @@ function main(argumentos: string[]): number {
           campo: '(pasta)',
           mensagem:
             'RF-101: tipo do item vem do nome da pasta. ' +
-            'Use playbooks, heuristicas, notas ou eventos',
+            'Use playbooks, heuristicas, notas, eventos ou mecanismos',
         })
         continue
       }
       problemas.push(...validarArquivo(caminho, tipo))
-      if (tipo === 'notas' || tipo === 'heuristicas' || tipo === 'eventos') {
+      if (tipo !== 'playbooks') {
         try {
           const item = [{ caminho, documento: parseYaml(readFileSync(caminho, 'utf8')) }]
           const playbooks = carregarPlaybooks()
           if (tipo === 'notas') {
             problemas.push(...validarNotasContraPlaybooks(item, playbooks))
+          } else if (tipo === 'mecanismos') {
+            problemas.push(...validarMecanismosContraPlaybooks(item, playbooks))
           } else {
             problemas.push(...validarCamposRelacionados(item, playbooks))
           }
