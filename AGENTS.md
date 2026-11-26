@@ -334,3 +334,4 @@ de cada uma estão na seção 2 do `CLAUDE.md`.
 10. Aceitar dado sem procedência, inclusive dado que o agente "sabe"
 11. Faixa de referência por ativo em vez de setorial
 12. Tratar ingestão como automação
+13. Filtro de texto que olha só a primeira ocorrência: no `checarValorativo` a primeira, liberada por antecedente, deixava as seguintes passarem e furava o RP-004 em todo texto da base; achado pelo CodeRabbit na PR #17 e corrigido em 76f05ce
