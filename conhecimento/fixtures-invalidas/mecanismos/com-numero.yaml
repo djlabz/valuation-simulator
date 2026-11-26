@@ -1,0 +1,5 @@
+# Quebra RF-112 e RF-125: o texto carrega percentual, e mecanismo não leva valor de
+# premissa. Valida em todo o resto. Texto sintético, não afirma sobre setor nem empresa.
+id: M-901
+playbooks: [transmissao-energia-b3]
+texto: "Texto sintetico de fixture que carrega 7,5% para exercitar o filtro de valor"

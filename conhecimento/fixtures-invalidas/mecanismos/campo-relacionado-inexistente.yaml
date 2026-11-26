@@ -1,0 +1,6 @@
+# Quebra RF-125: campo_relacionado aponta para premissa que não existe no playbook
+# da lista. Valida em todo o resto. Texto sintético.
+id: M-903
+playbooks: [transmissao-energia-b3]
+campo_relacionado: premissa_que_nao_existe
+texto: "Texto sintetico de fixture, sem afirmacao sobre setor ou empresa"

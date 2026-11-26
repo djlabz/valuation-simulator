@@ -5,6 +5,7 @@ import { parse as parseYaml } from 'yaml'
 import { describe, expect, it } from 'vitest'
 import { Evento } from './evento'
 import { Heuristica } from './heuristica'
+import { Mecanismo } from './mecanismo'
 import { Playbook, PremissaDoUsuario } from './playbook'
 import { texto, textoInterno } from './comum'
 import {
@@ -13,6 +14,7 @@ import {
   tipoPeloCaminho,
   validarArquivo,
   validarCamposRelacionados,
+  validarMecanismosContraPlaybooks,
   validarNotasContraPlaybooks,
   validarPasta,
 } from './validar'
@@ -21,7 +23,10 @@ const RAIZ = resolve(import.meta.dirname, '../../..')
 const CONHECIMENTO = join(RAIZ, 'conhecimento')
 const FIXTURES = join(CONHECIMENTO, 'fixtures-invalidas')
 
-function mensagens(caminho: string, tipo: 'playbooks' | 'eventos' | 'notas' | 'heuristicas') {
+function mensagens(
+  caminho: string,
+  tipo: 'playbooks' | 'eventos' | 'notas' | 'heuristicas' | 'mecanismos',
+) {
   return validarArquivo(caminho, tipo).map((problema) => problema.mensagem)
 }
 
@@ -30,8 +35,14 @@ function carregar(caminho: string): unknown {
 }
 
 describe('a varredura normal não enxerga a pasta de fixtures inválidas', () => {
-  it('só percorre as quatro pastas da lista branca', () => {
-    expect([...PASTAS_VALIDAS]).toEqual(['playbooks', 'heuristicas', 'notas', 'eventos'])
+  it('só percorre as cinco pastas da lista branca', () => {
+    expect([...PASTAS_VALIDAS]).toEqual([
+      'playbooks',
+      'heuristicas',
+      'notas',
+      'eventos',
+      'mecanismos',
+    ])
   })
 
   it('nenhum arquivo de fixtures-invalidas aparece na varredura de conhecimento/', () => {
@@ -721,5 +732,252 @@ describe('RF-109 e D-020, nota restringe mas não amplia nem altera regra dura',
       [{ caminho: playbook, documento: carregar(playbook) }],
     )
     expect(problemas).toEqual([])
+  })
+})
+
+/** Os três playbooks do repositório, como a checagem cruzada os recebe. */
+function playbooksDoRepositorio(): { caminho: string; documento: unknown }[] {
+  return ['bancos-b3', 'commodities-b3', 'transmissao-energia-b3'].map((n) => {
+    const caminho = join(CONHECIMENTO, 'playbooks', `${n}.yaml`)
+    return { caminho, documento: carregar(caminho) }
+  })
+}
+
+/** Mecanismo válido em tudo, para cada caso mexer numa coisa só. Texto sintético. */
+function mecanismoValido(): Record<string, unknown> {
+  return {
+    id: 'M-910',
+    playbooks: ['transmissao-energia-b3'],
+    texto: 'Texto sintetico de teste, sem afirmacao sobre setor ou empresa',
+  }
+}
+
+function cruzar(documento: unknown) {
+  return validarMecanismosContraPlaybooks(
+    [{ caminho: 'memoria', documento }],
+    playbooksDoRepositorio(),
+  )
+}
+
+describe('RF-125 e D-120, mecanismo de cálculo', () => {
+  it('aprova o mecanismo mínimo, no schema e na checagem cruzada', () => {
+    expect(Mecanismo.safeParse(mecanismoValido()).success).toBe(true)
+    expect(cruzar(mecanismoValido())).toEqual([])
+  })
+
+  it('aprova modelo e campo que valem em todos os playbooks da lista', () => {
+    // ddm está habilitado em bancos-b3 e em transmissao-energia-b3
+    const mecanismo = {
+      ...mecanismoValido(),
+      playbooks: ['bancos-b3', 'transmissao-energia-b3'],
+      modelo: 'ddm',
+    }
+    expect(Mecanismo.safeParse(mecanismo).success).toBe(true)
+    expect(cruzar(mecanismo)).toEqual([])
+    // taxa_desconto é premissa de commodities-b3 e de transmissao-energia-b3
+    const comCampo = {
+      ...mecanismoValido(),
+      playbooks: ['commodities-b3', 'transmissao-energia-b3'],
+      campo_relacionado: 'taxa_desconto',
+    }
+    expect(cruzar(comCampo)).toEqual([])
+  })
+
+  it('aceita vários mecanismos no mesmo campo, e mecanismo sem campo', () => {
+    const a = { ...mecanismoValido(), id: 'M-911', campo_relacionado: 'taxa_desconto' }
+    const b = { ...mecanismoValido(), id: 'M-912', campo_relacionado: 'taxa_desconto' }
+    const problemas = validarMecanismosContraPlaybooks(
+      [
+        { caminho: 'a', documento: a },
+        { caminho: 'b', documento: b },
+        { caminho: 'c', documento: mecanismoValido() },
+      ],
+      playbooksDoRepositorio(),
+    )
+    expect(problemas).toEqual([])
+  })
+
+  it('recusa número no texto, pela fixture, citando RF-125 e RP-006', () => {
+    const erros = mensagens(join(FIXTURES, 'mecanismos', 'com-numero.yaml'), 'mecanismos')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-125')
+    expect(erros[0]).toContain('RP-006')
+    expect(erros[0]).toContain('7,5%')
+  })
+
+  it('recusa número decimal e valor em reais também, e em qualquer campo de texto', () => {
+    for (const [campo, valor] of [
+      ['texto', 'Texto sintetico com 0,35 no meio'],
+      ['texto', 'Texto sintetico com R$ 10 no meio'],
+      ['id', 'M-1.5'],
+      ['modelo', 'ddm 2,5'],
+      ['campo_relacionado', 'campo 10%'],
+    ] as const) {
+      const resultado = Mecanismo.safeParse({ ...mecanismoValido(), [campo]: valor })
+      expect(resultado.success, `${campo}: ${valor}`).toBe(false)
+      // a mensagem diz o requisito e o campo, para quem lê saber onde mexer
+      expect(resultado.error?.issues[0]?.message).toContain(`RF-125, RP-006: ${campo} contém`)
+    }
+    const naLista = Mecanismo.safeParse({ ...mecanismoValido(), playbooks: ['setor 9%'] })
+    expect(naLista.error?.issues[0]?.message).toContain('RF-125, RP-006: playbooks contém')
+  })
+
+  it('recusa linguagem valorativa, pela fixture, citando RP-004 e D-061', () => {
+    const erros = mensagens(join(FIXTURES, 'mecanismos', 'texto-valorativo.yaml'), 'mecanismos')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-125')
+    expect(erros[0]).toContain('RP-004')
+    expect(erros[0]).toContain('barato')
+  })
+
+  it('recusa campo de heurística, porque mecanismo não aponta documento nem gera alerta', () => {
+    for (const extra of [
+      { severidade: 'informativo' },
+      { onde_olhar: 'Secao qualquer' },
+      { confianca: 'alta' },
+      { fonte: 'Fixture' },
+    ]) {
+      const resultado = Mecanismo.safeParse({ ...mecanismoValido(), ...extra })
+      expect(resultado.success, JSON.stringify(extra)).toBe(false)
+      expect(resultado.error?.issues[0]?.message).toContain('RF-125')
+      expect(resultado.error?.issues[0]?.message).toContain(
+        'não é heurística de leitura e não gera alerta',
+      )
+    }
+  })
+
+  it('recusa lista de playbooks vazia, ausente ou escrita como texto solto', () => {
+    const vazia = Mecanismo.safeParse({ ...mecanismoValido(), playbooks: [] })
+    expect(vazia.error?.issues[0]?.message).toContain('pelo menos um id')
+    const { playbooks: _, ...semLista } = mecanismoValido()
+    expect(Mecanismo.safeParse(semLista).success).toBe(false)
+    const solta = Mecanismo.safeParse({ ...mecanismoValido(), playbooks: 'bancos-b3' })
+    expect(solta.error?.issues[0]?.message).toContain('RF-125: playbooks é lista')
+  })
+
+  it('recusa texto ausente ou vazio', () => {
+    const { texto: _, ...semTexto } = mecanismoValido()
+    expect(Mecanismo.safeParse(semTexto).success).toBe(false)
+    expect(Mecanismo.safeParse({ ...mecanismoValido(), texto: '  ' }).success).toBe(false)
+  })
+
+  it('recusa campo_relacionado que não é premissa do playbook, pela fixture', () => {
+    const alvo = join(FIXTURES, 'mecanismos', 'campo-relacionado-inexistente.yaml')
+    expect(mensagens(alvo, 'mecanismos')).toEqual([])
+    const problemas = validarMecanismosContraPlaybooks(
+      [{ caminho: alvo, documento: carregar(alvo) }],
+      playbooksDoRepositorio(),
+    )
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.campo).toBe('campo_relacionado')
+    expect(problemas[0]?.mensagem).toContain('premissa_que_nao_existe')
+    expect(problemas[0]?.mensagem).toContain('nesse o campo não existe')
+  })
+
+  it('campo_relacionado tem que existir em todos os playbooks, não em algum', () => {
+    // taxa_desconto existe em transmissao-energia-b3 e não em bancos-b3. Conferir
+    // contra a união dos playbooks, como a heurística em arquivo próprio faz,
+    // deixaria passar
+    const problemas = cruzar({
+      ...mecanismoValido(),
+      playbooks: ['bancos-b3', 'transmissao-energia-b3'],
+      campo_relacionado: 'taxa_desconto',
+    })
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.mensagem).toContain('playbook bancos-b3')
+  })
+
+  it('recusa modelo fora da lista de um dos playbooks, pela fixture', () => {
+    const alvo = join(FIXTURES, 'mecanismos', 'modelo-fora-da-lista.yaml')
+    expect(mensagens(alvo, 'mecanismos')).toEqual([])
+    const problemas = validarMecanismosContraPlaybooks(
+      [{ caminho: alvo, documento: carregar(alvo) }],
+      playbooksDoRepositorio(),
+    )
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.campo).toBe('modelo')
+    expect(problemas[0]?.mensagem).toContain('fcff_por_concessao')
+    expect(problemas[0]?.mensagem).toContain('playbook bancos-b3')
+    expect(problemas[0]?.mensagem).toContain('nesse o modelo não roda')
+  })
+
+  it('recusa playbook inexistente na lista, uma vez só, pela fixture', () => {
+    const alvo = join(FIXTURES, 'mecanismos', 'playbook-inexistente.yaml')
+    expect(mensagens(alvo, 'mecanismos')).toEqual([])
+    const problemas = validarMecanismosContraPlaybooks(
+      [{ caminho: alvo, documento: carregar(alvo) }],
+      playbooksDoRepositorio(),
+    )
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.campo).toBe('playbooks')
+    expect(problemas[0]?.mensagem).toContain('playbook-que-nao-existe')
+  })
+
+  it('playbook inexistente não gera também erro de modelo ou de campo', () => {
+    const problemas = cruzar({
+      ...mecanismoValido(),
+      playbooks: ['playbook-que-nao-existe'],
+      modelo: 'ddm',
+      campo_relacionado: 'taxa_desconto',
+    })
+    expect(problemas.map((p) => p.campo)).toEqual(['playbooks'])
+  })
+
+  it('não se cala quando o playbook existe mas não tem as listas legíveis', () => {
+    const problemas = validarMecanismosContraPlaybooks(
+      [{ caminho: 'memoria', documento: mecanismoValido() }],
+      [{ caminho: 'quebrado', documento: { id: 'transmissao-energia-b3' } }],
+    )
+    expect(problemas.length).toBe(1)
+    expect(problemas[0]?.campo).toBe('playbooks')
+    expect(problemas[0]?.mensagem).toContain('RF-125')
+    expect(problemas[0]?.mensagem).toContain('legíveis')
+    expect(problemas[0]?.mensagem).not.toContain('não existe')
+  })
+
+  it('playbook sem id não derruba a checagem, e o mecanismo que aponta para ele é recusado', () => {
+    const problemas = validarMecanismosContraPlaybooks(
+      [{ caminho: 'memoria', documento: mecanismoValido() }],
+      [{ caminho: 'sem-id', documento: { modelos_habilitados: [] } }],
+    )
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'RF-125: mecanismo aponta para o playbook transmissao-energia-b3, que não existe',
+    ])
+  })
+
+  it('mecanismo com forma quebrada fica para o schema, sem derrubar a checagem cruzada', () => {
+    expect(cruzar({ ...mecanismoValido(), playbooks: 'transmissao-energia-b3' })).toEqual([])
+  })
+
+  it('campo_relacionado em branco fica para o schema, sem acusar o mesmo defeito duas vezes', () => {
+    const mecanismo = { ...mecanismoValido(), campo_relacionado: '  ' }
+    expect(Mecanismo.safeParse(mecanismo).success).toBe(false)
+    expect(cruzar(mecanismo)).toEqual([])
+  })
+
+  it('a varredura da pasta lê conhecimento/mecanismos e aplica a checagem cruzada', () => {
+    const raiz = conhecimentoDescartavel()
+    mkdirSync(join(raiz, 'mecanismos'))
+    copyFileSync(
+      join(FIXTURES, 'mecanismos', 'campo-relacionado-inexistente.yaml'),
+      join(raiz, 'mecanismos', 'M-903.yaml'),
+    )
+    const { arquivosLidos, problemas } = validarPasta(raiz)
+    expect(arquivosLidos.some((a) => a.endsWith(join('mecanismos', 'M-903.yaml')))).toBe(true)
+    // o descartável só tem bancos-b3, então o transmissao da fixture não existe ali
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'RF-125: mecanismo aponta para o playbook transmissao-energia-b3, que não existe',
+    ])
+  })
+
+  it('a varredura da pasta aplica o schema ao mecanismo', () => {
+    const raiz = conhecimentoDescartavel()
+    mkdirSync(join(raiz, 'mecanismos'))
+    copyFileSync(
+      join(FIXTURES, 'mecanismos', 'texto-valorativo.yaml'),
+      join(raiz, 'mecanismos', 'M-902.yaml'),
+    )
+    const { problemas } = validarPasta(raiz)
+    expect(problemas.some((p) => p.mensagem.includes('RP-004'))).toBe(true)
   })
 })

@@ -1,0 +1,6 @@
+# Quebra RF-125: um dos playbooks da lista não existe. O outro existe, para provar
+# que a checagem olha cada id e não só o primeiro. Valida em todo o resto. Texto
+# sintético.
+id: M-905
+playbooks: [transmissao-energia-b3, playbook-que-nao-existe]
+texto: "Texto sintetico de fixture, sem afirmacao sobre setor ou empresa"

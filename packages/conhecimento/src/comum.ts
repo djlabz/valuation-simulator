@@ -2,7 +2,7 @@ import { Rate } from '@valuation/shared'
 import { z, type RefinementCtx } from 'zod'
 
 /**
- * Peças compartilhadas pelos quatro tipos de item de conhecimento.
+ * Peças compartilhadas pelos cinco tipos de item de conhecimento.
  *
  * Toda mensagem de recusa cita o requisito que a sustenta, porque relatório de
  * validação sem ID de requisito obriga quem lê a adivinhar qual regra pegou.

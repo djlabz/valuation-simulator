@@ -1,0 +1,8 @@
+# Quebra RF-125: o modelo está em modelos_habilitados de transmissao-energia-b3, mas
+# não no de bancos-b3, e o mecanismo vale para todos os playbooks da lista. Exercita
+# o "todos" do RF-125: conferir contra a união dos playbooks deixaria passar. Valida
+# em todo o resto. Texto sintético.
+id: M-904
+playbooks: [bancos-b3, transmissao-energia-b3]
+modelo: fcff_por_concessao
+texto: "Texto sintetico de fixture, sem afirmacao sobre setor ou empresa"

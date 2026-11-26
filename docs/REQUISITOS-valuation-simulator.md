@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.5.0
-**Data:** 25 de novembro de 2026
+**Versão:** 2.6.0
+**Data:** 26 de novembro de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.5.0:** a base de conhecimento ganha o tipo mecanismo de cálculo, que explica o efeito de uma premissa ou de uma parte do modelo no resultado, sem número, sem severidade e sem alerta, e mora em `conhecimento/mecanismos/` (RF-125, D-120). A seção 2.1 passa a citar o tipo, e a RNF-013 passa a incluir o texto proposto de mecanismo entre os que não levam número de premissa nem forma imperativa. Minor porque a base ganha um tipo de item, o que é alteração de escopo pela D-078. O arquivo passa a ter nome fixo, sem versão, e a versão fica só neste cabeçalho (D-119); a 2.5.0 já saiu com esse nome, sem mudança de conteúdo. Sem alteração de estrutura de input nem de premissa.
 
 **Alterações desde 2.4.7:** o modo repositório entra como primeiro dos três modos de uso (seção 1.5), o agente externo passa a operar também o repositório clonado (seção 3), o RF-1001 passa a dizer o canal de escrita do modo repositório, e o RNF-007 ganha o guia do agente operador (D-118). Minor porque acrescenta modo de uso à v1, o que é alteração de escopo pela D-078. Sem alteração de estrutura de input nem de premissa.
 
@@ -102,7 +104,7 @@ Três modos de uso, com o mesmo core e as mesmas restrições (D-118). Modo repo
 
 ### 2.1. Dentro do escopo da v1
 
-Mercado B3, moeda BRL, setores de Transmissão, Bancos e Commodities. Busca automática com fallback manual guiado. Cotação viva durante o pregão, com variação do dia e DY. Servidor MCP. Base de conhecimento em quatro níveis (playbook, heurística, nota de ativo, evento) com pipeline de ingestão e área de anexo. Composição de premissas por CAPM e tabela de sensibilidade. Até cinco cenários nomeados, com ponderação opcional. Alertas de preço configuráveis. Snapshot de auditoria imutável. Persistência em SQLite.
+Mercado B3, moeda BRL, setores de Transmissão, Bancos e Commodities. Busca automática com fallback manual guiado. Cotação viva durante o pregão, com variação do dia e DY. Servidor MCP. Base de conhecimento em quatro níveis (playbook, heurística, nota de ativo, evento), mais mecanismos de cálculo (RF-125, D-120), com pipeline de ingestão e área de anexo. Composição de premissas por CAPM e tabela de sensibilidade. Até cinco cenários nomeados, com ponderação opcional. Alertas de preço configuráveis. Snapshot de auditoria imutável. Persistência em SQLite.
 
 ### 2.2. Fora do escopo da v1
 
@@ -238,6 +240,14 @@ Todo alerta gerado por heurística, nota ou evento segue quatro blocos. A estrut
 | RF-124 | O agente pode consultar a web para verificar se nota ou evento permanece válido, quando `revisar_em` está vencido. A verificação sinaliza e nunca altera conhecimento ou dado de cálculo |
 
 > **Por que a verificação não atualiza.** Se resultado de busca alterasse o cálculo automaticamente, o mesmo valuation produziria números distintos em dias distintos sem alteração de premissa, invalidando a reprodutibilidade (RF-801).
+
+#### Mecanismo de cálculo
+
+| ID | Requisito |
+|---|---|
+| RF-125 | Mecanismo de cálculo explica o efeito de uma premissa ou de uma parte do modelo no resultado. Declara `id`, `playbooks` e `texto`. `playbooks` é lista com pelo menos um id, e cada um tem que existir. Pode declarar `modelo`, que precisa estar entre os modelos habilitados de todos os playbooks da lista, e `campo_relacionado`, que precisa ser premissa do usuário em todos eles. Vários mecanismos podem apontar o mesmo campo, e um mecanismo pode não apontar campo nenhum. Não aponta documento, não tem severidade e não gera alerta (RF-106, RF-116). Nenhum campo de texto contém percentual, número decimal ou valor em reais (RF-112) nem vocabulário valorativo (RP-004). Não liga característica de empresa a ponta de faixa de referência nem marca ponto dentro dela (D-120) |
+
+> **Por que mecanismo não é heurística.** A heurística diz onde ler no documento e do que desconfiar, e por isso aponta documento e gera alerta. O mecanismo diz o que o valor faz na conta, e não depende de documento nenhum. Forçar um no formato do outro obrigaria a preencher campo com conteúdo que ninguém pediu (RNF-013).
 
 ### 5.2. Classificação e Seleção de Modelo
 
@@ -474,7 +484,7 @@ Valor ponderado                 R$ 41,69
 | RNF-010 | **Justificativa obrigatória.** Toda implementação é acompanhada de explicação do que foi feito, do requisito que atende e das alternativas descartadas. Código entregue sem justificativa é entrega incompleta |
 | RNF-011 | **Inspeção adversarial de conformidade.** Ao fim de cada fase, código e textos de interface passam por revisão que simula leitura hostil, buscando ativamente a interpretação mais desfavorável de cada elemento. A revisão é conduzida por skill dedicada e produz relatório de brechas com severidade |
 | RNF-012 | **Autoridade de contestação.** O agente contesta instrução que viole invariante, lei aplicável ou boa prática de engenharia, em vez de executá-la. A contestação é obrigatória, não opcional, e precede qualquer implementação |
-| RNF-013 | **Conteúdo analítico não é escrito por agente.** Em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e pergunta ao curador. Teste de decisão: este texto afirma algo sobre o mundo que não se rastreia a documento da companhia, a norma vigente ou a operação aritmética? Duas exceções. Conteúdo sintético de fixture de teste, que não afirma sobre setor nem sobre empresa. E proposta de redação feita a partir da fala de um autor escolhido pelo curador (D-112): cada item proposto traz o trecho da fala de origem com a aula e o instante e não existe sem fala de origem, e o texto proposto de heurística, de `onde_encontrar` e de `ajuda` não leva número de premissa nem forma imperativa; só entra o que o curador aprovar ou editar, item por item, por commit (RF-121). Aula e instante ficam na proposta e não entram na base (D-108) |
+| RNF-013 | **Conteúdo analítico não é escrito por agente.** Em nenhuma circunstância, nem como placeholder, nem para satisfazer campo obrigatório de schema. Se um campo obrigatório exige conteúdo analítico que não existe, o campo deixa de ser obrigatório ou a etapa para e pergunta ao curador. Teste de decisão: este texto afirma algo sobre o mundo que não se rastreia a documento da companhia, a norma vigente ou a operação aritmética? Duas exceções. Conteúdo sintético de fixture de teste, que não afirma sobre setor nem sobre empresa. E proposta de redação feita a partir da fala de um autor escolhido pelo curador (D-112): cada item proposto traz o trecho da fala de origem com a aula e o instante e não existe sem fala de origem, e o texto proposto de heurística, de mecanismo de cálculo, de `onde_encontrar` e de `ajuda` não leva número de premissa nem forma imperativa; só entra o que o curador aprovar ou editar, item por item, por commit (RF-121). Aula e instante ficam na proposta e não entram na base (D-108) |
 
 ---
 
