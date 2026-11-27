@@ -1,5 +1,5 @@
 id: bancos-b3
-versao: 0.4.0
+versao: 0.5.0
 mercado: B3
 nome_exibicao: "Bancos e Serviços Financeiros"
 
@@ -40,7 +40,10 @@ regras_duras:
       para sustentar o crescimento dos RWA
   - id: R-103
     validador: validarSpreadROEKe
-    mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
+    mensagem: "ROE e custo de capital próprio na mesma base, nominal ou real"
+  - id: R-104
+    validador: validarCrescimentoMenorQueKe
+    mensagem: "Crescimento da perpetuidade precisa ser menor que o custo de capital próprio"
 
 # ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
 modos: null
@@ -57,8 +60,31 @@ inputs_obrigatorios:
   - campo: npl_90_e_cobertura
     onde_encontrar: "Release, qualidade da carteira de crédito"
     uso: "diagnóstico e alerta, não entra no cálculo"
+  # texto do curador, escrito depois de conferir o quadro na página 1 de um ITR e de
+  # um DFP reais (D-114, item 6)
+  - campo: acoes_ex_tesouraria
+    subcampos: [quantidade_total, quantidade_tesouraria, composicao_unit]
+    onde_encontrar: |
+      1. ITR ou DFP mais recente entregue à CVM, página 1, quadro Dados da Empresa /
+         Composição do Capital: quantidade total no bloco Do Capital Integralizado e
+         ações em tesouraria no bloco Em Tesouraria, linhas Ordinárias e
+         Preferenciais. Conferir no cabeçalho do quadro se a quantidade está em
+         unidades ou em mil; a data é a do encerramento do período.
+      2. Para conferência: nota explicativa de Patrimônio Líquido, subitens Capital
+         social e Ações em tesouraria.
+      3. Composição da unit, quando a companhia tem unit: estatuto social, capítulo
+         de emissão de units.
 
 premissas_do_usuario:
+  - campo: base_nominal_ou_real
+    obrigatorio: true
+    tipo: escolha
+    subcampos: [nominal, real]
+    default: null
+  - campo: roe_projetado_por_ano
+    obrigatorio: true
+    tipo: lista_por_ano
+    default: null
   - campo: roe_sustentavel_projetado
     obrigatorio: true
     default: null
@@ -68,12 +94,17 @@ premissas_do_usuario:
     composicao_disponivel: capm
   - campo: crescimento_rwa
     obrigatorio: true
+    tipo: lista_por_ano
     default: null
     ajuda: "Define quanto lucro fica retido para capital regulatório"
   - campo: basileia_alvo
     obrigatorio: true
+    tipo: lista_por_ano
     default: null
   - campo: horizonte_anos
+    obrigatorio: true
+    default: null
+  - campo: crescimento_perpetuidade
     obrigatorio: true
     default: null
 

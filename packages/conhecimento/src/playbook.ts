@@ -48,6 +48,45 @@ export const InputObrigatorio = z.strictObject({
  * metadado sobre a premissa e não a premissa. A inclusão de um efeito continua
  * derivando da presença do valor informado pelo usuário.
  */
+/**
+ * Os valores de `tipo` que uma premissa pode declarar (D-114, D-116).
+ *
+ * Até a sonda da `ddm` o campo aceitava qualquer texto, e nenhuma premissa dos três
+ * playbooks o usava. Agora ele carrega vocabulário com efeito, então a lista é
+ * fechada: texto livre aqui seria um lugar onde "taxa_de_12" entraria como tipo.
+ *
+ * - `lista_por_ano`: um valor por ano de `horizonte_anos`, que o playbook precisa
+ *   declarar como premissa (D-116);
+ * - `escolha`: o usuário escolhe um entre os nomes de `subcampos`, sem default
+ *   (D-114, base nominal ou real). Os nomes passam pelo filtro de valor de
+ *   premissa, senão `subcampos: ["0.5", "0.7"]` seria preset com outro nome.
+ *
+ * A lista fechada de chaves do RF-112 não muda: nenhuma chave nova entrou.
+ */
+export const TIPOS_DE_PREMISSA = ['lista_por_ano', 'escolha'] as const
+
+const tipoDePremissa = z.string({ error: 'RF-112: tipo de premissa é texto' }).superRefine(
+  (valor, ctx) => {
+    if (valor === 'booleano' || valor === 'boolean') {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'RF-421, D-040: flag booleana de premissa é proibida. ' +
+          'A inclusão ou exclusão do efeito deriva da presença do valor informado',
+      })
+      return
+    }
+    if (!(TIPOS_DE_PREMISSA as readonly string[]).includes(valor)) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          `RF-112, D-114: tipo de premissa "${valor}" não existe. ` +
+          `Os tipos são ${TIPOS_DE_PREMISSA.join(' e ')}, e sem tipo a premissa é um valor só`,
+      })
+    }
+  },
+)
+
 export const PremissaDoUsuario = z.strictObject(
   {
     campo: texto('campo', 'RF-112'),
@@ -59,20 +98,15 @@ export const PremissaDoUsuario = z.strictObject(
           'O campo aceita apenas null, que declara a ausência',
       })
       .optional(),
-    tipo: z
-      .string()
-      .refine((valor) => valor !== 'booleano' && valor !== 'boolean', {
-        error:
-          'RF-421, D-040: flag booleana de premissa é proibida. ' +
-          'A inclusão ou exclusão do efeito deriva da presença do valor informado',
-      })
-      .optional(),
+    tipo: tipoDePremissa.optional(),
     composicao_disponivel: z.enum(['capm'], {
       error: 'RF-112: composicao_disponivel só aceita capm nesta versão',
     }).optional(),
     // D-059: null explícito declara ausência deliberada, distinta de omissão
     faixa_referencia: FaixaReferencia.nullish(),
-    subcampos: z.array(texto('subcampos', 'RF-112')).optional(),
+    // nomes, nunca valores: em premissa, subcampo é chave de mapa (D-084) ou opção
+    // de escolha (D-114), e nenhum dos dois carrega número
+    subcampos: z.array(textoSemValorDePremissa('subcampos', 'RF-112')).optional(),
     ajuda: textoSemValorDePremissa('ajuda', 'RF-112').optional(),
   },
   {
@@ -81,7 +115,16 @@ export const PremissaDoUsuario = z.strictObject(
       'Chave a mais é onde um valor de premissa entraria com nome novo, tipo ' +
       'valor_sugerido ou exemplo, e por isso nenhuma é aceita',
   },
-)
+).superRefine((premissa, ctx) => {
+  if (premissa.tipo === 'escolha' && (premissa.subcampos?.length ?? 0) < 2) {
+    ctx.addIssue({
+      code: 'custom',
+      message:
+        `RF-112, D-114: premissa ${premissa.campo} é escolha e precisa de pelo menos duas ` +
+        'opções em subcampos, senão não há o que escolher e a única opção vira default',
+    })
+  }
+})
 
 /** RF-105: modo de granularidade reduzida exige aviso obrigatório. */
 export const ModoGranularidade = z
@@ -203,6 +246,21 @@ export const Playbook = z.strictObject({
     .nullish(),
   fonte: texto('fonte', 'RF-102'),
   confianca: Confianca.optional(),
+}).superRefine((playbook, ctx) => {
+  // D-116: lista por ano tem o tamanho do horizonte, e o horizonte é premissa do
+  // playbook. Sem ela, a lista não tem tamanho definido
+  const temHorizonte = playbook.premissas_do_usuario.some((p) => p.campo === 'horizonte_anos')
+  if (temHorizonte) return
+  for (const premissa of playbook.premissas_do_usuario) {
+    if (premissa.tipo !== 'lista_por_ano') continue
+    ctx.addIssue({
+      code: 'custom',
+      path: ['premissas_do_usuario'],
+      message:
+        `RF-112, D-116: premissa ${premissa.campo} é lista_por_ano e o playbook não declara ` +
+        'a premissa horizonte_anos, que dá o tamanho da lista',
+    })
+  }
 })
 
 export type Playbook = z.infer<typeof Playbook>

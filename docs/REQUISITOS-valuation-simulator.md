@@ -1,9 +1,11 @@
 # valuation-simulator
 ## Documento de Requisitos Funcionais
 
-**Versão:** 2.6.0
+**Versão:** 2.6.1
 **Data:** 26 de novembro de 2026
 **Status:** Escopo fechado para v1.
+
+**Alterações desde 2.6.0:** a sonda da `ddm` entra com o modelo de retenção da D-114 e a projeção por ano da D-116. `bancos-b3` vai para 0.5.0, com `acoes_ex_tesouraria`, `base_nominal_ou_real`, `roe_projetado_por_ano`, `crescimento_perpetuidade`, `crescimento_rwa` e `basileia_alvo` por ano, o R-104 novo e o R-103 valendo para as duas engines de bancos. O RF-507 passa a ter validador de entrada e guarda de saída (D-121), o RF-115 passa a exigir faixa nos mesmos termos do cálculo (D-114), e o RF-422 registra a projeção por ano (D-116). Patch pelo critério da D-078: mudança de input, de premissa e de regra dura dentro do escopo, como na D-084.
 
 **Alterações desde 2.5.0:** a base de conhecimento ganha o tipo mecanismo de cálculo, que explica o efeito de uma premissa ou de uma parte do modelo no resultado, sem número, sem severidade e sem alerta, e mora em `conhecimento/mecanismos/` (RF-125, D-120). A seção 2.1 passa a citar o tipo, e a RNF-013 passa a incluir o texto proposto de mecanismo entre os que não levam número de premissa nem forma imperativa. Minor porque a base ganha um tipo de item, o que é alteração de escopo pela D-078. O arquivo passa a ter nome fixo, sem versão, e a versão fica só neste cabeçalho (D-119); a 2.5.0 já saiu com esse nome, sem mudança de conteúdo. Sem alteração de estrutura de input nem de premissa.
 
@@ -200,7 +202,7 @@ O conhecimento vive em YAML versionado no repositório e é carregado no boot. O
 | RF-112 | Nenhum item de conhecimento contém valor de premissa (RP-006) |
 | RF-113 | Faixa de referência declara mínimo e máximo, na unidade da premissa, número de observações, base, confiança e data, e, quando a premissa é taxa ou crescimento, se está em termos nominais ou reais. É sempre setorial e agregada, nunca por ativo individual, e entra no playbook do setor em que a fonte usou o valor. Agregada quer dizer observações de pelo menos duas fontes independentes; o número de observações conta uma por fonte, e a atribuição que uma fonte faz a terceiro não conta como fonte. A `base` descreve o tipo de fonte, sem nome de autor (D-108). Valor que a fonte calibrou dentro do próprio método não entra como observação (D-112, D-115) |
 | RF-114 | Faixa com data superior a 12 meses é exibida marcada como desatualizada |
-| RF-115 | Valor digitado fora da faixa gera indicação informativa e não impede o prosseguimento |
+| RF-115 | Valor digitado fora da faixa gera indicação informativa e não impede o prosseguimento. Quando a premissa é taxa ou crescimento, a indicação só é gerada se a faixa estiver nos mesmos termos, nominais ou reais, do cálculo (D-114) |
 
 > **Por que RF-113 proíbe faixa por ativo.** Faixa para um ativo específico é indistinguível de recomendação de premissa para aquele ativo. A agregação setorial preserva o caráter de observação.
 
@@ -327,6 +329,7 @@ Ke resultante                       ?
 | RF-419 | Bancos: o horizonte não é derivado de fato, porque não há contrato nem reserva definindo prazo, e portanto é premissa do usuário (RF-416), obrigatória e sem default. Faixa de referência de horizonte, quando existir, segue a RF-113 e é exibida separada do campo, sem horizonte pré-selecionado (D-112) |
 | RF-420 | Horizonte que exceda o fato derivado é bloqueado por regra dura do playbook correspondente |
 | RF-421 | Flag booleana de premissa é proibida. A inclusão ou exclusão de um efeito é derivada da presença do valor correspondente informado pelo usuário |
+| RF-422 | Premissa de projeção, a que descreve um ano do caminho explícito, entra como lista com um valor por ano do horizonte. Ficam escalares o horizonte, os termos nominais ou reais, o custo de capital próprio e as premissas da perpetuidade. Valor único, duas fases e convergência são atalhos de preenchimento, aplicados por ação explícita e nenhum pré-selecionado (D-116) |
 
 ### 5.5. Engines e Regras Duras
 
@@ -338,7 +341,7 @@ Ke resultante                       ?
 | RF-504 | Engine retorna resultado desagregado por etapa, não apenas o valor final |
 | RF-505 | Toda engine tem cobertura validada por mutation testing. Alteração exige incremento de versão |
 | RF-506 | Cada regra dura de playbook referencia um validador TypeScript executável, com teste próprio cobrindo aprovação e rejeição |
-| RF-507 | Validadores executam antes da engine. Falha aborta o cálculo com erro estruturado contendo id da regra, mensagem e motivo metodológico |
+| RF-507 | Validadores de entrada executam antes da engine. Regra dura que a engine cumpre por construção tem guarda de saída, executada sobre o resultado desagregado antes de ele ser devolvido. Falha em qualquer dos dois aborta o cálculo com erro estruturado contendo id da regra, mensagem e motivo metodológico (D-121) |
 | RF-508 | Regra dura não é contornável por instrução do agente, configuração do usuário, nota de ativo ou evento |
 
 **Engines de valuation:** `fcff_por_concessao`, `ddm`, `excess_return`, `fcff_normalizado`, `sotp`.
@@ -354,6 +357,7 @@ Ke resultante                       ?
 | R-101 | `validarSemEnterpriseValue` | Bancos |
 | R-102 | `validarRetencaoRegulatoria` | Bancos |
 | R-103 | `validarSpreadROEKe` | Bancos |
+| R-104 | `validarCrescimentoMenorQueKe` | Bancos |
 | R-201 | `validarPrecoNormalizadoInformado` | Commodities |
 | R-202 | `validarCambioNormalizado` | Commodities |
 | R-203 | `validarBreakeven` | Commodities |
@@ -667,7 +671,7 @@ fonte: "Guia de Valuation Setorial, seção 2"
 
 ```yaml
 id: bancos-b3
-versao: 0.4.0
+versao: 0.5.0
 mercado: B3
 nome_exibicao: "Bancos e Serviços Financeiros"
 
@@ -708,7 +712,10 @@ regras_duras:
       para sustentar o crescimento dos RWA
   - id: R-103
     validador: validarSpreadROEKe
-    mensagem: "Excess Return exige ROE e Ke na mesma base (nominal ou real)"
+    mensagem: "ROE e custo de capital próprio na mesma base, nominal ou real"
+  - id: R-104
+    validador: validarCrescimentoMenorQueKe
+    mensagem: "Crescimento da perpetuidade precisa ser menor que o custo de capital próprio"
 
 # ausência temporária: conteúdo expurgado por D-067, volta na Etapa do Conhecimento
 modos: null
@@ -725,8 +732,31 @@ inputs_obrigatorios:
   - campo: npl_90_e_cobertura
     onde_encontrar: "Release, qualidade da carteira de crédito"
     uso: "diagnóstico e alerta, não entra no cálculo"
+  # texto do curador, escrito depois de conferir o quadro na página 1 de um ITR e de
+  # um DFP reais (D-114, item 6)
+  - campo: acoes_ex_tesouraria
+    subcampos: [quantidade_total, quantidade_tesouraria, composicao_unit]
+    onde_encontrar: |
+      1. ITR ou DFP mais recente entregue à CVM, página 1, quadro Dados da Empresa /
+         Composição do Capital: quantidade total no bloco Do Capital Integralizado e
+         ações em tesouraria no bloco Em Tesouraria, linhas Ordinárias e
+         Preferenciais. Conferir no cabeçalho do quadro se a quantidade está em
+         unidades ou em mil; a data é a do encerramento do período.
+      2. Para conferência: nota explicativa de Patrimônio Líquido, subitens Capital
+         social e Ações em tesouraria.
+      3. Composição da unit, quando a companhia tem unit: estatuto social, capítulo
+         de emissão de units.
 
 premissas_do_usuario:
+  - campo: base_nominal_ou_real
+    obrigatorio: true
+    tipo: escolha
+    subcampos: [nominal, real]
+    default: null
+  - campo: roe_projetado_por_ano
+    obrigatorio: true
+    tipo: lista_por_ano
+    default: null
   - campo: roe_sustentavel_projetado
     obrigatorio: true
     default: null
@@ -736,12 +766,17 @@ premissas_do_usuario:
     composicao_disponivel: capm
   - campo: crescimento_rwa
     obrigatorio: true
+    tipo: lista_por_ano
     default: null
     ajuda: "Define quanto lucro fica retido para capital regulatório"
   - campo: basileia_alvo
     obrigatorio: true
+    tipo: lista_por_ano
     default: null
   - campo: horizonte_anos
+    obrigatorio: true
+    default: null
+  - campo: crescimento_perpetuidade
     obrigatorio: true
     default: null
 

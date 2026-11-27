@@ -1,6 +1,7 @@
 import { Money, Rate, exigirPositivo } from '@valuation/shared'
 import { z } from 'zod'
 import { compararDatas, escreverData, lerData } from '../datas'
+import { ErroDePremissa, ErroDeRegraDura } from '../erros'
 import {
   cicloNaPosicao,
   ciclosInteirosAte,
@@ -27,7 +28,7 @@ import {
  * entregável tão importante quanto este arquivo.
  */
 
-export const VERSAO_ENGINE = '0.4.0'
+export const VERSAO_ENGINE = '0.4.1'
 const MOEDA = 'BRL' as const
 
 const textoDecimal = (campo: string) =>
@@ -167,30 +168,9 @@ export const ResultadoFcffPorConcessao = z.strictObject({
 export type EntradaFcffPorConcessao = z.infer<typeof EntradaFcffPorConcessao>
 export type ResultadoFcffPorConcessao = z.infer<typeof ResultadoFcffPorConcessao>
 
-/**
- * Premissa obrigatória ausente, ou informada para algo que a carteira não usa.
- *
- * Não é regra dura de playbook, é RF-401: o cálculo fica bloqueado enquanto houver
- * premissa obrigatória não preenchida.
- */
-export class ErroDePremissa extends Error {
-  readonly campo: string
-  constructor(campo: string, mensagem: string) {
-    super(`${campo}: ${mensagem}`)
-    this.campo = campo
-    this.name = 'ErroDePremissa'
-  }
-}
-
-/** Erro de regra dura, com o id da regra, como RF-507 manda para o validador. */
-export class ErroDeRegraDura extends Error {
-  readonly regra: string
-  constructor(regra: string, mensagem: string) {
-    super(`${regra}: ${mensagem}`)
-    this.regra = regra
-    this.name = 'ErroDeRegraDura'
-  }
-}
+// As classes de erro moram em ../erros desde a D-121. O reexport mantém a porta
+// pública da engine como estava para quem já importava daqui
+export { ErroDePremissa, ErroDeRegraDura }
 
 function brl(texto: string, campo: string): Money<'BRL'> {
   return Money.de(texto, MOEDA, campo)
@@ -284,6 +264,9 @@ export function calcularFcffPorConcessao(
         'R-002',
         `concessão "${concessao.nome}" aparece mais de uma vez, e o fluxo de cada ` +
           'concessão termina na sua própria data de vencimento',
+        'cada concessão encerra o fluxo no próprio vencimento, e o resultado acha a ' +
+          'concessão pelo nome; com dois nomes iguais, não há como saber qual fluxo encerra ' +
+          'em qual data (RF-417, D-075)',
       )
     }
     nomesVistos.add(concessao.nome)
@@ -302,6 +285,8 @@ export function calcularFcffPorConcessao(
         `horizonte informado de ${entrada.horizonte_maximo_ciclos} ciclos tarifários ` +
           `excede os ${ciclosDerivados} ciclos derivados do vencimento de ` +
           `"${concessao.nome}" (RF-417, RF-420)`,
+        'o horizonte de cada concessão é o vencimento contratual dela (RF-417); projetar ' +
+          'ciclos depois dele seria somar fluxo de período que a concessão não cobre',
       )
     }
     const ciclosProjetados =

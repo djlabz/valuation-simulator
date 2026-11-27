@@ -481,6 +481,8 @@ describe('RF-420, horizonte informado que excede o fato derivado é bloqueado', 
       expect((erro as ErroDeRegraDura).regra).toBe('R-002')
       expect((erro as Error).message).toContain('RF-420')
       expect((erro as Error).message).toContain('CONCESSAO-A')
+      // RF-507 e D-121: o erro carrega o motivo metodológico, não só a mensagem
+      expect((erro as ErroDeRegraDura).motivo).toContain('vencimento contratual')
     }
   })
 
@@ -504,6 +506,12 @@ describe('casos de borda que a estrutura precisa aguentar', () => {
       concessoes: [CONCESSAO_UNICA.concessoes[0]!, CONCESSAO_UNICA.concessoes[0]!],
     }
     expect(() => calcularFcffPorConcessao(duplicada)).toThrow(ErroDeRegraDura)
+    try {
+      calcularFcffPorConcessao(duplicada)
+    } catch (erro) {
+      expect((erro as ErroDeRegraDura).regra).toBe('R-002')
+      expect((erro as ErroDeRegraDura).motivo).toContain('pelo nome')
+    }
   })
 
   it('taxa de desconto que zera o denominador é recusada', () => {

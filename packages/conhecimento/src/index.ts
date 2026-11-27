@@ -17,6 +17,7 @@ export {
   MultiploBloqueado,
   Playbook,
   PremissaDoUsuario,
+  TIPOS_DE_PREMISSA,
   RegraDura,
   SeveridadeMultiplo,
 } from './playbook'
