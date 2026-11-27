@@ -3227,3 +3227,43 @@ forma imperativa.
 
 **Requisitos.** Versão 2.6.0, minor porque a base ganha um tipo de item, o que altera a seção 2.1
 e é alteração de escopo pelo critério da D-078: RF-125 novo, seção 2.1 e RNF-013.
+
+### D-121. Regra dura que a engine cumpre por construção tem guarda de saída, e o erro de regra dura carrega o motivo
+
+**Decisão.** Os validadores de regra dura passam a ter dois tipos.
+
+- **Validador de entrada**, que roda antes da engine, sobre a entrada, como o RF-507 já diz. É o
+  caso do R-104.
+- **Guarda de saída**, para a regra que a engine cumpre por construção. Roda depois da engine,
+  sobre o resultado desagregado, e antes de o resultado ser devolvido. Na `ddm`, são guardas o
+  R-102 (em cada ano, dividendo igual a lucro menos retenção) e o R-103 (a base declarada no
+  resultado é a da entrada).
+
+As duas falhas abortam o cálculo com o mesmo erro estruturado: id da regra, mensagem e motivo
+metodológico (RF-507). Um ponto único, `executarDdm`, roda os validadores de entrada, a engine e
+as guardas, nessa ordem, e é ele que o comando da PR C chama.
+
+**Motivo.** Validador de entrada para regra que vale por construção não tem o que verificar: com
+o dividendo derivado, dividendo igual a lucro menos retenção vale sempre, e com a base única ROE
+e Ke não têm como estar em bases diferentes. Seria proteção que nunca reprova nada (D-073,
+D-074). A guarda de saída é o único lugar onde o defeito de engine que a D-114 quer pegar
+aparece.
+
+**Descartado.** Validar R-102 na entrada recalculando a retenção: é a engine duplicada dentro do
+validador, e as duas cópias divergem. Guarda embutida na engine, como a R-002 da fcff: mistura
+regra com cálculo, e o RF-506 pede validador próprio, com teste próprio.
+
+**Dividendo negativo.** Quando a retenção exigida passa do lucro, o dividendo do ano sai
+negativo, a engine mantém o valor e marca o ano como `aporte_implicito`; o valor presente inclui
+esse fluxo. Motivo: zerar seria a engine escolher valor (RP-003), e bloquear impediria simular
+banco que cresce acima do que o lucro sustenta. Decidido pelo curador em 26/11/2026.
+
+**Classes de erro.** `ErroDePremissa` e `ErroDeRegraDura` passam para
+`packages/dominio/src/erros.ts`, com motivo obrigatório; a R-002 da fcff ganha motivo e a engine
+vai a 0.4.1. Mover o erro não conta como tocar a engine para fins da D-116: a inflação por ano na
+fcff continua para quando a lógica de cálculo dela mudar.
+
+**O que muda.** RF-507 passa a dizer os dois tipos. D-114: onde ela diz que R-102 e R-103 ficam
+como guarda, a guarda é a de saída desta decisão. O `ErroDeRegraDura` ganha o campo `motivo`.
+
+**Requisitos.** Versão 2.6.1, junto com a sonda da `ddm`: RF-507.
