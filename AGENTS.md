@@ -10,12 +10,12 @@ depois este arquivo, depois `PROTOCOLO-ETAPA.md`.
 
 ## 1. Estado atual
 
-**Data:** 26/11/2026
-**Etapa concluída:** Passo 3, primeiro bloco. Uma engine só, `fcff_por_concessao`, escrita
+**Data:** 27/11/2026
+**Etapa concluída:** Passo 3, segundo bloco, a `ddm` escrita como sonda (PR B, D-121), com validadores separados e o ponto único `executarDdm`; `bancos-b3` 0.5.0 e requisitos 2.6.1. Antes dela, o primeiro bloco: a `fcff_por_concessao`, escrita
 como sonda deliberada (D-075). Depois dela, o rename de `reducao_contratual.fator` para
 `percentual_reducao` (D-078), que fecha a ambiguidade de nome da B8 e não a premissa.
 Desde então, sem etapa de engine nova: decisões D-085 a D-120, a manutenção de governança de 07/11/2026, as conferências da B2 e da B6 (09 e 11/11/2026) e a PR A do terreno da sonda da `ddm`, em 26/11/2026: o documento de requisitos com nome fixo (D-119) e o tipo mecanismo de cálculo em `conhecimento/mecanismos/`, com schema, checagem cruzada e fixtures, sem nenhum mecanismo real (D-120, RF-125).
-**Etapa seguinte:** PR B, o Passo 3 com a `ddm` escrita como sonda, pelo critério da D-105. A parada dura saiu para bancos. A sonda já nasce com o modelo de retenção da D-114 e a projeção por ano da D-116, e é no mesmo commit dela que entram playbook `bancos-b3` 0.5.0, schema e o patch de requisitos dessas duas decisões. Os validadores R-102, R-103 e R-104 nascem separados da engine, em `packages/dominio/src/validadores/` (RF-506, RF-507), que hoje está vazia. O arquivo de premissas da `ddm` nasce com ela, e estes pontos já estão levantados, sem texto: dividendo derivado negativo, que pediria aporte de capital; lucro do ano zero ou negativo, em que o payout derivado (dividendo / lucro) não tem valor ou troca de sinal; PL tratado como capital regulatório, sem as deduções; lucro do ano sobre o PL do início do ano, e não sobre o PL médio; lucro do primeiro ano da perpetuidade como ROE da perpetuidade vezes PL do fim do horizonte, com crescimento diferente do da perpetuidade na passagem; valor por unit como soma das classes, supondo o mesmo valor por ação em ON e PN; dividendo no fim do ano, e não no meio; ano 1 descontado inteiro ou só a fração entre a data-base e a data da cotação; e as hipóteses da D-105 sobre o Banco do Brasil e o Bradesco, se a sonda tocar nelas. Em paralelo, a metade de estudo e autoria da Etapa do Conhecimento (D-112). Depois da PR B, a PR C traz o modo repositório (D-118) já com as duas engines: guia do agente operador, porta de entrada no topo do CLAUDE.md e do AGENTS.md, pasta de análise fora do versionamento, comando de cálculo e marcação de código ou conhecimento modificado. Ficou para a C porque, em 26/11/2026, não havia camada de validadores para o comando chamar, nem regra que traduza os campos do playbook na entrada da engine: a `fcff_por_concessao` pede `data_base` e `horizonte_maximo_ciclos`, que o playbook não declara, e o playbook declara `termos_de_renovacao`, que a engine não aceita. O conteúdo de mecanismo da aula 3 entra depois da `ddm`, por outra PR.
+**Etapa seguinte:** PR C, o modo repositório (D-118), já com as duas engines: guia do agente operador, porta de entrada no topo do CLAUDE.md e do AGENTS.md, pasta de análise fora do versionamento, comando de cálculo e marcação de código ou conhecimento modificado. Na `ddm` a entrada usa os nomes do playbook, com teste que amarra os dois lados, e o comando chama `executarDdm`; na `fcff_por_concessao` falta a regra de tradução, porque a engine pede `data_base` e `horizonte_maximo_ciclos`, que o playbook não declara, e o playbook declara `termos_de_renovacao`, que a engine não aceita. Depois, pela D-105, a conferência documental de bancos (Banco do Brasil e Bradesco) só para premissa da `ddm` que o curador declarar como impeditiva da `excess_return`; o arquivo de premissas propõe a A1. Em paralelo, a metade de estudo e autoria da Etapa do Conhecimento (D-112), e o conteúdo de mecanismo da aula 3 por PR própria.
 
 ### O que existe, pacote por pacote
 
@@ -23,7 +23,7 @@ Desde então, sem etapa de engine nova: decisões D-085 a D-120, a manutenção 
 |---|---|
 | `packages/shared` | `@valuation/shared`. `decimal-config.ts`, o construtor de `decimal.js` clonado com precision 34 e ROUND_HALF_EVEN (D-046); `money.ts` com `Money<Moeda>`, moeda como tipo fantasma; `rate.ts` com `Rate` para toda grandeza adimensional e as conversões de bps; `index.ts` como porta pública, que não exporta o construtor cru nem, por tabela, o `toNumber` dele |
 | `packages/conhecimento` | `@valuation/conhecimento`. Schema Zod dos cinco tipos de item, em `playbook.ts`, `heuristica.ts`, `nota.ts`, `evento.ts` e `mecanismo.ts`, com as peças compartilhadas e os três filtros de texto em `comum.ts`; `validar.ts` com a validação por pasta e as três checagens cruzadas, RF-109 entre nota e playbook, RF-107 do `campo_relacionado` e RF-125 do mecanismo, que confere cada playbook da lista e exige `modelo` e `campo_relacionado` válidos em todos eles (D-120). Na heurística, percentual, decimal e valor em reais em `o_que_verificar` e `por_que_importa` só passam com `fonte` preenchida, e `onde_olhar` recusa percentual e valor em reais sempre (D-111); nota e evento não têm essa regra |
-| `packages/dominio` | `@valuation/dominio`. `engines/fcff-por-concessao.ts`, a única engine; `grades.ts`, as três grades temporais como tipos distintos, ciclo tarifário, competência mensal e exercício social (D-081); `datas.ts`, aritmética de data em texto sem o objeto `Date`; `validadores/` criado e **vazio**; `pureza.test.ts`, que varre o pacote procurando relógio, rede, I/O e aleatoriedade e falha se achar |
+| `packages/dominio` | `@valuation/dominio`. `engines/fcff-por-concessao.ts` (0.4.1) e `engines/ddm.ts` (0.1.0, D-114, D-116, D-121); `erros.ts`, com `ErroDePremissa` e `ErroDeRegraDura`, este com motivo obrigatório (RF-507); `validadores/`, com R-104 de entrada, R-102 e R-103 como guardas de saída e o ponto único `executarDdm` (D-121); `atalhos/convergencia.ts`, o atalho de preenchimento por convergência, que nada chama sozinho; `grades.ts`, as três grades temporais como tipos distintos, ciclo tarifário, competência mensal e exercício social (D-081); `datas.ts`, aritmética de data em texto sem o objeto `Date`; `pureza.test.ts`, que varre o pacote procurando relógio, rede, I/O e aleatoriedade e falha se achar |
 | `tools/` | `validar-conhecimento.ts`, CLI com exit code, varrendo `conhecimento/` por lista branca de pastas e reprovando o que não é tipo de conhecimento (D-102); `ingest/`, a ferramenta de vídeo, que é só `pyproject.toml` e `uv.lock` fixando a biblioteca transcript-normalizer em `v0.8.7` (D-109; era `v0.4.5` na D-102, `v0.6.4` desde 11/10/2026 e `v0.8.1` pela D-103), rodada por `bun run ingest:video <url ou arquivo>` e usada só para obter o texto bruto (D-102). Segue a última tag publicada, sempre fixada no lock, e sobe por `bun run ingest:update` e `bun run ingest:upgrade` (D-109) |
 
 Fora dos pacotes: `conhecimento/playbooks/` com os três playbooks, só estrutura verificável
@@ -41,11 +41,14 @@ quebrando exatamente uma regra, cinco delas de mecanismo. As pastas `conheciment
 - **Manual de comandos.** Não existe. O `docs/ingestao-comandos.md` da PR #10 entrou na main por engano e saiu com a D-110; a referência é `tn --help` e o README da biblioteca, e o que é do projeto fica aqui e no `INGESTAO-video-transcricao.md`.
 - **Instante.** Na legenda da plataforma e no `.srt` ou `.vtt` convertido, é o fim da fala; na transcrição local, o início. `m:ss` antes de 1 hora, `h:mm:ss` depois (D-109).
 
-### Só existe uma engine, e as outras quatro não foram escritas de propósito
+### Existem duas engines, e as outras três não foram escritas de propósito
 
-`ddm`, `excess_return`, `fcff_normalizado` e `sotp` **não existem**, e nenhuma auxiliar
-(`calcular_ke`, `calcular_beta`, `sensibilidade`, `ponderar_cenarios`) tampouco. Nenhum
-validador de regra dura executável existe: `validadores/` está vazio de propósito.
+`excess_return`, `fcff_normalizado` e `sotp` **não existem**, e nenhuma auxiliar
+(`calcular_ke`, `calcular_beta`, `sensibilidade`, `ponderar_cenarios`) tampouco. Os validadores
+de regra dura que existem são os da `ddm` (R-102, R-103, R-104). Os de transmissão (R-001 a
+R-003) continuam valendo dentro da engine, a R-002 por erro lançado e as outras por construção,
+sem validador separado. O resultado da `ddm` não é confiável enquanto houver premissa BLOQUEANTE
+aberta no arquivo dela, e em 27/11/2026 são quatro (D-105).
 
 Isso não é trabalho pela metade. A engine foi escrita como sonda deliberada, e **o curador
 mandou parar depois dela**, para as perguntas que ela gerasse serem respondidas antes de mais
@@ -126,10 +129,13 @@ modos mínimos, e o verbo "determina" que saiu junto com H-044.
 
 ### Documentos
 
-- `docs/REQUISITOS-valuation-simulator.md`, fonte de verdade, versão 2.6.0 (D-120), com nome fixo e a versão só no
-  cabeçalho (D-119); cópia com outro número no cabeçalho está desatualizada. 114 requisitos funcionais,
+- `docs/REQUISITOS-valuation-simulator.md`, fonte de verdade, versão 2.6.1 (D-121), com nome fixo e a versão só no
+  cabeçalho (D-119); cópia com outro número no cabeçalho está desatualizada. 115 requisitos funcionais,
   13 não funcionais, e a seção 9 com os três playbooks byte a byte iguais aos de
   `conhecimento/playbooks/`, verificado por teste (D-065)
+- `docs/premissas-de-interpretacao-ddm.md`, as premissas da sonda da `ddm`: quatro BLOQUEANTES
+  abertas (A1, A3, A4, A5), convenções C1 a C8, robustez A2, R1 a R3, e as hipóteses da D-105 que
+  a sonda não tocou
 - `docs/premissas-de-interpretacao-fcff-por-concessao.md`, as quinze premissas da sonda, dez
   BLOQUEANTES e cinco de ROBUSTEZ
 - `docs/nao-autorado/EXPURGO-2026-08-27.md`, o conteúdo expurgado, com ressalva no topo
@@ -224,7 +230,7 @@ Os passos 0 a 4 antecedem a Fase 1 do documento de requisitos e existem para via
 | 0 | Governança, git, documento em `docs/` | Concluído |
 | 1 | Monorepo Bun, e o primeiro commit real sendo `packages/shared` com `Money`, `Rate` e helpers sobre `decimal.js`, com teste. Antes de schema, antes de engine | Concluído |
 | 2 | Schema Zod do conhecimento e CLI `validar-conhecimento.ts` com exit code. Nasce também a skill `.claude/skills/inspecao-conformidade/` (RNF-011) | Concluído |
-| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Só `fcff_por_concessao` existe. A parada dura saiu para bancos (D-105): a próxima engine é a `ddm`, escrita como sonda, e a `fcff_normalizado` espera a B1 |
+| 3 | Engines contra fixtures, depois auxiliares, depois validadores, depois snapshot | **Em andamento.** Existem `fcff_por_concessao` e `ddm`, as duas como sonda. A próxima de bancos é a `excess_return`, depois da conferência da D-105, e a `fcff_normalizado` espera a B1 |
 | 4 | Loader lendo `conhecimento/` de verdade, engines contra playbook real. Encerra a Fase 1 | Pendente |
 
 Depois seguem as fases 2 a 8 da seção 8 do documento de requisitos. A **Etapa do
@@ -238,7 +244,7 @@ Fase 8. É nela que o curador autora o conteúdo que o expurgo tirou.
 existir, dezenas de heurísticas nascem num formato que depois muda, e refaz tudo. A ordem é
 forçada por dependência, não por preferência.
 
-**Passo 3, ordem das engines.** `fcff_por_concessao` está feita. Faltam `ddm`,
+**Passo 3, ordem das engines.** `fcff_por_concessao` e `ddm` estão feitas. Faltam
 `excess_return`, `fcff_normalizado` e `sotp`, depois as auxiliares `calcular_ke`,
 `calcular_beta`, `sensibilidade` e `ponderar_cenarios`, depois os validadores, depois o
 snapshot. **`fcff_normalizado` não começa antes de B1 ser respondida**, porque as duas
@@ -289,7 +295,7 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | Provider de curva de juros para a taxa livre de risco: Tesouro ou BCB, não decidido | Fase 2, ou Passo 3 se `calcular_ke` precisar antes |
 | Janela de cálculo do beta. RF-408 exige janela declarada mas não fixa o valor. Sessenta meses é convenção comum, decidir e registrar em `DECISOES.md` | Antes de `calcular_beta` |
 | **Schema da RF-113 de 2.4.7.** A RF-113 passou a exigir unidade da premissa, termos nominais ou reais em taxa e crescimento, e duas fontes independentes, e o schema `FaixaReferencia` ainda não cobre nada disso: `minimo` e `maximo` só aceitam taxa, e `n_observacoes` aceita 1. **Nenhuma faixa entra em `conhecimento/` antes de o schema cobrir a RF-113** (D-112) | Antes da primeira faixa |
-| Guidance da companhia como fato de contexto ao lado do campo de ROE | Etapa do Conhecimento ou sonda da `ddm` |
+| Guidance da companhia como fato de contexto ao lado do campo de ROE | Etapa do Conhecimento |
 | Série histórica do PIB (IBGE, variação real e valor nominal, cada uma rotulada) como fato de contexto ao lado do crescimento da perpetuidade, sem média calculada pelo app, e o provider dela | Fase 2 |
 | A base, nominal ou real, do crescimento de 1 a 3% da aula 3, a conferir pelo curador contra a série do IBGE; sem base declarada a observação não entra (RF-113, D-113) | Antes de a observação virar faixa |
 | Teste de propriedade em que `ddm` e `excess_return` dão o mesmo valor com premissas coerentes (D-113) | Quando as duas existirem |
@@ -302,6 +308,9 @@ autorar está em `docs/nao-autorado/EXPURGO-2026-08-27.md`. A skill
 | **Filtro de probabilidade em mecanismo de cálculo.** O mecanismo (RF-125) passa pelo filtro valorativo e pelo de valor de premissa, e não pelo de probabilidade de desfecho (RF-111, RP-007), que hoje só roda em evento; a heurística também não tem. Medido em 26/11/2026: "O cenario de reversao e mais provavel" passa no schema `Mecanismo`. Aplicar o filtro como está pode barrar texto legítimo de mecanismo, porque um dos padrões é "tende a". Achado da inspeção da PR A, sem conteúdo real afetado | Antes da PR que traz o conteúdo de mecanismo da aula 3 |
 | A marcação de modificação do comando de cálculo deve olhar também `tools/`, `package.json` e `bun.lock`, e não só `packages/` e `conhecimento/`: sem isso o agente operador edita o próprio comando e apaga a marcação sem ser denunciado. Amplia a D-118 | PR C do modo repositório |
 | O resultado da `fcff_por_concessao` pelo comando de cálculo deve apontar `docs/premissas-de-interpretacao-fcff-por-concessao.md`, porque B5, B8, B9 e N29 seguem abertas | PR C do modo repositório |
+| A porta pública do `dominio` exporta `calcularDdm` e `calcularFcffPorConcessao`, que rodam a engine sem os validadores. O comando de cálculo tem que chamar `executarDdm`, senão R-102, R-103 e R-104 ficam de fora (RF-507, RF-508). Achado da inspeção da PR B | PR C do modo repositório |
+| A1 da `ddm` (PL como capital regulatório) está proposta como impeditiva da `excess_return`, e N9 a N12 da fcff como transversais às engines de bancos. As duas propostas só valem quando o curador declarar (D-105) | Antes da `excess_return` |
+| Escala da quantidade de ações (R3 da `ddm`): o quadro Composição do Capital vem em unidades ou em mil, e há caso de rótulo "(Mil)" com o número em unidades. Checagens candidatas: total igual à soma das classes, tesouraria menor que o total (já existe na entrada), e ordem de grandeza contra o capital social e o período anterior | Decisão futura do curador |
 | Tolerância dos casos de referência da Fase 8, não definida | Fase 8 |
 | Playbook de Commodities é elaboração própria, sem base bibliográfica consolidada. Validar contra VALE3 | Fase 8 |
 | Beta em ativo de baixa liquidez pode produzir Ke sem significado. A composição CAPM é opcional justamente por isso, mas falta decidir se o app sinaliza número de observações insuficiente | Antes de `calcular_beta` |

@@ -506,6 +506,86 @@ describe('RF-421 e D-040, flag booleana de premissa é proibida', () => {
   })
 })
 
+describe('D-114 e D-116, tipo de premissa é lista fechada: lista_por_ano e escolha', () => {
+  function premissa(extra: Record<string, unknown>) {
+    return PremissaDoUsuario.safeParse({
+      campo: 'premissa_de_teste',
+      obrigatorio: true,
+      default: null,
+      ...extra,
+    })
+  }
+
+  it('aceita os dois tipos, e premissa sem tipo continua valendo', () => {
+    expect(premissa({ tipo: 'lista_por_ano' }).success).toBe(true)
+    expect(premissa({ tipo: 'escolha', subcampos: ['nominal', 'real'] }).success).toBe(true)
+    expect(premissa({}).success).toBe(true)
+  })
+
+  it('recusa tipo fora da lista, que seria lugar para valor com nome de tipo', () => {
+    const r = premissa({ tipo: 'taxa_de_12' })
+    expect(r.error?.issues[0]?.message).toContain('RF-112, D-114')
+    expect(r.error?.issues[0]?.message).toContain('taxa_de_12')
+  })
+
+  it('booleano continua recusado citando RF-421, e não a lista de tipos', () => {
+    const r = premissa({ tipo: 'booleano' })
+    expect(r.error?.issues.length).toBe(1)
+    expect(r.error?.issues[0]?.message).toContain('RF-421')
+    expect(premissa({ tipo: 'boolean' }).error?.issues[0]?.message).toContain('RF-421')
+  })
+
+  it('recusa escolha com uma opção só ou sem opções, pela fixture e em memória', () => {
+    const erros = mensagens(join(FIXTURES, 'playbooks', 'escolha-sem-opcoes.yaml'), 'playbooks')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('pelo menos duas')
+    expect(premissa({ tipo: 'escolha' }).error?.issues[0]?.message).toContain('pelo menos duas')
+  })
+
+  it('recusa opção de escolha com número, pela fixture', () => {
+    const erros = mensagens(join(FIXTURES, 'playbooks', 'escolha-com-valor.yaml'), 'playbooks')
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-112, RP-006: subcampos contém')
+  })
+
+  it('recusa lista_por_ano sem horizonte_anos no playbook, pela fixture', () => {
+    const erros = mensagens(
+      join(FIXTURES, 'playbooks', 'lista-por-ano-sem-horizonte.yaml'),
+      'playbooks',
+    )
+    expect(erros.length).toBe(1)
+    expect(erros[0]).toContain('RF-112, D-116')
+    expect(erros[0]).toContain('serie_de_fixture')
+    const doc = carregar(join(FIXTURES, 'playbooks', 'lista-por-ano-sem-horizonte.yaml'))
+    expect(Playbook.safeParse(doc).error?.issues[0]?.path).toEqual(['premissas_do_usuario'])
+  })
+
+  // Prova B da D-073: corrigida a única violação, cada fixture passa
+  it('escolha-sem-opcoes passa com duas opções (prova B)', () => {
+    const doc = carregar(join(FIXTURES, 'playbooks', 'escolha-sem-opcoes.yaml')) as {
+      premissas_do_usuario: Record<string, unknown>[]
+    }
+    doc.premissas_do_usuario[0]!['subcampos'] = ['opcao_a', 'opcao_b']
+    expect(Playbook.safeParse(doc).success).toBe(true)
+  })
+
+  it('escolha-com-valor passa com nomes sem número (prova B)', () => {
+    const doc = carregar(join(FIXTURES, 'playbooks', 'escolha-com-valor.yaml')) as {
+      premissas_do_usuario: Record<string, unknown>[]
+    }
+    doc.premissas_do_usuario[0]!['subcampos'] = ['opcao_a', 'opcao_b']
+    expect(Playbook.safeParse(doc).success).toBe(true)
+  })
+
+  it('lista-por-ano-sem-horizonte passa com horizonte_anos declarado (prova B)', () => {
+    const doc = carregar(join(FIXTURES, 'playbooks', 'lista-por-ano-sem-horizonte.yaml')) as {
+      premissas_do_usuario: Record<string, unknown>[]
+    }
+    doc.premissas_do_usuario.push({ campo: 'horizonte_anos', obrigatorio: true, default: null })
+    expect(Playbook.safeParse(doc).success).toBe(true)
+  })
+})
+
 describe('RF-105, modo de granularidade reduzida exige aviso', () => {
   it('recusa modo de precisão reduzida sem aviso_obrigatorio', () => {
     const erros = mensagens(

@@ -1,0 +1,36 @@
+# Quebra RF-112 e D-116: premissa lista_por_ano sem a premissa horizonte_anos no
+# playbook. Valida em todo o resto. Prova B: com horizonte_anos declarado, passa.
+id: fixture-setor
+versao: 0.1.0
+mercado: B3
+nome_exibicao: "Setor de fixture"
+deteccao:
+  sinais_fortes:
+    - regulador: FIXTURE
+multiplos_bloqueados:
+  - metrica: "P/L"
+    severidade: alerta
+    motivo: "motivo exibivel qualquer"
+modelos_habilitados: [ddm]
+horizonte_projecao:
+  tipo: convencao_setorial
+  anos: 10
+  ajustavel_pelo_usuario: true
+regras_duras:
+  - id: R-900
+    validador: validarQualquerCoisa
+    mensagem: "mensagem da regra dura"
+modos:
+  - id: unico
+    label: "Modo unico"
+    precisao: alta
+    inputs: [entrada]
+inputs_obrigatorios:
+  - campo: entrada
+    onde_encontrar: "Release de resultados, secao qualquer"
+premissas_do_usuario:
+  - campo: serie_de_fixture
+    obrigatorio: true
+    tipo: lista_por_ano
+    default: null
+fonte: "Fixture de teste"

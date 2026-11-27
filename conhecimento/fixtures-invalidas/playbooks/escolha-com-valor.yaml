@@ -1,0 +1,37 @@
+# Quebra RF-112 e RP-006: opção de escolha com número, que seria preset com outro nome.
+# Valida em todo o resto. Prova B: com nomes sem número, passa.
+id: fixture-setor
+versao: 0.1.0
+mercado: B3
+nome_exibicao: "Setor de fixture"
+deteccao:
+  sinais_fortes:
+    - regulador: FIXTURE
+multiplos_bloqueados:
+  - metrica: "P/L"
+    severidade: alerta
+    motivo: "motivo exibivel qualquer"
+modelos_habilitados: [ddm]
+horizonte_projecao:
+  tipo: convencao_setorial
+  anos: 10
+  ajustavel_pelo_usuario: true
+regras_duras:
+  - id: R-900
+    validador: validarQualquerCoisa
+    mensagem: "mensagem da regra dura"
+modos:
+  - id: unico
+    label: "Modo unico"
+    precisao: alta
+    inputs: [entrada]
+inputs_obrigatorios:
+  - campo: entrada
+    onde_encontrar: "Release de resultados, secao qualquer"
+premissas_do_usuario:
+  - campo: base_de_fixture
+    obrigatorio: true
+    tipo: escolha
+    subcampos: [opcao_a, "0.5"]
+    default: null
+fonte: "Fixture de teste"
