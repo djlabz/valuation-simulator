@@ -116,12 +116,13 @@ export const PremissaDoUsuario = z.strictObject(
       'valor_sugerido ou exemplo, e por isso nenhuma é aceita',
   },
 ).superRefine((premissa, ctx) => {
-  if (premissa.tipo === 'escolha' && (premissa.subcampos?.length ?? 0) < 2) {
+  // opções distintas: [nominal, nominal] tem duas entradas e uma opção só (revisão da PR #18)
+  if (premissa.tipo === 'escolha' && new Set(premissa.subcampos ?? []).size < 2) {
     ctx.addIssue({
       code: 'custom',
       message:
         `RF-112, D-114: premissa ${premissa.campo} é escolha e precisa de pelo menos duas ` +
-        'opções em subcampos, senão não há o que escolher e a única opção vira default',
+        'opções distintas em subcampos, senão não há o que escolher e a única opção vira default',
     })
   }
 })
@@ -249,7 +250,11 @@ export const Playbook = z.strictObject({
 }).superRefine((playbook, ctx) => {
   // D-116: lista por ano tem o tamanho do horizonte, e o horizonte é premissa do
   // playbook. Sem ela, a lista não tem tamanho definido
-  const temHorizonte = playbook.premissas_do_usuario.some((p) => p.campo === 'horizonte_anos')
+  // o horizonte é escalar (RF-422): um horizonte declarado como lista ou escolha não
+  // dá tamanho a lista nenhuma (revisão da PR #18)
+  const temHorizonte = playbook.premissas_do_usuario.some(
+    (p) => p.campo === 'horizonte_anos' && p.tipo === undefined,
+  )
   if (temHorizonte) return
   for (const premissa of playbook.premissas_do_usuario) {
     if (premissa.tipo !== 'lista_por_ano') continue
@@ -258,7 +263,7 @@ export const Playbook = z.strictObject({
       path: ['premissas_do_usuario'],
       message:
         `RF-112, D-116: premissa ${premissa.campo} é lista_por_ano e o playbook não declara ` +
-        'a premissa horizonte_anos, que dá o tamanho da lista',
+        'a premissa horizonte_anos como valor único, que dá o tamanho da lista',
     })
   }
 })

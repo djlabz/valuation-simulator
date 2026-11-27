@@ -19,8 +19,11 @@ export function porConvergencia(partida: string, chegada: string, prazo: number)
   const s = Rate.de(chegada, 'valor de chegada da convergência')
   const passo = s.subtrai(p).divididoPor(Rate.de(String(prazo), 'prazo'), 'prazo da convergência')
   const valores: string[] = []
-  for (let t = 1; t <= prazo; t += 1) {
+  // o último ano é a chegada, e não o passo multiplicado de volta: com passo que não
+  // é decimal exato, tipo 1/3, a conta pararia um dígito abaixo (revisão da PR #18)
+  for (let t = 1; t < prazo; t += 1) {
     valores.push(p.soma(passo.multiplicaPor(Rate.de(String(t), 'ano'))).paraArmazenamento())
   }
+  valores.push(s.paraArmazenamento())
   return valores
 }

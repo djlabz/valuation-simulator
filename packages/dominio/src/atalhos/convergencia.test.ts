@@ -22,7 +22,13 @@ describe('D-114, convergência: o ano zero não é aplicado e o ano N chega no a
     iguais(porConvergencia('0.2', '0.1', 4), ['0.175', '0.15', '0.125', '0.1'])
   })
 
-  it('prazo 1 é o alvo direto', () => {
+  it('com passo que não é decimal exato, o último ano é exatamente a chegada', () => {
+    const valores = porConvergencia('0', '1', 3)
+    expect(valores[2]).toBe('1')
+    expect(Rate.de(valores[0] as string, 'v').igual(Rate.de('1', 'um').divididoPor(Rate.de('3', 't'), 't'))).toBe(true)
+  })
+
+  it('prazo 1 é a chegada direta', () => {
     iguais(porConvergencia('0.08', '0.16', 1), ['0.16'])
   })
 

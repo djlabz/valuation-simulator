@@ -540,6 +540,23 @@ describe('D-114 e D-116, tipo de premissa é lista fechada: lista_por_ano e esco
     expect(erros.length).toBe(1)
     expect(erros[0]).toContain('pelo menos duas')
     expect(premissa({ tipo: 'escolha' }).error?.issues[0]?.message).toContain('pelo menos duas')
+    // duas entradas iguais são uma opção só
+    const repetida = premissa({ tipo: 'escolha', subcampos: ['nominal', 'nominal'] })
+    expect(repetida.error?.issues[0]?.message).toContain('opções distintas')
+  })
+
+  it('horizonte_anos declarado como lista não dá tamanho à lista_por_ano', () => {
+    const doc = carregar(join(FIXTURES, 'playbooks', 'lista-por-ano-sem-horizonte.yaml')) as {
+      premissas_do_usuario: Record<string, unknown>[]
+    }
+    doc.premissas_do_usuario.push({
+      campo: 'horizonte_anos',
+      obrigatorio: true,
+      tipo: 'lista_por_ano',
+      default: null,
+    })
+    const mensagens = Playbook.safeParse(doc).error?.issues.map((i) => i.message) ?? []
+    expect(mensagens.some((m) => m.includes('horizonte_anos como valor único'))).toBe(true)
   })
 
   it('recusa opção de escolha com número, pela fixture', () => {
