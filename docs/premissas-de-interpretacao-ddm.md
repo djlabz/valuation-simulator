@@ -136,8 +136,9 @@ perpetuidade × PL do fim do horizonte, a retenção é g × esse PL, e o divide
 cresce a g. O dividendo do ano N + 1 não é o do ano N vezes (1 + g): o salto entre os dois aparece
 no resultado, e não é suavizado.
 
-**Consequência conferida em teste.** O payout da perpetuidade sai igual a 1 − g / ROE da
-perpetuidade, com qualquer par de valores.
+**Consequência conferida em teste.** Com lucro da perpetuidade positivo, o payout da perpetuidade
+sai igual a 1 − g / ROE da perpetuidade, para qualquer par de valores; sem lucro positivo ele sai
+nulo, pela C2.
 
 ### C5. O dividendo é pago no fim de cada ano
 
